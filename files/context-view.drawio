@@ -1,0 +1,92 @@
+<mxfile host="Electron">
+  <diagram name="context-view" id="ctx-view-001">
+    <mxGraphModel dx="1342" dy="848" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="ctx-title" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=24;fontStyle=1" value="Context View — Linux pKVM 가상화 보안 플랫폼과 외부 모듈 관계" vertex="1">
+          <mxGeometry height="40" width="900" x="350" y="30" as="geometry" />
+        </mxCell>
+
+        <!-- ===== System boundary (개발 대상) ===== -->
+        <mxCell id="sys-boundary" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=18;fontStyle=1;dashed=1;dashPattern=8 8;strokeWidth=3;strokeColor=#9933FF;fillColor=#f8f0ff;verticalAlign=top;align=center;" value="개발 대상 시스템: Linux pKVM 가상화 보안 플랫폼&#10;(상위 미들웨어·프레임워크)" vertex="1">
+          <mxGeometry height="420" width="520" x="540" y="380" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sys-vmfw" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#f8cecc;strokeColor=#00FFFF;strokeWidth=4;" value="pVM 도메인 관리 Framework&#10;(VM Framework)" vertex="1">
+          <mxGeometry height="70" width="220" x="580" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="sys-dynext" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#f8cecc;strokeColor=#00FFFF;strokeWidth=4;" value="동적 확장 / HW IP 할당 제어" vertex="1">
+          <mxGeometry height="70" width="220" x="800" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="sys-vmdrv" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#f8cecc;strokeColor=#00FFFF;strokeWidth=4;" value="VM Driver / VFS&#10;(virtio I/O 가상화)" vertex="1">
+          <mxGeometry height="70" width="220" x="580" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="sys-secos" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#f8cecc;strokeColor=#FF00FF;strokeWidth=4;" value="Secure OS Kernel (RTOS)&#10;EL2 Vendor Module" vertex="1">
+          <mxGeometry height="70" width="220" x="800" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="sys-reedrv" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#f8cecc;strokeColor=#FF00FF;strokeWidth=4;" value="Secure OS REE Driver&#10;(Host↔Secure World 연동)" vertex="1">
+          <mxGeometry height="70" width="440" x="580" y="660" as="geometry" />
+        </mxCell>
+
+        <!-- ===== External: Host Linux 네이티브 스택 ===== -->
+        <mxCell id="ext-host" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;align=center;" value="Host Linux 네이티브 스택 (Normal World, EL0/EL1)&#10;Camera/AI Normal App · Robot Host App · Legacy CA&#10;Camera/AI/Secure-OS REE Framework · 표준 드라이버" vertex="1">
+          <mxGeometry height="140" width="380" x="80" y="380" as="geometry" />
+        </mxCell>
+
+        <!-- ===== External: Secure VM Apps (pVM 페이로드) ===== -->
+        <mxCell id="ext-vmapp" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;align=center;" value="Secure VM Apps (pVM 페이로드)&#10;Robot Secure Camera VM App&#10;Robot Secure AI VM App" vertex="1">
+          <mxGeometry height="120" width="380" x="80" y="600" as="geometry" />
+        </mxCell>
+
+        <!-- ===== External: pKVM 하이퍼바이저 ===== -->
+        <mxCell id="ext-pkvm" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffe6cc;strokeColor=#d79b00;verticalAlign=top;align=center;" value="pKVM 하이퍼바이저 (EL2)&#10;Stage-2 격리 · pVM 생성/스케줄링 기반" vertex="1">
+          <mxGeometry height="90" width="520" x="540" y="900" as="geometry" />
+        </mxCell>
+
+        <!-- ===== External: TrustZone Secure World ===== -->
+        <mxCell id="ext-tz" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;verticalAlign=top;align=center;" value="TrustZone Secure World (TEE)&#10;Secure OS SPD · TEE Framework&#10;Crypto TA · Keymanagement TA · Legacy TA&#10;Security HW Driver" vertex="1">
+          <mxGeometry height="150" width="380" x="1140" y="380" as="geometry" />
+        </mxCell>
+
+        <!-- ===== External: HW IP ===== -->
+        <mxCell id="ext-hw" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#e1d5e7;strokeColor=#9673a6;verticalAlign=top;align=center;" value="HW IP&#10;Camera HW · AI HW (NPU) · Security HW" vertex="1">
+          <mxGeometry height="100" width="380" x="1140" y="610" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Relationships ===== -->
+        <mxCell id="e-host" parent="1" style="endArrow=classic;html=1;strokeWidth=2;fontSize=13;" value="제어/통신 인터페이스 호출&#10;(pVM 생성·할당 요청)" edge="1" source="ext-host" target="sys-vmfw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-vmapp" parent="1" style="endArrow=classic;html=1;strokeWidth=2;fontSize=13;" value="격리 도메인(pVM) 호스팅·생명주기 관리" edge="1" source="sys-vmfw" target="ext-vmapp">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="520" y="485" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-pkvm" parent="1" style="endArrow=classic;html=1;strokeWidth=2;fontSize=13;" value="하이퍼콜 / Stage-2 격리 제어" edge="1" source="sys-reedrv" target="ext-pkvm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-tz" parent="1" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;fontSize=13;" value="SMC / Secure World 연동&#10;(키관리·암호 위임)" edge="1" source="sys-secos" target="ext-tz">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-hw" parent="1" style="endArrow=classic;html=1;strokeWidth=2;fontSize=13;" value="HW IP를 pVM에 격리 할당&#10;(ISP·NPU·센서 패스스루)" edge="1" source="sys-dynext" target="ext-hw">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1080" y="485" />
+              <mxPoint x="1080" y="660" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ===== Legend ===== -->
+        <mxCell id="legend-box" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;verticalAlign=top;align=left;fillColor=none;strokeColor=#999999;" value="범례&#10;· 분홍(f8cecc): 개발 대상 시스템 모듈&#10;· 점선 경계: 시스템 경계(개발 범위)&#10;· 그 외 색상: 외부 모듈(연동 대상)" vertex="1">
+          <mxGeometry height="110" width="380" x="1140" y="780" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
