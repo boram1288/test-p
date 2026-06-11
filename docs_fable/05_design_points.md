@@ -1,6 +1,6 @@
 # Design Point 목록
 
-> 본 문서는 `04_architectural_drivers.md` 5.2절의 설계 착수 순서(T-1~T-5 연계 6단계), `99_additional_design_points.md`의 교차(cross-cutting) Design Point(DP-A~E), 추가로 식별한 보안 정책 DP를 통합하여, 아키텍처 설계 착수 전 확정해야 할 **모든 Design Point**를 정리한다.
+> 본 문서는 `04_architectural_drivers.md` 5.2절의 설계 착수 순서(T-1 ~ T-5 연계 6단계), `99_additional_design_points.md`의 교차(cross-cutting) Design Point(DP-A ~ DP-E), 추가로 식별한 보안 정책 DP를 통합하여, 아키텍처 설계 착수 전 확정해야 할 **모든 Design Point**를 정리한다.
 >
 > 진행 순서: 요구사항 수집 → 요구사항 도출 → QAW → Architectural Driver 선정 → **Design Point 목록(본 문서)**
 
