@@ -70,7 +70,7 @@ flowchart TB
 | M-3 | **레퍼런스 시나리오 워크스루** | SH-2, SH-5, SH-6 | Secure Vision AI 파이프라인(캡처→ISP→NPU 추론→판단 결과 전달)을 단계별로 추적하며 기능·품질 요구 식별 |
 | M-4 | **경쟁·유사 솔루션 벤치마킹** | SH-2, SH-7 | Android AVF(Microdroid, VirtualizationService) 구조 분석을 통한 기능 기준선 및 차별화 지점(Linux 네이티브, Secure OS 수용, TrustZone 공존) 식별 |
 | M-5 | **표준·규제 분석** | SH-9 | GDPR·개인정보보호법의 기술적 격리 요구, ARM Architecture Reference Manual(EL2, Stage-2, FEAT_VHE) 제약 |
-| M-6 | **기술 검증(PoC)·파트 간 기술 협의** | SH-2, SH-3 | pKVM hypercall 인터페이스 범위, HW IP(ISP·NPU) passthrough 가능 범위, Secure OS 이식(SRCX 담당) 작업량 등 기술 제약 수집 |
+| M-6 | **기술 검증(PoC)·파트 간 기술 협의** | SH-2, SH-3 | pKVM hypercall 인터페이스 범위, HW IP(ISP·NPU)의 Host·pVM 간 공유(SW 중재) 실현 범위, Secure OS 이식(SRCX 담당) 작업량 등 기술 제약 수집 |
 | M-7 | **품질 속성 워크숍(QAW)** | 전체 | 수집된 VOS를 품질 시나리오로 구체화하고 우선순위 결정 (3단계 "품질 속성 선정"에서 수행) |
 
 ---
@@ -83,13 +83,13 @@ flowchart TB
 | ID | Stakeholder | VOS (원시 요구) | 출처 | 요구 유형(예상) |
 |----|-------------|-----------------|------|----------------|
 | VOS-01 | SH-5 로봇 제조사 | "Host OS(Linux 커널)가 해킹되더라도 카메라 영상 원본, AI 모델 가중치, 추론 중간 데이터는 절대 노출되면 안 된다." | M-2, M-1(R-1) | QA(보안) |
-| VOS-02 | SH-5 로봇 제조사 | "영상 처리와 AI 추론은 ISP·NPU 하드웨어 가속을 그대로 써야 한다. SW 처리만으로는 실시간성이 안 나온다." | M-2, M-3(R-2) | FR + QA(성능) |
+| VOS-02 | SH-5 로봇 제조사 | "영상 처리와 AI 추론은 ISP·NPU 하드웨어 가속을 그대로 써야 한다. SW 처리만으로는 실시간성이 안 나온다. 그리고 ISP·NPU는 보안 시나리오 전용이 아니다. 일반 촬영·일반 AI 기능도 Host에서 같은 HW IP를 동시에 써야 한다." | M-2, M-3(R-2) | FR + QA(성능) |
 | VOS-03 | SH-5 로봇 제조사 | "우리 제품은 Yocto/Ubuntu 기반 Linux다. Android 스택에 종속된 솔루션은 채택할 수 없다." | M-2, M-4 | CONST |
 | VOS-04 | SH-5 로봇 제조사 | "보안 기능을 켰을 때 전력·메모리 오버헤드가 과도하면 제품에 탑재할 수 없다." | M-2 | QA(성능·자원 효율) |
 | VOS-05 | SH-1 과제 PM | "Secure Vision AI 하나만 되는 솔루션은 의미가 없다. 이후 시나리오(개인정보 처리, 펌웨어 보호 등)를 프레임워크 수정 없이 수용해야 SoC 사업 경쟁력이 생긴다." | M-2, M-1(4절) | QA(확장성) |
 | VOS-06 | SH-1 과제 PM | "2026-10-30까지 Secure Vision AI End-to-End 데모가 동작해야 한다. 인력은 Security 9명, HV 3명, SRCX 5명이다." | M-1(5.1절) | CONST |
 | VOS-07 | SH-2 Security 파트 | "Secure Camera 도메인과 Secure AI 도메인은 서로 독립적으로 동시에 떠 있어야 하고, 한쪽이 침해돼도 다른 쪽은 안전해야 한다." | M-3(R-3) | FR + QA(보안) |
-| VOS-08 | SH-2 Security 파트 | "ISP·NPU를 pVM에 할당할 때 DMA 경로(SMMU/IOMMU)까지 막지 않으면 격리가 깨진다." | M-6 | QA(보안) |
+| VOS-08 | SH-2 Security 파트 | "ISP·NPU는 다중 컨텍스트를 지원하지 않는 HW다. pVM이 사용하는 동안 DMA 경로(SMMU/IOMMU)까지 막지 않으면 격리가 깨지고, 사용 주체가 바뀔 때 잔류 데이터를 지우지 않으면 데이터가 샌다." | M-6 | QA(보안) + CONST |
 | VOS-09 | SH-2 Security 파트 | "두 격리 도메인 간(Camera→AI), pVM↔Host 간 데이터 전달은 노출 없이, 그리고 영상 파이프라인을 막지 않을 만큼 빠르게 이뤄져야 한다." | M-3 | FR + QA(성능·보안) |
 | VOS-10 | SH-3 HV 파트 | "pKVM 커널(EL2)은 기 포팅된 것을 그대로 쓴다. EL2 코드 수정이 필요한 설계는 받을 수 없고, 제공되는 hypercall 인터페이스 범위 안에서 설계해야 한다." | M-6, M-1(5.2절) | CONST |
 | VOS-11 | SH-2 Security 파트 (SRCX, Secure OS 이식) | "기존 Secure OS를 pVM에 올리는 이식 작업의 인터페이스가 명확해야 한다. 프레임워크가 바뀔 때마다 이식을 다시 하는 구조면 일정 내 불가능하다." | M-6 | QA(변경 용이성·이식성) |
