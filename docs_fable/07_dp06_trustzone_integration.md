@@ -122,7 +122,7 @@ pVM이 직접 SMC를 발행하면 pKVM(EL2)이 이를 트랩하여 EL3로 포워
 | G2 | **VMID 바인딩 단계적 확정**: 본 DP는 EL2→EL3→TEE의 호출 주체(VMID) 전달 경로만 확정. 신뢰 아이덴티티 결합은 DP-09(측정값)·DP-10(아이덴티티) 완료 후 역방향 반영. 그때까지 VMID 단독을 인증 근거로 사용 금지 | DP-09, DP-10 |
 | G3 | **SMC ABI·버퍼 소유권**: TEE가 pVM 메모리를 Stage-2 격리와 양립하며 참조하는 방법(파라미터 버퍼 소유권 포함)은 DP-04의 공유 메모리 구조 결정에 위임 | DP-04 |
 | G4 | **DoS 한계**: pVM발 TEE 호출 폭주가 기존 Host TEE 기능을 마비시키면 CONST-03 위반. 쿼터·레이트리밋의 집행 주체(EL3 디스패처 또는 TEE 진입부)를 SRCX와 협의하여 확정 | SRCX 협의 |
-| G5 | **TEE 신규 TA 자원 예산표**: DP-06·07·08·09·11의 신규 TA 합산 부하(호출 빈도·세션·메모리)를 본 문서 부록으로 통합 관리. 각 DP의 TA는 예산 배정 후 도입 (DP-07 attestation TA는 2단계 도입 시 등록) | SRCX 협의, 후속 DP |
+| G5 | **TEE 신규 TA 자원 예산표**: DP-06·07·08·09·11의 신규 TA 합산 부하(호출 빈도·세션·메모리)를 본 문서 부록으로 통합 관리. 각 DP의 TA는 예산 배정 후 도입 (DP-07 attestation TA는 2단계 도입 시 등록. DP-08 key TA: 호출 부팅 시 1회/workload 저빈도, secure storage quota·key namespace·boot storm rate limit 포함 — 15 문서 G7) | SRCX 협의, 후속 DP |
 
 ### 후속 DP에 주는 전제
 
