@@ -237,19 +237,6 @@ pKVM이 제공하는 것은 Stage-2 기반 메모리 격리라는 **메커니즘
 | G-3 | **확장 가능한 워크로드 수용 구조 확보** | 신규 보안 워크로드 및 다양한 Secure OS를 프레임워크 수정 없이 pVM으로 탑재 가능한 구조 (Android AVF 미제공 기능) |
 | G-4 | **기존 ARM TrustZone 완전 지원** | 기존 Secure OS 기반 TEE 기능과의 상호운용성 보장 |
 
-### 6.3 주요 품질 목표 (TBD — Design Point 도출 후 확정)
-
-품질 목표의 세부 지표와 수치는 Bottom-up 설계 접근(DP 추출 → 핵심 DP 선정)에 따라 핵심 DP 확정 후 재정비한다. 현 시점의 방향은 다음과 같다.
-
-| 품질 속성 | 방향 | 근거 |
-|----------|------|------|
-| **성능** | Secure Vision AI 파이프라인이 실시간 처리 요건 충족 (CPU/메모리 오버헤드 네이티브 대비 5% 이내, I/O 10% 이내 수준) | ACM SAC 2024 — pVM 워크로드 오버헤드 측정 연구 |
-| **가용성** | 단일 pVM 장애 시 Host 및 타 pVM 무중단 | Stage-2 격리의 기술적 특성 |
-| **보안** | Host OS 침해 시에도 pVM 메모리 접근 차단 유지 | Stage-2 Page Table 기반 격리 |
-| **변경 용이성** | 신규 보안 워크로드 추가 시 프레임워크 코드 무수정 | 플러그인형 확장 구조 (G-3) |
-
-> 성능 근거: Wei et al., "Measuring and Optimizing the Performance of the Android Virtualization Framework", ACM SAC 2024 — [https://dl.acm.org/doi/abs/10.1145/3605098.3636097](https://dl.acm.org/doi/abs/10.1145/3605098.3636097)
-
 ---
 
 ## 참고 자료
@@ -269,5 +256,4 @@ pKVM이 제공하는 것은 Stage-2 기반 메모리 격리라는 **메커니즘
 - ARM Architecture Reference Manual — EL2 / Stage-2 Address Translation
 - ARM Architecture Reference Manual ARMv8-A — D1.2.2 Virtualization Host Extensions (FEAT_VHE)
 - Will Deacon et al., "Protecting the Protected: Building a Protected KVM Hypervisor", Linux Security Summit NA 2021
-- Wei et al., "Measuring and Optimizing the Performance of the Android Virtualization Framework", ACM SAC 2024
 - Confidential Computing Consortium, "Confidential Computing as a Strategic Imperative for Secure AI" (https://confidentialcomputing.io/2025/12/03/new-study-finds-confidential-computing-emerging-as-a-strategic-imperative-for-secure-ai-and-data-collaboration/)
