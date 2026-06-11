@@ -134,7 +134,7 @@ EL2 VMID와 공용 관리 서비스의 레지스트리("VMID 7 = Secure Camera")
 
 | # | 조건 | 처리 |
 |---|------|------|
-| G1 | **(CRITICAL) DP-09 단계적 확정**: 바인딩 구체 형태는 DP-09 결정에 위임하고 완료 후 역반영. DP-09 검토 시 본 골격(TEE 발급, 측정값 바인딩, ephemeral 키 서명)을 입력 전제로 전달하되 측정 주체·포맷의 선택권은 DP-09에 있음 | DP-09 |
+| G1 | **(CRITICAL) DP-09 단계적 확정**: 바인딩 구체 형태는 DP-09 결정에 위임하고 완료 후 역반영. DP-09 검토 시 본 골격(TEE 발급, 측정값 바인딩, ephemeral 키 서명)을 입력 전제로 전달하되 측정 주체·포맷의 선택권은 DP-09에 있음. **[역반영 1단계 완료 — 2026-06-12, 17 문서 5.3절]** 측정값 포맷 골격(manifest hash·profile·base/bootloader/kernel/payload hash·보호 자산 chunk manifest hash·key epoch·manifest version) 수령 → measurement-bound 토큰의 claim 구조 확정. **완전 폐쇄(골격→확정 전환)는 H7(DP-02 정본) HV 확인 후** — 측정 주체·전달 경로 실증 필요 | DP-09 G3, H7 |
 | G2 | **credential buffer 일원화**: 자격 방출 버퍼는 DP-04 G3 정본(Secure World 전용 소유권 모델)의 부트스트랩 서브셋으로 정의하며, 일반 pVM↔pVM 채널(DP-04 후보 A)보다 선행 가용해야 한다. 2절 후보 A의 "DP-04 정의 공유 영역" 표현은 본 게이트로 교정한다 (부트스트랩 순서는 DP-04 5절과 공통) | DP-04 G3 |
 | G3 | **무효화-해제 시간 경계**: 자격에 짧은 수명·epoch·nonce를 두고, 철회 시 TEE revocation check + DP-04 채널 강제 해제(DP-12 G4)를 양방향 연동. 무효화~해제 사이 시간 창의 보증 한계를 DP-11 G4 패턴으로 명시 | DP-04, DP-12 |
 | G4 | **한계 명시**: 본 체계가 막는 것은 "타 도메인 아이덴티티 위조"이며, 침해된 pVM의 자기 자격 악성 사용은 막지 못함 — DP-07 증빙 한계 절에 기록 | DP-07 G4 |

@@ -61,6 +61,7 @@ pVM마다 독립 VMM 프로세스(KVM ioctl로 해당 pVM만 소유)를 두고, 
 | H4 | fault·이벤트 노출 인터페이스 (시퀀스·드롭 카운터 포함) | DP-11 G1·G2 |
 | H5 | pVM발 SMC 포워딩 (VMID 식별 포함) | DP-06 G1 |
 | H6 | SMMU 바인딩 제어 의미론 | DP-03, DP-12 G3 |
+| H7 | pVM 초기 측정/attestation: EL2 수정 없이 pVM 최초 이미지 측정값을 생성하고 TEE에 신뢰 경로(instance 식별자 동반)로 전달 — DP-09 G1이 신설 요청, 요구 명세는 17 문서 5절. H6과 같은 HV 세션에서 질의하되 폴백 트리거는 독립 | DP-09 G1, DP-08 G2, DP-10 G1, DP-06 G2, DP-12 G5 |
 
 ### 평가 기준
 

@@ -128,7 +128,7 @@
 
 ### 부트스트랩 순서 (DP-10과 공통 명시)
 
-(i) pVM↔TEE 최소 credential 버퍼(G3 정본의 부트스트랩 서브셋) 정의 → (ii) TEE가 부팅 시 measured 자격 방출(DP-10, DP-09 측정값 전제) → (iii) 방출된 자격으로 pVM↔pVM 상호 인증(DP-10) → (iv) 인증 성공 후 H2 share 영역 할당·accept(후보 A). 이 순서로 DP-04↔DP-10 순환을 끊는다.
+(i) pVM↔TEE 최소 credential 버퍼(G3 정본의 부트스트랩 서브셋) 정의 → (i.5) 부트로더가 H7 경로(EL2 매개)로 측정값을 **자격 없이** TEE에 보고(DP-09 G5 역반영 — 측정 보고 경로는 credential buffer와 별개, 이 단계가 "자격 발급에 측정값 필요 ↔ 측정 보고에 자격 필요"의 순환을 끊는다) → (ii) TEE가 부팅 시 measured 자격 방출(DP-10, DP-09 측정값 전제) → (iii) 방출된 자격으로 pVM↔pVM 상호 인증(DP-10) → (iv) 인증 성공 후 H2 share 영역 할당·accept(후보 A). 이 순서로 DP-04↔DP-10 순환을 끊는다.
 
 ### 채택 조건 (게이트)
 
