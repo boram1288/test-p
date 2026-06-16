@@ -1,102 +1,105 @@
 # 과제 소개
 
-## 과제명: Linux pKVM 기반 가상화 보안 플랫폼 개발
+## 과제명: 로봇용 커스텀 SoC를 위한 pKVM 기반 확장형 보안 프레임워크 개발
+
+> 구 과제명: Linux pKVM 기반 가상화 보안 플랫폼 개발
+> 2026-05-29 리뷰 회의 결정에 따라 타겟(커스텀 SoC), 타겟 산업군(로봇), 핵심 키워드(확장성)가 드러나도록 과제명을 변경함.
 
 ---
 
 ## 1. 배경 및 필요성
 
-### 1.1 로봇/스마트 디바이스/자동차 분야의 사이버보안 위협 현황
+### 1.1 타겟 산업군: 로봇
 
-지능형 로봇, 연결형 스마트 디바이스, 자동차의 확산으로 사이버 공격의 규모와 피해가 급증하고 있다.
+지능형 로봇은 카메라 영상 인식과 온디바이스 AI 추론을 핵심 기능으로 하는 대표적인 Linux 기반 디바이스다. 로봇 제조사들은 차별화된 성능·전력 효율을 위해 ISP(영상 처리), NPU(AI 추론) 등 전용 HW IP를 탑재한 **커스텀 SoC**를 채택하고 있으며, 커스텀 SoC 사업의 주요 성장 분야로 로봇 산업이 부상하고 있다.
 
-#### 주요 보안 사고 사례
+동시에 로봇은 가정·공장 내부의 영상과 행동 데이터를 상시 수집하는 특성상, 보안 사고 발생 시 피해가 직접적이다.
 
-| 연도 | 분야 | 사례 | 피해 | 출처 |
-|------|------|------|------|------|
-| 2024 | 로봇 | Ecovacs Deebot X2 로봇 청소기 해킹 — 카메라·스피커 무단 원격 제어 | 사생활 침해, 제품 신뢰도 손상 | [A] |
-| 2025 | 자동차 | 차량 원격 제어 공격 — 텔레매틱스 취약점 통해 차량 제어권 탈취, 랜섬 요구 | 차 문·창문·시동 원격 조작 | [B] |
-| 2025 | 스마트 디바이스 | 국내 홈캠 12만 대 해킹 — 가정집 IP카메라 무단 접근, 성 착취물 제작·해외 사이트 판매 | 피해 기기 **12만 대**, 피해 장소 58곳 확인, 일당 4명 검거 | [C] |
+- 2024년 Ecovacs Deebot X2 로봇 청소기 해킹 — 카메라·스피커 무단 원격 제어로 가정 내부 영상 노출 [A]
+- 2025년 국내 IP카메라 12만 대 해킹 — 가정 내 영상 무단 접근·유출 [C]
+- 스마트 디바이스 대상 공격 하루 평균 82만 건(2025년 기준), 제조 분야 침해 사고당 평균 비용 $5.56M [F][G]
 
-#### 공격 규모
+로봇 제조사 입장에서 **카메라 영상과 AI 모델·데이터의 보호는 제품 출시의 전제 조건**이 되고 있으며, GDPR·개인정보보호법 등 규제 또한 영상·생체 데이터 처리 과정의 기술적 격리를 요구하고 있다.
 
-- 2025년 기준 스마트 디바이스 대상 공격: **하루 평균 82만 건** [F]
-- 전 세계 사이버범죄 피해 규모: **연간 $10.5조** (2025년 전망) [E]
+### 1.2 진입 장벽: Linux 커스텀 SoC용 보안 실행 환경 솔루션의 부재
+
+로봇용 커스텀 SoC 시장에 진입하기 위해서는 위 보호 요구를 충족하는 보안 실행 환경을 SoC와 함께 제공해야 한다. 그러나 현재 솔루션 지형에는 공백이 존재한다.
+
+| 환경 | 보안 실행 환경 | 비고 |
+|------|---------------|------|
+| Android 스마트폰 | AVF (pKVM 기반, Android 12+) | Android 스택에 종속 |
+| Linux 서버/클라우드 | Confidential Computing (SEV, TDX 등) | 서버용 CPU 전용, 임베디드 SoC 미지원 |
+| **Linux 기반 로봇 커스텀 SoC** | **ARM TrustZone 단독 (구조적 한계 존재)** | **본 과제의 대상 영역** |
+
+로봇 제품의 대부분은 Android가 아닌 **Linux(Yocto, Ubuntu 등) 기반**으로 개발된다. 즉, Android AVF는 사용할 수 없고, TrustZone 단독으로는 후술할 구조적 한계(3.1절)로 요구를 충족할 수 없다.
+
+> **문제 정의**: 로봇용 커스텀 SoC 사업 진입에 필요한 "Linux 환경의 확장 가능한 보안 실행 환경" 솔루션이 부재하다. 본 과제는 이 공백을 메우는 프레임워크를 개발한다.
 
 ---
 
-### 1.2 보안사고 비용과 사업적 영향
+## 2. 타겟 레퍼런스 시나리오: Secure Vision AI
 
-보안사고로 인한 피해 비용은 단순 IT 복구 비용을 훨씬 초과하며, 사업 매출 대비 무시할 수 없는 비중을 차지한다.
+1절의 문제 정의("Linux 커스텀 SoC용 보안 실행 환경 솔루션 부재")만으로는 솔루션이 갖춰야 할 기술 요구사항을 구체적으로 도출할 수 없다. "어떤 보안 실행 환경이 필요한가"는 실제 제품 기능을 기준으로만 답할 수 있기 때문이다. 따라서 타겟 산업군(로봇)을 대표하는 **레퍼런스 시나리오를 먼저 선정하고, 이 시나리오의 구현에 필요한 요구사항을 도출한 뒤(2.2절), 기존 기술이 이를 충족하지 못함을 보이는(3절)** 순서로 과제의 필요성을 논증한다.
 
-#### 로봇/스마트 디바이스/자동차 분야 보안사고 비용
+레퍼런스 시나리오는 다음 기준으로 선정하였다.
 
-| 분야 | 사고당 평균 비용 | 출처 |
-|------|----------------|------|
-| 스마트 디바이스 침해 (일반) | **$5M ~ $10M** (전통 IT 사고 대비 2배 이상) | [F] Forrester Research, DeepStrike 2024 |
-| 제조업 로봇/IIoT 침해 | **$5.56M** (2024, 산업 분야 평균) | [G] IBM Cost of a Data Breach Report 2024 |
-| 자동차 공급망 사고 (CDK Global) | **$10.2억** (2024, 단일 공급망 사고) | [H] Breached.company, Automotive Industry Siege Report 2025 |
-| 글로벌 평균 (전 산업) | **$4.88M** (2024) | [I] IBM Cost of a Data Breach Report 2024 |
-| 미국 평균 | **$10.22M** (법적·규제 페널티 포함) | [I] IBM Cost of a Data Breach Report 2024 |
+| 선정 기준 | Secure Vision AI가 충족하는 이유 |
+|----------|--------------------------------|
+| **산업군 대표성** | 카메라 영상 인식과 AI 추론은 가정용·산업용을 막론한 로봇 제품군의 공통 핵심 기능임 |
+| **보안 요구 대표성** | 1.1절의 실제 사고 사례(로봇 카메라 해킹, 영상 유출)와 직결되는 최우선 보호 대상임 |
+| **HW IP 포괄성** | ISP·NPU 등 커스텀 SoC의 핵심 HW IP를 모두 사용하므로, HW 자원 할당·공유에 대한 요구사항까지 빠짐없이 도출 가능함 |
+| **기존 구조 한계 노출성** | 다중 격리 도메인, 고성능 연산, HW IP 접근을 동시에 요구하여 TrustZone 이진 격리 구조의 한계가 가장 분명하게 드러남 |
+| **확장 구조 검증성** | 두 보안 도메인(Camera, AI)을 결합한 파이프라인이므로, 본 과제의 핵심 키워드인 다중 도메인 확장 구조를 검증하는 출발점이 됨 |
 
-#### 사업 매출 대비 보안사고 비용 비중
+이에 따라 Secure Camera와 Secure AI를 별개 시나리오로 나열하는 대신, 두 도메인을 결합한 단일 파이프라인 **Secure Vision AI**를 레퍼런스 시나리오로 선정한다.
+
+### 2.1 시나리오 정의
+
+**시나리오**: 로봇의 카메라 영상이 캡처부터 AI 추론·판단까지 전 구간에서 Host OS로부터 격리된 채 처리된다. Host OS가 침해되더라도 영상 원본, AI 모델 가중치, 추론 중간 데이터는 노출되지 않으며, 격리 영역 밖으로는 판단 결과만 전달된다.
 
 ```
-보안 사고 1건 발생 시 항목별 예상 손실 (연 매출 1조 원 기준):
-
-  직접 피해(복구·보상):   연 매출의 약 0.75%
-    (IBM Cost of a Data Breach 2024 — 산업 분야 평균 $5.56M)
-
-  생산 중단:              연 매출의 약 2.8%
-    (Comparitech 2024 — 제조업 랜섬웨어 $1.9M/일 × 평균 11일)
-
-  공급망 손실:            직접 손실 대비 최대 4배
-    (SOCRadar, Hidden Cost of Supply Chain Breaches 2025 — NotPetya 공급망 피해 연구 인용)
-
-  브랜드 신뢰도 손상:     연 매출의 약 3~7%
-    (IBM Cost of a Data Breach 2024 — 침해 후 고객 이탈 3~7% 증가)
-
-  → 합산 시 연 매출의 약 6.5% 이상,
-    공급망 포함 대형 사고 시 22% 이상으로 급등 가능
+┌─────────────────────────────────────────────────────────────────┐
+│                  Secure Vision AI 파이프라인                      │
+│                                                                 │
+│  Camera        ┌──────────────────┐   ┌──────────────────┐      │
+│  Sensor ─────► │ Secure Camera    │──►│ Secure AI        │      │
+│                │ 격리 도메인       │   │ 격리 도메인       │      │
+│                │  - ISP HW IP     │   │  - NPU HW IP     │      │
+│                │  - 영상 캡처/전처리│   │  - 모델 가중치    │      │
+│                └──────────────────┘   │  - AI 추론        │      │
+│                                       └────────┬─────────┘      │
+│   · 영상 원본, 모델, 중간 데이터:                 │ 판단 결과만     │
+│     Host OS 접근 불가                            ▼               │
+│                                       ┌──────────────────┐      │
+│                                       │ Host OS (Linux)  │      │
+│                                       │ 로봇 제어 App     │      │
+│                                       └──────────────────┘      │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-> 로봇·스마트 디바이스·자동차 분야의 보안사고는 **생산 라인 중단, 제품·차량 리콜, 개인정보 유출에 따른 법적 제재, 브랜드 신뢰 붕괴**로 연결되어 단발성 IT 사고를 훨씬 초과하는 사업적 손실을 유발한다.
+활용 예: 가정용 로봇의 실내 영상 기반 상황 인식, 제조 로봇의 고객 제품 설계 데이터를 다루는 품질 검사 AI 등.
+
+단, ISP·NPU 등 HW IP는 보안 파이프라인 전용이 아니다. Host의 일반 기능(일반 촬영, 일반 AI 추론 등)도 동일한 HW IP를 사용하므로, 보안 파이프라인이 HW IP를 독점해서는 안 되며 **Host와 격리 도메인이 HW IP를 동시에 사용**할 수 있어야 한다.
+
+### 2.2 시나리오가 요구하는 시스템 요구사항
+
+| ID | 요구사항 | 설명 |
+|----|---------|------|
+| R-1 | **Host 비신뢰 격리** | Host OS(Linux 커널 포함)가 침해되어도 영상·모델·추론 데이터에 접근 불가해야 함 |
+| R-2 | **HW 고성능 연산 지원** | 실시간 영상 처리와 AI 추론을 위해 격리 도메인에서 ISP·NPU 등 HW IP 가속을 안전하게 사용할 수 있어야 함 (SW 처리만으로는 실시간성·연산량 미충족). HW IP는 Host의 일반 기능도 함께 사용하는 공유 자원이므로, 격리 도메인 독점 할당이 아니라 Host와 격리 도메인의 동시 사용을 지원해야 함 |
+| R-3 | **다중 격리 도메인 동시 운용** | Secure Camera 도메인과 Secure AI 도메인을 독립적으로 동시에 생성·운용해야 함 |
+| R-4 | **동적 확장성** | 로봇 기능 추가에 따라 새로운 보안 워크로드를 펌웨어 재배포 없이 동적으로 추가할 수 있어야 함 |
+| R-5 | **기존 Secure OS 상호운용** | 키 관리·인증 등 기존 TrustZone Secure OS 기반 기능과 공존·연동해야 함 |
 
 ---
 
-### 1.3 다양화되는 보안 시나리오
+## 3. 기존 기술의 한계
 
-로봇·스마트 디바이스·자동차가 처리하는 데이터와 연산의 민감도가 높아짐에 따라, 보호해야 할 보안 시나리오가 복잡·다양화되고 있다.
+위 요구사항(R-1~R-5)을 기준으로 기존 기술을 평가한다.
 
-#### 주요 보안 시나리오
+### 3.1 ARM TrustZone 단독 구조의 한계
 
-**① Secure AI (기밀 AI 연산)**
-- 로봇·모바일 내 AI 모델이 추론(Inference) 과정에서 모델 가중치·사용자 데이터 노출 위험
-- 의료·금융 데이터 기반 AI 학습 시 PII(개인식별정보) 포함 데이터의 기밀성 보장 필요
-- 실례: 제조 로봇의 품질 검사 AI가 고객 제품 설계 데이터를 처리할 때 격리 실행 환경 필요
-
-**② Secure Camera (영상 스트림 보호)**
-- 로봇·스마트 디바이스 카메라 영상이 메모리에서 무단 접근되거나 가로채지는 시나리오
-- 실례: 가정용 로봇 청소기 카메라 해킹으로 내부 영상이 무단 전송된 사례 (2024)
-- 카메라 드라이버부터 AI 처리 파이프라인 전 구간에 걸친 격리 환경 필요
-
-**③ 개인정보 활용 보호 (Privacy-Preserving Computation)**
-- 로봇·스마트 디바이스·자동차가 수집하는 생체 정보(지문, 홍채, 음성), 위치 정보의 안전한 처리 필요
-- GDPR, 국내 개인정보보호법 등 규제 강화로 데이터 처리 과정의 법적 격리 요건 증가
-
-**④ 펌웨어 역분석 및 런타임 탈취 방지**
-- 펌웨어 바이너리가 Host OS에 노출될 경우 독점 알고리즘, 인증 로직 탈취 위험
-- 런타임 메모리·시스템 로그·디버그 출력을 Host OS로부터 격리하여 실행 중 민감 데이터 노출 차단 필요
-- 실례: 자동차 ECU 펌웨어 리버싱으로 인증 우회 키 추출 시도
-- pVM 격리 실행 환경으로 바이너리·런타임 상태·로그를 Host OS 접근으로부터 완전 차단
-
----
-
-### 1.4 기존 Linux 솔루션의 한계
-
-현재 Linux 환경에서는 ARM TrustZone 기반의 보안 아키텍처가 사용되고 있으나, 다양화되는 보안 시나리오를 완전히 수용하기에는 구조적 한계가 존재한다.
-
-#### 기존 ARM TrustZone 기반 보안 아키텍처
+현재 Linux 환경에서는 ARM TrustZone 기반의 보안 아키텍처가 사용되고 있다.
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
@@ -126,101 +129,129 @@
 └───────────────────────────────────────────────────────────────┘
 ```
 
-- Hypervisor가 REE EL2에 위치하며, Secure OS가 TEE를 담당
-- Secure OS는 GP Client/Internal API를 REE·TEE 양측에서 지원
-- 어플리케이션의 HW가속을 위한 HW IP는 REE영역에서 사용
+| 한계 | 설명 | 위배 요구사항 |
+|------|------|--------------|
+| **이진 격리 구조** | REE/TEE 두 영역만 존재. Secure Camera·Secure AI 등 다수의 독립 보안 도메인을 동시에 생성 불가 | R-3 |
+| **TEE 자원 제약** | S-EL1 환경은 메모리·연산 자원이 제한적. AI 추론 등 고수준 작업 처리 부적합 | R-2 |
+| **HW IP의 REE 종속** | ISP·NPU 등 HW 가속 IP가 REE 영역에서만 사용 가능하여 격리 도메인에서 사용할 방법이 없음 | R-2 |
+| **동적 확장 불가** | TEE 펌웨어 바이너리로만 배포. 신규 요구사항 발생 시 펌웨어 수정·재배포 필요 | R-4 |
 
-#### 기존 구조의 한계
+### 3.2 일반 Linux KVM의 한계 — pKVM 도입의 기술적 근거
 
-| 한계 | 설명 |
-|------|------|
-| **이진 격리 구조** | REE/TEE 두 영역만 존재. Secure AI·Secure Camera 등 다수의 독립 보안 도메인을 **동시에 생성 불가** |
-| **TEE 자원 제약** | S-EL1 환경은 메모리·연산 자원이 제한적. AI 추론 등 **고수준 작업 처리 부적합** |
-| **동적 확장 불가** | TEE 펌웨어 바이너리로만 배포. 새로운 요구사항으로 변경 필요할 시에 TEE 펌웨어 수정·재배포 필요. **유연성 부족** |
+Linux의 표준 가상화인 KVM은 일반적으로 VHE 모드로 동작하며, Host 커널이 EL2 권한을 직접 보유한다.
 
-> ARM TrustZone 단독으로는 다양한 보안 시나리오에 대응할 수 없다.
-
----
-
-## 2. 기술 현황
-
-### 2.1 Android AVF vs. Linux 현황 비교
-
-| 구분 | Android (AVF) | Linux (현재) |
-|------|---------------|-------------|
-| HV 위치 | EL2 (pKVM, nVHE) | EL2 (Hypervisor) |
-| Stage-2 기반 메모리 격리 | 지원 (pVM 단위) | **미지원** |
-| 가상화 플랫폼 | AVF (통합 관리) | **없음** |
-| 동적 워크로드 격리 | 지원 | **미지원** |
-| 기존 TrustZone 연동 | 제한적 | 완전 지원 |
-
-### 2.2 pKVM 기술 개요
-
-- ARM Cortex-A의 EL2에서 **nVHE(Non-VHE) 모드**로 동작
-- nVHE 모드: Host OS(EL1)가 Hypervisor(EL2)에 직접 접근 불가 — Hypervisor 자체가 신뢰 경계
-- **Stage-2 Page Table**: IPA(Intermediate Physical Address) → PA(Physical Address) 변환을 HV가 독점 제어, pVM 간·pVM↔Host 간 물리 메모리 접근 완전 차단
-- Android 12 (Pixel 6, ARM) 부터 상용 적용
-
-#### nVHE 모드 부가 설명
-
-ARM Cortex-A는 EL2 동작 방식으로 VHE와 nVHE 두 가지를 제공한다.
-
-| 구분 | VHE (Virtualization Host Extensions) | nVHE (Non-VHE) |
-|------|--------------------------------------|----------------|
+| 구분 | VHE (일반 KVM) | nVHE (pKVM) |
+|------|----------------|-------------|
 | 도입 | ARMv8.1 (FEAT_VHE) | ARMv8.0 |
 | Host OS 실행 위치 | EL2 (Host Kernel이 EL2 권한 직접 보유) | EL1 (Host OS는 EL1에서만 실행) |
 | Hypervisor TCB | 크다 (Host OS 코드가 EL2 포함) | 작다 (소형 HV 코드만 EL2에 상주) |
-| 보안 격리 | Host 침해 시 HV도 위협받음 | Host OS가 EL2 코드·레지스터에 접근 불가 |
+| 보안 격리 | **Host 침해 시 HV도 침해됨** | Host OS가 EL2 코드·레지스터에 접근 불가 |
 | 주 목적 | VM Entry/Exit 오버헤드 감소 (성능 우선) | Hypervisor 신뢰 경계 유지 (보안 우선) |
 
-pKVM은 Host OS로부터 pVM을 격리하는 보안 목적을 위해 **성능보다 보안을 우선하여 nVHE를 채택**하였다. EL2에는 pKVM 코드만 상주하며, Host OS(Android)가 침해되더라도 EL2의 신뢰 경계와 pVM 메모리 격리가 유지된다.
+일반 KVM(VHE)에서는 Host 커널이 침해되면 Hypervisor와 모든 VM의 메모리가 함께 노출된다. 즉 **"Host OS를 신뢰하지 않는다"는 R-1을 구조적으로 충족할 수 없다.** 반면 pKVM은 nVHE 모드에서 소형 Hypervisor만 EL2에 상주시키고 Stage-2 Page Table 변환(IPA→PA)을 Hypervisor가 독점 제어하므로, Host가 침해되어도 pVM(protected VM)의 메모리 격리가 유지된다. 이것이 기존 Linux KVM이 아닌 **pKVM을 도입해야 하는 기술적 근거**다.
 
 > 근거: ARM Architecture Reference Manual ARMv8-A — D1.2.2 Virtualization Host Extensions (FEAT_VHE); Will Deacon et al., "Protecting the Protected: Building a Protected KVM Hypervisor", Linux Security Summit NA 2021
 
+### 3.3 Android AVF의 한계 — 본 과제의 차별화 지점
+
+pKVM을 상용화한 Android AVF(Android 12+, Pixel 6부터 적용)가 존재하지만, 본 과제의 대상 영역에는 적용할 수 없다.
+
+| 한계 | 설명 | 위배 요구사항 |
+|------|------|--------------|
+| **Android 스택 종속** | VirtualizationService 등 핵심 컴포넌트가 Android 시스템 서비스에 종속. Linux(Yocto 등) 기반 로봇 커스텀 SoC에 사용 불가 | 적용 자체 불가 |
+| **Secure OS 확장 구조 부재** | Microdroid 중심 설계로, 다양한 서드파티 Secure OS를 pVM으로 탑재·교체하는 확장 구조를 제공하지 않음 | R-4 |
+| **TrustZone 연동 제한** | 기존 Secure OS 기반 TEE 기능과의 상호운용이 제한적 | R-5 |
+
+> 본 과제는 AVF의 Linux 포팅이 아니라, **AVF가 제공하지 못하는 기능 — Linux 네이티브 동작, 다양한 Secure OS 수용, TrustZone 완전 공존 — 을 갖춘 독자 프레임워크**를 설계·구현하는 것이다.
+
+### 3.4 요구사항 충족 매트릭스
+
+| 요구사항 | TrustZone 단독 | Linux KVM (VHE) | Android AVF | **본 과제** |
+|---------|:---:|:---:|:---:|:---:|
+| R-1 Host 비신뢰 격리 | 충족 | **미충족** | 충족 | 충족 |
+| R-2 HW 고성능 연산 지원 | **미충족** | 부분 | 부분 | 충족 |
+| R-3 다중 격리 도메인 | **미충족** | 충족 | 충족 | 충족 |
+| R-4 동적 확장성 | **미충족** | 충족 | **부분** (Microdroid 중심) | 충족 |
+| R-5 Secure OS 상호운용 | 충족 | 충족 | **제한적** | 충족 |
+| Linux 커스텀 SoC 적용 | 가능 | 가능 | **불가** | 가능 |
+
 ---
 
-## 3. 과제 개요
+## 4. 해결 방향: 확장성 중심의 pKVM 기반 보안 프레임워크
+
+pKVM이 제공하는 것은 Stage-2 기반 메모리 격리라는 **메커니즘**뿐이다. 레퍼런스 시나리오를 실현하려면 그 위에 다음을 갖춘 프레임워크가 필요하며, 이것이 본 과제의 개발 대상이다.
+
+| 구성요소 | 역할 | 대응 요구사항 |
+|---------|------|--------------|
+| pVM 생명주기 관리 프레임워크 | pVM 생성·실행·종료·자원 관리를 담당하는 Linux 네이티브 미들웨어 | R-1, R-3 |
+| HW IP 할당·공유 구조 | ISP·NPU 등 HW IP를 Host와 격리 도메인이 함께 사용할 수 있도록 안전하게 할당·공유(SW 중재)하는 커널 드라이버 및 인터페이스 | R-2 |
+| 워크로드 확장 구조 | 신규 보안 워크로드·서드파티 Secure OS를 프레임워크 수정 없이 pVM으로 탑재하는 플러그인형 구조 | R-4 |
+| TrustZone 공존 계층 | 기존 Secure OS 기반 기능(키 관리·인증)과의 연동 인터페이스 | R-5 |
+
+핵심 설계 키워드는 **확장성(Extensibility)** 이다. 단일 시나리오 전용 솔루션이 아니라, Secure Vision AI를 첫 레퍼런스로 검증하되 이후 시나리오(개인정보 처리, 펌웨어 보호 등)를 프레임워크 수정 없이 수용하는 구조를 목표로 한다.
+
+---
+
+## 5. 과제 개요 및 범위
+
+### 5.1 과제 개요
 
 | 항목 | 내용 |
 |------|------|
-| 과제명 | Linux pKVM 기반 가상화 보안 플랫폼 개발 |
-| 과제목적 | Hypervisor의 Stage-2 Page Table 기반 메모리 격리를 제공하는 가상화 Linux 플랫폼 개발 |
+| 과제명 | 로봇용 커스텀 SoC를 위한 pKVM 기반 확장형 보안 프레임워크 개발 |
+| 과제목적 | 로봇용 커스텀 SoC의 Linux 환경에서 Secure Vision AI 시나리오를 지원하는, Stage-2 메모리 격리 기반의 확장 가능한 보안 프레임워크 개발 |
+| 타겟 | 커스텀 SoC (로봇 산업군), Linux 기반 |
+| 레퍼런스 시나리오 | Secure Vision AI (Secure Camera + Secure AI 결합 파이프라인) |
 | 참여인력 | Security파트 9명, HV파트 3명, 해외 SRCX연구소 5명 |
 | 기간 | 2026-01-07 ~ 2026-10-30 (10개월) |
 | 역할 | Sub Leader, SW Architect |
 
+### 5.2 과제 범위
+
+| 구분 | 항목 |
+|------|------|
+| **포함** | pVM 생명주기 관리 미들웨어·프레임워크 개발 |
+| **포함** | pVM 제어 및 HW IP 할당을 위한 커널 드라이버 개발 |
+| **포함** | Secure Vision AI 레퍼런스 시나리오 End-to-End 통합·검증 |
+| **포함** | 기존 TrustZone Secure OS와의 공존 인터페이스 |
+| **포함** | 기존 Secure OS를 pVM 격리 도메인에서 동작·확장시키기 위한 SW 이식·수정 (R-4 동적 확장성, R-5 Secure OS 상호운용 충족에 필요) |
+| **제외** | pKVM 커널(EL2 Hypervisor) 자체 포팅 — 기 포팅된 pKVM 커널을 전제로 함 |
+| **제외** | 신규 Secure OS의 처음부터의 개발(from scratch), HW IP(ISP·NPU) 하드웨어 설계 |
+
+> 2026-05-29 리뷰 회의 결정: pKVM 포팅은 범위에서 제외하고, 이를 제어하는 상위 커널 드라이버·미들웨어·프레임워크 개발에 집중한다.
+>
+> 단, R-4(동적 확장성)·R-5(Secure OS 상호운용)를 격리 도메인에서 충족하려면 기존 Secure OS를 pVM 환경에 맞게 이식·수정하는 작업이 불가피하므로, Secure OS의 신규 개발은 제외하되 기존 Secure OS의 이식·수정은 범위에 포함한다.
+
 ---
 
-## 4. 과제 목표
+## 6. 과제 목표
 
-### 4.1 최종 목표
+### 6.1 최종 목표
 
-**ARM TrustZone의 이진 격리 구조 한계를 극복하고, Linux 환경에서 Stage-2 Page Table 기반 다중 격리 도메인을 통해 다양한 보안 시나리오에 대응하는 가상화 플랫폼을 개발한다.**
+**로봇용 커스텀 SoC의 Linux 환경에서, Secure Vision AI 시나리오를 시작으로 다양한 보안 워크로드를 프레임워크 수정 없이 수용할 수 있는 pKVM 기반 확장형 보안 프레임워크를 개발한다.**
 
-> ※ 본 과제는 Android AVF를 Linux로 포팅하는 작업이 아니며, Linux에 최적화된 독자적인 가상화 Framework를 설계·구현하는 것이다.
-
-### 4.2 세부 목표
+### 6.2 세부 목표
 
 | # | 목표 | 상세 |
 |---|------|------|
-| G-1 | **Linux 전용 가상화 Framework 개발** | pKVM 기반으로 Linux에서 동작하는 pVM 생명주기 관리 Framework 개발 |
-| G-2 | **가상화 플랫폼 역할 수행** | Secure AI, Secure Camera 등 다양한 보안 워크로드를 가상화 환경에서 동작 지원하는 플랫폼 |
-| G-3 | **Android AVF 대비 품질 우위 확보** (TBD) | 성능, 가용성, 보안, 변경 용이성 4개 품질 지표에서 AVF를 상회 |
+| G-1 | **Linux 네이티브 pVM 관리 프레임워크 개발** | Android 스택 의존 없이 Linux에서 동작하는 pVM 생명주기 관리 프레임워크 개발 |
+| G-2 | **Secure Vision AI 레퍼런스 시나리오 지원** | 카메라 캡처(ISP)부터 AI 추론(NPU)까지 전 구간이 Host OS로부터 격리된 End-to-End 파이프라인 동작 |
+| G-3 | **확장 가능한 워크로드 수용 구조 확보** | 신규 보안 워크로드 및 다양한 Secure OS를 프레임워크 수정 없이 pVM으로 탑재 가능한 구조 (Android AVF 미제공 기능) |
 | G-4 | **기존 ARM TrustZone 완전 지원** | 기존 Secure OS 기반 TEE 기능과의 상호운용성 보장 |
 
-### 4.3 주요 품질 목표 (TBD)
+### 6.3 핵심 개발 기술
 
-| 품질 속성 | 세부 지표 | 목표 | AVF 대비 | 근거 |
-|----------|----------|------|----------|------|
-| **성능** | CPU/메모리 집약 워크로드 오버헤드 | 네이티브 Linux 대비 **5% 이내** | 동등 | ACM SAC 2024 — AVF pVM은 CPU/메모리 워크로드에서 이미 오버헤드 낮음 |
-| **성능** | I/O 집약 워크로드 오버헤드 | 네이티브 Linux 대비 **10% 이내** | 우세 | ACM SAC 2024 — SWIOTLB 최적화 시 8~22% 개선 확인 |
-| **성능** | pVM 부팅 시간 | **1초 이내** | 우세 | Android Blog 2022 — AVF Microdroid 부팅 시간 측정 참고 |
-| **성능** | Host-pVM RPC 레이턴시 | **100μs 이내** | 동등 | Linux vsock 기반 IPC 레이턴시 수준 |
-| **가용성** | pVM 장애 격리 | pVM 장애 시 Host 및 타 pVM 무중단 | 동등 | Stage-2 메모리 격리의 기술적 특성상 단일 pVM 장애가 타 영역에 전파되지 않음 |
-| **보안** | 메모리 격리 | Host OS → pVM 메모리 접근 차단 | 동등 | Stage-2 Page Table 기반 메모리 격리 보장 |
-| **변경 용이성** | 시나리오 확장 | 신규 보안 시나리오 추가 시 Framework 무수정 | 우세 | Linux 전용 Framework로 Android보다 종속성 없이 자유로운 확장 가능 |
+세부 목표(G-1~G-4)와 시나리오 요구사항(R-1~R-5)을 달성하기 위해 본 과제에서 개발·확보해야 할 핵심 기술은 다음과 같다.
 
-> 성능 목표 근거: Wei et al., "Measuring and Optimizing the Performance of the Android Virtualization Framework", ACM SAC 2024 — [https://dl.acm.org/doi/abs/10.1145/3605098.3636097](https://dl.acm.org/doi/abs/10.1145/3605098.3636097)
+| # | 핵심 기술 | 내용 | 대응 목표/요구사항 |
+|---|----------|------|------------------|
+| T-1 | **pVM 생명주기 관리 기술** | Stage-2 메모리 격리를 활용한 pVM 생성·실행·종료·자원 회수와 다중 pVM 스케줄링을 담당하는 Linux 네이티브 미들웨어 | G-1, R-1, R-3 |
+| T-2 | **HW IP 보안 공유 기술** | 다중 컨텍스트를 지원하지 않는 ISP·NPU 등 HW IP를 Host와 pVM이 동시에 사용할 수 있도록 SW 중재로 공유하고, pVM 사용 구간에는 Stage-2 및 SMMU/IOMMU로 DMA 경로를 격리하며 사용 주체 전환 시 잔류 데이터를 소거하는 커널 드라이버·인터페이스 | G-2, R-2 |
+| T-3 | **격리 도메인 간 보안 통신 기술** | Secure Camera↔Secure AI 도메인 간, 그리고 pVM↔Host 간에 데이터를 노출 없이 전달하는 저오버헤드 보안 채널(공유 메모리·RPC) | G-2, R-1, R-3 |
+| T-4 | **워크로드 확장 프레임워크 기술** | 신규 보안 워크로드·서드파티 Secure OS를 프레임워크 수정 없이 pVM으로 탑재하는 플러그인형 패키징·로딩 구조 | G-3, R-4 |
+| T-5 | **Secure OS 이식 및 TrustZone 공존 기술** | 기존 Secure OS를 pVM 격리 도메인에서 동작하도록 이식·수정하고, 기존 TrustZone TEE 경로(SMC 등)와 공존시키는 연동 계층 | G-4, R-5 |
+
+> 핵심 개발 기술의 세부 설계 항목과 우선순위는 Bottom-up 설계 접근(Design Point 추출 → 핵심 DP 선정)을 통해 구체화한다.
 
 ---
 
@@ -231,19 +262,9 @@ pKVM은 Host OS로부터 pVM을 격리하는 보안 목적을 위해 **성능보
 | 기호 | 출처 |
 |------|------|
 | [A] | Malwarebytes, "Robot vacuum cleaners hacked to spy on, insult owners" — Ecovacs Deebot X2 카메라·스피커 무단 원격 제어 사례 (2024.10) (https://www.malwarebytes.com/blog/news/2024/10/robot-vacuum-cleaners-hacked-to-spy-on-insult-owners) |
-| [B] | Autoblog, "Ransomware in Cars: Why Automotive Cyberattacks Are Spiking in 2025" — 차량 원격 제어 공격 (https://www.autoblog.com/news/ransom-automotive-cyber-attacks-increase-2025) |
 | [C] | 경향신문, "'혹시 우리집 홈캠 영상도?'···12만대 해킹해 성 착취물 제작·판매한 4명 검거" — 국내 홈캠 해킹 사건 (https://www.khan.co.kr/article/202511301029001) |
-| [D] | Bitdefender, "2025 IoT Security Landscape Report" — 2025년 IoT 보안 위협 동향 보고서 (https://blogapp.bitdefender.com/hotforsecurity/content/files/2025/10/2025_iot_security_report.pdf) |
-| [E] | Varonis, "139 Cybersecurity Statistics and Trends" — 사이버범죄 연간 피해 전망 (https://www.varonis.com/blog/cybersecurity-statistics) |
-
-### 보안사고 비용 출처
-
-| 기호 | 출처 |
-|------|------|
 | [F] | DeepStrike, "Compromised Devices Statistics 2024–2025: Breach Costs" — Forrester Research 인용 (https://deepstrike.io/blog/compromised-devices-statistics-2024-2025) |
 | [G] | IBM, "Cost of a Data Breach Report 2024" — 산업 분야 평균 침해 비용 $5.56M (https://www.ibm.com/reports/data-breach) |
-| [H] | Breached.company, "The Automotive Industry Under Siege" — CDK Global 피해액 (https://breached.company/the-automotive-industry-under-siege-how-ransomware-and-supply-chain-attacks-devastated-major-carmakers-in-2024-2025/) |
-| [I] | IBM, "Cost of a Data Breach Report 2024" — 글로벌/미국 평균 침해 비용 (https://www.ibm.com/reports/data-breach) |
 
 ### 기술 참고
 
@@ -251,5 +272,4 @@ pKVM은 Host OS로부터 pVM을 격리하는 보안 목적을 위해 **성능보
 - ARM Architecture Reference Manual — EL2 / Stage-2 Address Translation
 - ARM Architecture Reference Manual ARMv8-A — D1.2.2 Virtualization Host Extensions (FEAT_VHE)
 - Will Deacon et al., "Protecting the Protected: Building a Protected KVM Hypervisor", Linux Security Summit NA 2021
-- Android Blog, "Android Virtualization Framework: Microdroid boot time measurements" (2022)
 - Confidential Computing Consortium, "Confidential Computing as a Strategic Imperative for Secure AI" (https://confidentialcomputing.io/2025/12/03/new-study-finds-confidential-computing-emerging-as-a-strategic-imperative-for-secure-ai-and-data-collaboration/)
