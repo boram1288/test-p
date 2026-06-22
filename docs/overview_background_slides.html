@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>과제 배경 및 필요성</title>
+  <style>
+    :root {
+      --navy: #102a4c;
+      --navy-deep: #091d36;
+      --blue: #1f6fb2;
+      --cyan: #22a9c7;
+      --ink: #17243a;
+      --muted: #64748b;
+      --line: #dbe4ee;
+      --paper: #f4f7fb;
+      --white: #ffffff;
+      --accent-bg: #eaf4fb;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #dfe5ec;
+      color: var(--ink);
+      font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", Arial, sans-serif;
+    }
+
+    body {
+      display: grid;
+      gap: 22px;
+      justify-content: center;
+      padding: 22px;
+    }
+
+    .slide {
+      position: relative;
+      width: 25.4cm;
+      height: 14.288cm;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 94% 4%, rgba(34, 169, 199, .13), transparent 24%),
+        linear-gradient(135deg, #ffffff 0%, var(--paper) 100%);
+      box-shadow: 0 12px 34px rgba(9, 29, 54, .18);
+      padding: 1.12cm 1.25cm .9cm;
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: .14cm;
+      background: linear-gradient(180deg, var(--cyan), var(--blue), var(--navy));
+    }
+
+    .eyebrow {
+      margin-bottom: .17cm;
+      color: var(--blue);
+      font-size: 10.5pt;
+      font-weight: 800;
+      letter-spacing: .12em;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--navy-deep);
+      font-size: 25pt;
+      line-height: 1.15;
+      letter-spacing: -.045em;
+    }
+
+    .subtitle {
+      margin-top: .18cm;
+      color: var(--muted);
+      font-size: 10.5pt;
+      font-weight: 600;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .42cm;
+      margin-top: .72cm;
+    }
+
+    .card {
+      min-height: 8.55cm;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: .16cm;
+      background: rgba(255, 255, 255, .96);
+      box-shadow: 0 7px 20px rgba(16, 42, 76, .09);
+    }
+
+    .card-title {
+      position: relative;
+      min-height: 1.82cm;
+      display: flex;
+      align-items: center;
+      gap: .34cm;
+      padding: .35cm .42cm;
+      background: var(--navy);
+      color: var(--white);
+    }
+
+    .card-title::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 1.4cm;
+      height: .08cm;
+      background: var(--cyan);
+    }
+
+    .number {
+      flex: 0 0 .73cm;
+      height: .73cm;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.45);
+      border-radius: 50%;
+      color: #8de1ef;
+      font-size: 10pt;
+      font-weight: 900;
+    }
+
+    .card-title h2 {
+      margin: 0;
+      font-size: 15pt;
+      line-height: 1.25;
+      letter-spacing: -.025em;
+    }
+
+    .card-body {
+      padding: .48cm .5cm .46cm;
+    }
+
+    .metric {
+      display: flex;
+      align-items: baseline;
+      gap: .15cm;
+      min-height: .86cm;
+      margin-bottom: .25cm;
+      padding: .16cm .25cm;
+      border-left: .09cm solid var(--cyan);
+      background: var(--accent-bg);
+      color: var(--navy);
+      white-space: nowrap;
+    }
+
+    .metric strong {
+      font-size: 16.5pt;
+      letter-spacing: -.035em;
+    }
+
+    .metric span {
+      color: var(--blue);
+      font-size: 8.6pt;
+      font-weight: 800;
+    }
+
+    ul {
+      display: grid;
+      gap: .25cm;
+      margin: .32cm 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      position: relative;
+      padding-left: .34cm;
+      color: #334155;
+      font-size: 10.4pt;
+      font-weight: 650;
+      line-height: 1.38;
+      letter-spacing: -.018em;
+    }
+
+    li::before {
+      content: "";
+      position: absolute;
+      top: .47em;
+      left: 0;
+      width: .13cm;
+      height: .13cm;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 0 .06cm rgba(34,169,199,.14);
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .1cm;
+      margin-top: .38cm;
+      padding-top: .32cm;
+      border-top: 1px solid var(--line);
+    }
+
+    .tag {
+      padding: .08cm .15cm;
+      border: 1px solid #c6d8e8;
+      border-radius: 99px;
+      background: #f7fbfe;
+      color: var(--blue);
+      font-size: 7.5pt;
+      font-weight: 800;
+    }
+
+    .footer {
+      position: absolute;
+      right: 1.25cm;
+      bottom: .38cm;
+      display: flex;
+      align-items: center;
+      gap: .2cm;
+      color: #8190a4;
+      font-size: 8.3pt;
+      font-weight: 700;
+    }
+
+    .footer b { color: var(--navy); }
+
+    @page {
+      size: 25.4cm 14.288cm;
+      margin: 0;
+    }
+
+    @media print {
+      html, body { background: #fff; }
+      body { display: block; padding: 0; }
+      .slide {
+        break-after: page;
+        page-break-after: always;
+        box-shadow: none;
+      }
+      .slide:last-child {
+        break-after: auto;
+        page-break-after: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="slide" aria-label="과제 배경">
+    <div class="eyebrow">BACKGROUND · 01</div>
+    <h1>과제 배경</h1>
+    <div class="subtitle">로봇 산업 · 커스텀 SoC · 보안 위협</div>
+
+    <div class="cards">
+      <article class="card">
+        <header class="card-title">
+          <span class="number">01</span>
+          <h2>지능형 로봇의 확산</h2>
+        </header>
+        <div class="card-body">
+          <div class="metric"><strong>Vision + AI</strong><span>핵심 기능</span></div>
+          <ul>
+            <li>카메라 기반 환경 인식</li>
+            <li>온디바이스 AI 추론·판단</li>
+            <li>가정용·산업용 공통 플랫폼</li>
+            <li>Linux 중심 제품 개발</li>
+          </ul>
+          <div class="tag-row">
+            <span class="tag">ROBOT</span>
+            <span class="tag">LINUX</span>
+            <span class="tag">EDGE AI</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <header class="card-title">
+          <span class="number">02</span>
+          <h2>커스텀 SoC 경쟁</h2>
+        </header>
+        <div class="card-body">
+          <div class="metric"><strong>ISP · NPU</strong><span>전용 HW IP</span></div>
+          <ul>
+            <li>차별화된 성능·전력 효율</li>
+            <li>영상 처리·AI 가속 내재화</li>
+            <li>로봇 시장의 핵심 성장 영역</li>
+            <li>HW·SW 통합 보안 요구</li>
+          </ul>
+          <div class="tag-row">
+            <span class="tag">CUSTOM SoC</span>
+            <span class="tag">ISP</span>
+            <span class="tag">NPU</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <header class="card-title">
+          <span class="number">03</span>
+          <h2>현실화된 보안 위협</h2>
+        </header>
+        <div class="card-body">
+          <div class="metric"><strong>82만 건/일</strong><span>스마트 디바이스 공격</span></div>
+          <ul>
+            <li>로봇 카메라·스피커 원격 제어</li>
+            <li>가정 내부 영상 무단 노출</li>
+            <li>영상·행동 데이터 상시 수집</li>
+            <li>제조 침해 평균 비용 $5.56M</li>
+          </ul>
+          <div class="tag-row">
+            <span class="tag">PRIVACY</span>
+            <span class="tag">CAMERA</span>
+            <span class="tag">CYBER ATTACK</span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="footer">pKVM 기반 확장형 보안 프레임워크 <b>01 / 02</b></div>
+  </section>
+
+  <section class="slide" aria-label="개발 필요성">
+    <div class="eyebrow">NECESSITY · 02</div>
+    <h1>개발 필요성</h1>
+    <div class="subtitle">보호 전제조건 · 기존 기술 공백 · 확장형 프레임워크</div>
+
+    <div class="cards">
+      <article class="card">
+        <header class="card-title">
+          <span class="number">04</span>
+          <h2>핵심 자산 보호</h2>
+        </header>
+        <div class="card-body">
+          <div class="metric"><strong>Host 비신뢰</strong><span>격리 원칙</span></div>
+          <ul>
+            <li>카메라 영상 원본</li>
+            <li>AI 모델 가중치</li>
+            <li>추론 중간 데이터</li>
+            <li>GDPR·개인정보보호법 대응</li>
+          </ul>
+          <div class="tag-row">
+            <span class="tag">DATA</span>
+            <span class="tag">MODEL</span>
+            <span class="tag">COMPLIANCE</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <header class="card-title">
+          <span class="number">05</span>
+          <h2>기존 솔루션의 공백</h2>
+        </header>
+        <div class="card-body">
+          <div class="metric"><strong>Linux SoC</strong><span>적용 대안 부재</span></div>
+          <ul>
+            <li>TrustZone: 이진 격리·자원 제약</li>
+            <li>KVM: Host 침해 시 VM 노출</li>
+            <li>Android AVF: Android 스택 종속</li>
+            <li>서버 CC: 임베디드 SoC 미지원</li>
+          </ul>
+          <div class="tag-row">
+            <span class="tag">TRUSTZONE</span>
+            <span class="tag">KVM</span>
+            <span class="tag">AVF</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <header class="card-title">
+          <span class="number">06</span>
+          <h2>확장형 보안 기반</h2>
+        </header>
+        <div class="card-body">
+          <div class="metric"><strong>pKVM</strong><span>Stage-2 격리</span></div>
+          <ul>
+            <li>다중 보안 도메인 동시 운용</li>
+            <li>ISP·NPU 안전 할당·공유</li>
+            <li>신규 워크로드 동적 추가</li>
+            <li>기존 Secure OS·TrustZone 공존</li>
+          </ul>
+          <div class="tag-row">
+            <span class="tag">ISOLATION</span>
+            <span class="tag">EXTENSIBILITY</span>
+            <span class="tag">SECURE VISION AI</span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="footer">pKVM 기반 확장형 보안 프레임워크 <b>02 / 02</b></div>
+  </section>
+</body>
+</html>
