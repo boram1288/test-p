@@ -60,8 +60,8 @@
 | CONST-02 | **pKVM 커널 전제** | 기 포팅된 pKVM 커널(EL2 Hypervisor)을 전제로 하며, EL2 코드 수정이 필요한 설계는 불가하다. 제공되는 hypercall 인터페이스 범위 내에서 설계한다. | VOS-10 |
 | CONST-03 | **기존 TEE 경로 무회귀** | 기존 TrustZone Secure OS의 SMC 경로와 TEE 기능(키 관리·인증)은 프레임워크 도입 후에도 변경 없이 그대로 동작해야 한다. | VOS-12 |
 | CONST-04 | **규제 준수** | GDPR·개인정보보호법이 요구하는 영상·생체 데이터 처리의 기술적 격리를 충족하고 증빙 가능해야 한다. | VOS-17 |
-| CONST-05 | **타겟 HW** | 타겟은 ISP·NPU 등 전용 HW IP를 탑재한 ARM 기반 로봇용 커스텀 SoC이다. ISP·NPU는 다중 컨텍스트(HW 가상화)를 지원하지 않는 단일 컨텍스트 HW이며 Host와 격리 도메인이 공유하는 자원이다. HW IP의 하드웨어 설계 변경은 불가하다(기존 SoC HW를 전제). | VOS-02, VOS-08, `00_overview.md` 5.2절 |
-| CONST-06 | **Secure OS 신규 개발 제외** | Secure OS를 처음부터 개발(from scratch)하지 않으며, 기존 Secure OS의 이식·수정만 범위에 포함한다. | `00_overview.md` 5.2절 |
+| CONST-05 | **타겟 HW** | 타겟은 ISP·NPU 등 전용 HW IP를 탑재한 ARM 기반 로봇용 커스텀 SoC이다. ISP·NPU는 다중 컨텍스트(HW 가상화)를 지원하지 않는 단일 컨텍스트 HW이며 Host와 격리 도메인이 공유하는 자원이다. HW IP의 하드웨어 설계 변경은 불가하다(기존 SoC HW를 전제). | VOS-02, VOS-08 |
+| CONST-06 | **Secure OS 신규 개발 제외** | Secure OS를 처음부터 개발(from scratch)하지 않으며, 기존 Secure OS의 이식·수정만 범위에 포함한다. | - |
 
 ---
 
@@ -89,16 +89,6 @@
 | VOS-16 (최종 사용자 프라이버시 불안) | QA-01 |
 | VOS-17 (규제상 기술적 격리 증빙) | QA-01, CONST-04 |
 | VOS-18 (pVM 장애 시 무영향) | FR-09, QA-09 |
-
-### 기준 문서 요구사항(R-1~R-5)과의 정합성
-
-| 기준 문서 | 본 문서 대응 |
-|-----------|--------------|
-| R-1 Host 비신뢰 격리 | QA-01, FR-01, FR-05 |
-| R-2 HW 고성능 연산 지원 | FR-03, QA-03, QA-04, QA-11 |
-| R-3 다중 격리 도메인 동시 운용 | FR-02, QA-02 |
-| R-4 동적 확장성 | FR-06, QA-07, QA-08 |
-| R-5 기존 Secure OS 상호운용 | FR-07, FR-08, CONST-03 |
 
 ---
 
