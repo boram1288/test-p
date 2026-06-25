@@ -61,7 +61,7 @@ flowchart TD
     DPC08["DP-C-08<br/>Secure Storage 구조<br/>(→ DP6)"]
 
     classDef critical stroke:#d32f2f,stroke-width:3px
-    class DPC01,DPC02,DPC04,DPC05,DPC06 critical
+    class DPC04,DPC05,DPC06,DPC03 critical
 
     DPC01 --> DPC02
     DPC01 --> DPC03
