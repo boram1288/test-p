@@ -1,7 +1,7 @@
-# DP-C-07 결정 과정: zero-copy 보안 채널 구조 설계
+# DP-C-06 결정 과정: zero-copy 보안 채널 구조 설계
 
 > 일자: 2026-06-11
-> 관련 문서: `05_decision_points.md` DP-C-07, `06_dpc01_trust_model.md`, `07_dpc02_policy_model.md`, `11_dpc06_hwip_mediation.md`, `08_dpc03_trustzone_integration.md` (G3)
+> 관련 문서: `05_decision_points.md` DP-C-06, `06_dpc01_trust_model.md`, `07_dpc02_policy_model.md`, `11_dpc06_hwip_mediation.md`, `08_dpc03_trustzone_integration.md` (G3)
 > 성격: Design Point 결정 기록 (생성: Claude / 평가: Codex / 검수: Claude)
 > 상태: 조건부 채택 (검수 완료) — 5절 게이트 조건 참조
 
@@ -9,9 +9,9 @@
 
 ## 1. 결정 범위와 전제
 
-**산출근거 Driver (05 DP-C-07)**: FR-04, QA-01·QA-02(채널 격리·기밀성), QA-04, QA-05, QA-06(버퍼 자원 효율)
+**산출근거 Driver (05 DP-C-06)**: FR-04, QA-01·QA-02(채널 격리·기밀성), QA-04, QA-05, QA-06(버퍼 자원 효율)
 
-### 1.1 설계질문 (05 문서 DP-C-07)
+### 1.1 설계질문 (05 문서 DP-C-06)
 
 - Secure Camera→Secure AI 영상 데이터는 어떤 공유 메모리 구조로 zero-copy 전달할 것인가?
 - RPC 제어 경로와 공유 메모리 데이터 경로를 어떻게 분리할 것인가?
@@ -130,7 +130,7 @@
 
 ### 부트스트랩 순서 (채널 상대 인증과 공통 명시)
 
-(i) pVM↔TEE 최소 credential 버퍼(G3 정본의 부트스트랩 서브셋) 정의 → (i.5) 부트로더가 H7 경로(EL2 매개)로 측정값을 **자격 없이** TEE에 보고(DP-C-05 G5 역반영 — 측정 보고 경로는 credential buffer와 별개, 이 단계가 "자격 발급에 측정값 필요 ↔ 측정 보고에 자격 필요"의 순환을 끊는다) → (ii) TEE가 부팅 시 measured 자격 방출(채널 상대 인증, DP-C-05 측정값 전제) → (iii) 방출된 자격으로 pVM↔pVM 상호 인증(채널 상대 인증) → (iv) 인증 성공 후 H2 share 영역 할당·accept(후보 A). 이 순서로 DP-C-07↔채널 상대 인증 순환을 끊는다.
+(i) pVM↔TEE 최소 credential 버퍼(G3 정본의 부트스트랩 서브셋) 정의 → (i.5) 부트로더가 H7 경로(EL2 매개)로 측정값을 **자격 없이** TEE에 보고(DP-C-05 G5 역반영 — 측정 보고 경로는 credential buffer와 별개, 이 단계가 "자격 발급에 측정값 필요 ↔ 측정 보고에 자격 필요"의 순환을 끊는다) → (ii) TEE가 부팅 시 measured 자격 방출(채널 상대 인증, DP-C-05 측정값 전제) → (iii) 방출된 자격으로 pVM↔pVM 상호 인증(채널 상대 인증) → (iv) 인증 성공 후 H2 share 영역 할당·accept(후보 A). 이 순서로 DP-C-06↔채널 상대 인증 순환을 끊는다.
 
 ### 채택 조건 (게이트)
 
