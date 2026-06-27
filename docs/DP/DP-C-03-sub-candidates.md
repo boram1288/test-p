@@ -18,16 +18,6 @@
 | pKVM 최소 계약 | DP-C-03에서 확정해야 하는 hypercall 범위는 어디까지인가? | 생성·소멸만 / 메모리까지 / 이벤트·SMMU·attestation 포함 |
 | PoC 착수 기준 | 어떤 결정이 확정되면 DP-C-06 등 후속 PoC를 병행할 수 있는가? | H1/H2 우선 / H1~H4 우선 / H6 포함 |
 
-## 재정리 시 우선 검토할 흐름
-
-1. pVM 관리 주체와 프로세스 모델
-2. pVM 생명주기 상태 머신과 제어 API
-3. Host app 권한과 workload 권한의 pVM 생성 시 결합 방식
-4. 메모리·CPU·디바이스 자원 할당 및 회수 모델
-5. pKVM 최소 hypercall 계약
-6. 장애 감지, 상태 보고, 회수·재시작 정책
-7. 후속 PoC 착수 조건
-
 DP-C-02에서 Host app 권한과 workload 권한을 분리하기로 했기 때문에,
 DP-C-03에서는 pVM 생성 요청 안에 workload의 SELinux 권한 컨텍스트를
 어떤 객체로 전달하고 보존할지 함께 검토해야 한다.
