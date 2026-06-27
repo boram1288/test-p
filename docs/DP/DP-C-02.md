@@ -1,144 +1,138 @@
 # DP-C-02 결정 과정: 접근 통제 일관성을 위한 보안 정책 및 권한 집행 모델 설계
 
-> 일자: 2026-06-11
-> 관련 문서: `05_decision_points.md` DP-C-02, `06_dpc01_trust_model.md`
-> 성격: Design Point 결정 기록 (생성: Claude / 평가: Codex / 검수: Claude)
-> 상태: 조건부 채택 (검수 완료) — 5절 게이트 조건 참조
+> 관련 문서: `05_decision_points.md` DP-C-02, `DP/DP-C-01.md`
+> 상태: 확정
 
 ---
 
-## 1. 결정 범위와 전제
+## 1. 보안 정책 및 권한 집행 모델의 중요성
 
-**산출근거 Driver (05 DP-C-02)**: QA-01, QA-02, FR-01(pVM 생성 권한)·FR-02(다중 pVM 권한 분리), FR-03, FR-04, FR-06, CONST-02
+보안 정책 및 권한 집행 모델은 pVM 생성, workload 로딩, HW IP 사용, 채널 수립 같은 동작을 누가 요청할 수 있고 어떤 범위까지 허용할지를 정한다. 이 모델이 불명확하면 Host app, framework, workload, pVM 리소스가 서로 다른 권한 가정으로 동작하게 되어 접근 통제 일관성이 깨진다.
 
-### 1.1 설계질문 (05 문서 DP-C-02)
+본 결정의 핵심 전제는 다음과 같다.
 
-- pVM 생성, HW IP 사용, 채널 수립, 워크로드 로딩 권한은 누가 정의·검증·집행하는가?
-- 권한 정책은 워크로드 패키지 manifest, 도메인별 권한 테이블, 런타임 정책 중 무엇으로 표현하는가?
-- EL2, TrustZone TEE, 별도 서비스 pVM, Host 프레임워크 중 어떤 컴포넌트가 어떤 권한을 집행하는가?
-- 권한 불일치, 정책 위반, 권한 철회 시 pVM·채널·HW IP 할당을 어떻게 차단·회수하는가?
-- DP-C-05의 패키지 manifest 권한과 채널 상대 인증의 pVM 아이덴티티를 어떻게 연결할 것인가?
+- Camera/AI HW IP 사용 정책은 SoC BSP 제공 업체가 일괄 결정할 문제가 아니라, 최종 제품 제조사인 고객사가 제품 요구에 맞게 정해야 하는 문제다.
+- 기존 Host 리소스와 HW IP 접근은 이미 SELinux 정책으로 통제되고 있으므로, 기존 방식과의 정합성을 유지해야 한다.
+- 본 과제에서 새로 추가되는 권한 통제 대상은 pVM 생성, pVM 생명주기 제어, workload 로딩, pVM 리소스 접근이다.
+- 따라서 새 pVM 리소스 권한도 별도 정책 엔진을 새로 만들기보다 SELinux 정책 체계에 통합한다.
 
-### 1.2 신뢰 모델 전제 (`06_dpc01_trust_model.md` 6.5절)
+결론적으로 DP-C-02는 "새로운 독립 권한 체계"를 정의하는 결정이 아니라, **pVM 리소스를 기존 SELinux 기반 접근 통제 모델에 어떻게 편입할 것인가**를 결정하는 항목이다.
 
-- Host 프레임워크의 단독 권한 집행은 불가하다. 집행 지점은 TCB 요소(EL2 기 제공 메커니즘, TEE, 승인된 서비스 pVM) 중에서 선택한다.
-- 정책·manifest의 무결성은 보호 속성(무결성)의 보장 대상이다 — 서명·검증 체계가 전제된다.
-- 권한 "정의"(작성)와 "집행"(거부·허용)은 다른 신뢰 수준을 요구한다. 정의는 개발·배포 시점의 서명으로, 집행은 런타임 TCB 메커니즘으로 분리할 수 있다.
+단, SELinux는 정상 Host 정책 집행 수단이다. Host 커널 침해 상황에서 pVM 자산의 기밀성·무결성을 보호하는 보장은 DP-C-01의 EL2·SMMU 격리 메커니즘에 의존한다.
 
 ---
 
-## 2. 후보 구조 (생성: Claude)
+## 2. Host 보안정책 및 권한집행 모델 (SELinux)
 
-### 후보 A: 서명된 정적 manifest + TCB 게이트 집행 (capability 방식)
+Host 영역의 권한 통제는 기존 SELinux 정책을 그대로 사용한다.
 
-권한은 워크로드 패키지에 포함된 서명된 manifest에 정적으로 선언한다(사용 가능 HW IP, 허용 채널 상대, 메모리 상한 등). 검증은 TEE 앵커(DP-C-05 이미지 검증과 같은 서명 체인)가 수행하고, 집행은 권한이 실제로 "능력(capability)"으로 부여되는 길목 — pVM 생성, 메모리 공유, SMMU 매핑, 채널 수립 — 에서 TCB 메커니즘이 게이트한다. Host 프레임워크는 정책의 운반자·요청자일 뿐 결정자가 아니다.
+| 대상 | 정책 주체 | 집행 지점 |
+|------|----------|----------|
+| Host app의 framework API 호출 | 고객사 SELinux 정책 | Linux SELinux |
+| Camera/AI HW IP의 Host 측 접근 | 고객사 SELinux 정책 | Linux SELinux + 기존 드라이버 권한 |
+| pVM 생성·시작·정지·종료 요청 | 고객사 SELinux 정책 | pVM framework API 진입부 |
+| workload 패키지 전달 요청 | 고객사 SELinux 정책 | pVM framework API 진입부 |
 
-- **정의**: 배포 시점, manifest 서명(워크로드 발급 키 체계)
-- **검증**: 로딩 시점, TEE 서명 검증 (DP-C-05와 동일 체인)
-- **집행**: 능력 부여 시점, EL2 기 제공 메커니즘(메모리 donate/share, Stage-2)과 SMMU 설정 경로, TEE(키 방출 거부)
-- **철회**: pVM 종료·워크로드 삭제 시 생명주기 관리(DP-C-04)가 자원 회수, TEE가 키 방출 중단
-- **장점**: 신뢰 모델과 완전 정합(Host는 결정자가 아님), TCB 추가 없음, 정적이라 검증·증빙(CONST-04)이 쉬움
-- **단점**: 런타임에 권한을 동적으로 변경(조건부 허가, 시간 제한)하는 표현력이 제한된다. 게이트가 여러 메커니즘에 분산되어 집행 일관성을 설계 규율로 지켜야 한다.
+Host app은 SELinux domain에 따라 pVM framework API 사용 권한을 얻는다. 예를 들어 어떤 app은 pVM 생성 요청이 가능하고, 다른 app은 상태 조회만 가능하도록 고객사가 정책을 작성할 수 있어야 한다.
 
-### 후보 B: 정책 엔진 서비스 pVM (런타임 결정)
+중요한 점은 Host app의 SELinux 권한이 곧 workload의 권한을 의미하지 않는다는 것이다. Host app은 pVM 생명주기 요청자이자 workload 전달자일 수 있지만, pVM 안에서 실행될 workload의 권한은 별도로 통제되어야 한다.
 
-전용 정책 pVM이 권한 질의를 받아 런타임에 허용·거부를 결정하고, 결정 결과에 따라 TCB 메커니즘이 집행한다.
+### 결정
 
-- **장점**: 동적 정책(상황·상태 기반 허가), 정책 변경의 중앙화, 풍부한 표현력.
-- **단점**: 정책 pVM이 모든 권한 결정의 단일 신뢰 지점이 되어 TCB 편입이 필수(부트스트랩·자원 비용·DP-C-01 조건부 규칙). 모든 권한 판단 경로에 pVM 왕복이 끼어들어 지연이 늘고(QA-11), DP-C-04·C-06보다 먼저 완성되어야 하는 순서 부담이 크다.
+- Host app 권한은 기존 SELinux domain 정책으로 통제한다.
+- Camera/AI HW IP의 Host 측 사용 정책도 기존 SELinux 정책으로 통제한다.
+- SoC BSP는 SELinux label, device node, framework hook 등 정책을 적용할 수 있는 메커니즘을 제공하고, 최종 허용 정책은 고객사가 작성한다.
 
-### 후보 C: Host 프레임워크 집행 + TEE 사후 감사
+---
 
-Host 프레임워크가 권한을 판단·집행하되, 모든 결정을 보안 이벤트 로그로 남겨 사후 감사한다.
+## 3. pVM 보안정책 및 권한집행 모델
 
-- **장점**: 구현이 가장 단순하고 빠르다.
-- **단점**: 침해된 Host가 임의 권한을 허가할 수 있어 사전 차단이 성립하지 않는다 — 신뢰 모델 전제(Host 단독 집행 불가)와 정면 충돌. 사후 감사는 유출을 되돌리지 못한다. 단독 후보로 성립 불가.
+pVM 리소스는 기존 Host 리소스와 달리 본 과제에서 새로 추가되는 접근 통제 대상이다. 따라서 SELinux 정책에 pVM 관련 object class/type을 추가하고, Host app 권한과 workload 권한을 분리해서 표현할 수 있어야 한다.
 
-### 평가 기준
+### 3.1 권한 통제 대상
 
-| 기준 | 설명 |
+| 대상 | 설명 |
 |------|------|
-| E1. 신뢰 모델 정합 | Host 침해 시에도 권한 체계가 우회되지 않는가 |
-| E2. 표현력 | Secure Vision AI와 이후 시나리오(R-4)의 권한 요구를 표현할 수 있는가 |
-| E3. TCB 영향 | 신뢰 컴포넌트 추가 여부와 규모 |
-| E4. 집행 일관성 | DP-C-04·C-06가 같은 권한 가정 위에서 설계될 수 있는가 |
-| E5. 성능 | 권한 판단이 데이터 경로·제어 경로에 주는 지연 (QA-11) |
-| E6. 증빙 적합성 | 권한 체계 자체를 CONST-04 증빙에 포함할 수 있는가 |
+| pVM 생명주기 | 생성, 시작, 정지, 종료, 재시작 |
+| workload 로딩 | 특정 workload 패키지를 특정 pVM 프로파일로 실행 |
+| pVM 리소스 | 메모리, vCPU, 채널, device binding 등 |
+| pVM 간 채널 | 송신자·수신자 workload 조합별 채널 수립 |
+| pVM의 HW IP 사용 요청 | pVM workload가 Camera/AI HW IP 사용을 요청하는 경우 |
+
+### 3.2 후보 구조
+
+#### 후보 A: Host app 권한과 workload 권한을 동일하게 취급
+
+Host app이 가진 SELinux 권한을 workload 실행 권한으로 그대로 승계한다. Host app이 pVM 생성과 workload 전달을 허용받으면, 전달된 workload도 같은 권한 범위 안에서 실행된다.
+
+| 항목 | 평가 |
+|------|------|
+| 장점 | 정책 모델이 단순하다. Host app 중심으로 기존 SELinux 정책을 재사용하기 쉽다. |
+| 단점 | Host app과 workload의 책임 경계가 흐려진다. 하나의 Host app이 여러 workload를 전달할 때 workload별 최소 권한 분리가 어렵다. app 권한이 과도하면 workload도 과도한 권한을 얻게 된다. 감사 로그에서 app 권한 위반인지 workload 권한 위반인지 구분하기 어렵다. |
+
+#### 후보 B: Host app 권한과 workload 권한을 분리
+
+Host app 권한과 workload 권한을 별도 SELinux context로 관리한다. Host app은 pVM 생성과 workload 전달 권한을 검사받고, 전달된 workload는 별도의 workload label/type에 따라 pVM 리소스 사용 권한을 검사받는다.
+
+| 항목 | 평가 |
+|------|------|
+| 장점 | Host app과 workload의 책임이 분리된다. 고객사가 workload별로 pVM 리소스, 채널, HW IP 사용 권한을 세밀하게 통제할 수 있다. 최소 권한 원칙과 감사 추적성이 좋아진다. |
+| 단점 | workload label, 패키지 메타데이터, SELinux policy 매핑이 추가로 필요하다. pVM framework가 Host app context와 workload context를 함께 검사해야 한다. |
+
+### 3.3 결정
+
+**후보 B를 채택한다. Host app 권한과 workload 권한은 분리한다.**
+
+Host app은 "pVM 생성 요청자"와 "workload 전달자"로서 권한을 검사받는다. workload는 "pVM 안에서 실행되는 보안 작업 단위"로서 별도의 SELinux label/type을 갖고, 이 label/type에 따라 pVM 리소스와 채널, HW IP 사용 권한을 검사받는다.
+
+권한 검사는 다음 두 단계로 수행한다.
+
+1. **Host app 권한 검사**: 해당 app이 pVM framework API를 호출하고 특정 workload를 전달할 수 있는지 SELinux로 검사한다.
+2. **workload 권한 검사**: 전달된 workload label/type이 요청한 pVM 리소스, 채널, HW IP 사용 권한을 갖는지 SELinux로 검사한다.
+
+둘 중 하나라도 실패하면 pVM 생성 또는 workload 로딩은 거부한다.
+
+### 3.4 정책 표현 원칙
+
+- workload 패키지는 SELinux policy에서 식별 가능한 workload label/type을 가져야 한다.
+- Host app의 domain과 workload의 label/type은 독립적으로 정책화한다.
+- workload가 사용할 수 있는 pVM 리소스는 SELinux allow rule로 표현한다.
+- workload가 사용할 수 있는 Camera/AI HW IP 권한도 SELinux policy에 표현한다.
+- HW IP 사용 정책의 최종 결정권은 고객사에 있으며, framework는 정책 적용 지점을 제공한다.
+
+예시 개념은 다음과 같다.
+
+```text
+Host app domain:
+  camera_app_t -> pVM 생성 요청 가능
+  normal_app_t -> pVM 생성 요청 불가
+
+workload type:
+  secure_camera_workload_t -> Camera pVM 리소스 사용 가능
+  secure_ai_workload_t -> AI/NPU pVM 리소스 사용 가능
+  unknown_workload_t -> pVM 리소스 사용 불가
+```
 
 ---
 
-## 3. 평가 (평가: Codex)
+## 4. 후속 DP에 주는 전제
 
-> 수행: `omc ask codex` (gpt-5.5, reasoning effort xhigh). 원문: `.omc/artifacts/ask/codex-3-docs-fable-07-dp06-trustzone-integration-md-docs-fable-08--2026-06-11T11-42-05-887Z.md`
-
-### 3.1 후보별 평가 (상/중/하)
-
-| 기준 | A: 서명 manifest + TCB 게이트 | B: 정책 엔진 pVM | C: Host 집행 + 사후 감사 |
-|------|:---:|:---:|:---:|
-| E1 신뢰 모델 정합 | 상 — Host는 운반자, 결정·집행은 TCB 경로 | 중 — 정책 pVM 검증·TCB 편입·우회 방지 필요 | 하 — Host 단독 집행 불가 전제와 정면 충돌 |
-| E2 표현력 | 중 — 정적 권한은 충분, 시간·상태 기반 동적 정책 제한 | 상 — 상황 기반 허가·쿼터·철회 표현력 최고 | 상 — 단 신뢰 가능한 표현력이 아님 |
-| E3 TCB 영향 | 상 — 기존 앵커 활용, 신규 TCB 없음 | 하 — 정책 pVM이 핵심 TCB로 추가 | 상 — 단 신뢰 집행도 없음 |
-| E4 집행 일관성 | 상 — 단일 manifest가 DP-C-04·C-06의 공통 기준 | 중 — 모든 권한 경로의 정책 pVM 경유 강제 필요 | 하 — 우회 시 사후 감사만 남음 |
-| E5 성능 | 상 — 판단이 생성·부여 시점에 종료, 데이터 경로 지연 없음 | 중 — 런타임 질의 왕복이 전환·수립 지연 증가 | 상 — 단 요구 충족과 무관 |
-| E6 증빙 적합성 | 상 — 서명 manifest와 게이트 결과는 CONST-04 증빙에 적합 | 중 — 동적 상태의 결정 재현성 곤란 | 하 — 사전 차단 증빙 불가 |
-
-### 3.2 종합 판정과 권고
-
-- **A: 채택 적합** — 신뢰 모델·제약·증빙 요구를 가장 균형 있게 충족.
-- **B: 확장 후보** — 동적 정책 필요가 확정될 때만 조건부 도입.
-- **C: 부적합** — 사후 감사는 보조 수단일 뿐 권한 집행 모델이 될 수 없음.
-
-**권고안**: 후보 A 단일 기준안 채택. 권한은 서명된 manifest에 정적 선언, TEE가 검증, 실제 권한 부여 지점(pVM 생성, 메모리 공유, SMMU 매핑, 채널 수립, 키 방출)에서 TCB가 **fail-closed**로 집행. B는 시간 제한·상태 기반 권한·운영 중 철회가 필수 요구로 확정될 때 "동적 정책 확장"으로 도입(DP-C-01 서비스 pVM 편입 조건 선충족). C는 UI·요청 생성·감사 표시 같은 비신뢰 보조 역할로만.
-
-### 3.3 지적된 결함·누락
-
-1. manifest 스키마, 버전, 서명 키, 폐기·회전, 롤백 방지, 측정값과 권한의 바인딩 미정의.
-2. "TCB 게이트"의 실제 위치 구체화 필요 — EL2 수정 불가 조건에서 기존 hypercall이 capability 검증을 지원하지 않으면 Host 우회를 막기 어려움.
-3. SMMU 설정 경로가 Host 드라이버에 남는 경우 DP-C-06과 충돌 가능 — HW IP 권한 집행 지점은 별도 검증 필요.
-4. 철회 모델이 pVM 종료·키 방출 중단 수준에 그침 — 런타임 격리, 채널 강제 해제, HW IP 회수 정책 부족.
+| 후속 DP | 전제 |
+|---------|------|
+| DP-C-03 (pVM 관리 골격) | pVM framework API 진입부에서 Host app SELinux 권한과 workload SELinux 권한을 모두 확인할 수 있어야 한다. |
+| DP-C-04 (보안 워크로드 실행 방식) | workload 패키지는 SELinux policy와 연결 가능한 workload label/type 또는 동등한 식별자를 포함해야 한다. |
+| DP-C-06 (zero-copy 보안 채널) | 채널 수립 권한은 workload label/type 조합에 따라 검사한다. |
+| DP-C-07 (HW IP 중재) | Camera/AI HW IP 사용 권한은 고객사 SELinux 정책으로 표현하고, 중재자는 해당 정책을 적용할 수 있는 집행 지점을 제공해야 한다. |
 
 ---
 
-## 4. 검수 (검수: Claude)
+## 5. 결정 요약
 
-> 수행: critic 에이전트 (별도 컨텍스트, 읽기 전용). 판정: **조건부 승인**
-
-**동의**: 후보 A 채택(신뢰 모델 6.5절 DP-C-02 전제와 완전 정합), 정의/검증/집행 분리, fail-closed 집행, 후보 C 부적합 판정, 3.3절 결함 지적 전부 타당.
-
-**이견 1 (CRITICAL)**: 후보 A의 핵심 전제 — "EL2 기 제공 메커니즘이 capability 게이트를 지원하는가" — 가 미확인이며, 거짓이면 후보 A의 E1 "상" 자체가 무너진다. EL2 hypercall이 Host가 요청한 메모리 share를 manifest 권한 대조 없이 그대로 수행한다면 집행 지점이 실제로는 비신뢰 Host 드라이버에 남아 D-1 위반이 된다. **능력 부여 길목별로 실제 게이트가 어느 TCB 요소에서 일어나는지 1:1 매핑이 검증되기 전까지 후보 A는 "조건부"다.** 이 전제가 거짓이면 DP-C-02 전면 재설계가 필요하다.
-
-**이견 2 (MAJOR)**: SMMU 설정 경로가 Host 드라이버에 남는 경우 비신뢰 주체가 DMA 격리 경계를 통제하게 되어 DP-C-06 전제와 충돌한다. DP-C-02 단독으로 닫을 수 없으므로 DP-C-06에 사활적 입력으로 명시적 핸드오프해야 한다.
-
----
-
-## 5. 결정
-
-**후보 A(서명된 정적 manifest + TCB 게이트 집행)를 채택한다.** 후보 B는 동적 정책 요구가 필수로 확정될 때의 확장안으로 보존하고(DP-C-01 서비스 pVM 편입 조건 선충족 전제), 후보 C 요소는 UI·요청 생성·감사 표시 등 비신뢰 보조 역할로만 사용한다.
-
-### 채택 조건 (게이트)
-
-| # | 조건 | 처리 |
-|---|------|------|
-| G1 | **(CRITICAL) 능력 부여 길목별 집행 주체 1:1 매핑**: 아래 매핑표 초안을 HV 파트와 검증한다. EL2가 capability 대조를 지원하지 않는 길목은 TEE 또는 승인된 서비스 pVM으로 집행을 이관한다. 매핑 검증 전까지 본 결정은 조건부다 | HV 파트 협의 |
-| G2 | **manifest 보안 속성 정의**: 스키마·버전·서명 키 체계·폐기/회전·롤백 방지·측정값↔권한 바인딩을 정의한다. 스키마·패키징은 DP-C-05, 측정값 바인딩은 DP-C-05, 아이덴티티 연결은 채널 상대 인증과 분담 | DP-C-05, DP-C-05, 채널 상대 인증 |
-| G3 | **SMMU 집행 주체 핸드오프**: SMMU 매핑 권한의 집행 주체 확정을 DP-C-06의 사활적 입력으로 전달한다. SMMU 설정이 Host 드라이버에 남는 구조는 본 정책 모델과 충돌함을 명시 | DP-C-06 |
-| G4 | **철회 모델 확장**: pVM 종료·키 방출 중단 외에 런타임 채널 강제 해제(DP-C-07), HW IP 할당 회수(DP-C-06)의 철회 경로를 해당 DP 설계에 요구 사항으로 전달 | DP-C-06, DP-C-07 |
-| G5 | **measured 권한 바인딩**: manifest 권한은 DP-C-05 부팅 측정값에 바인딩되어야 "승인된 워크로드"와 "Host가 만든 임의 인스턴스"를 구분할 수 있다 (DP-C-03 G2와 동일 근원). **[역반영 1단계 완료 — 2026-06-12, 14 문서 5.3절]** 바인딩 참조 필드 = DP-C-05 측정값 포맷의 manifest hash·manifest version(anti-rollback)으로 확정. **완전 폐쇄는 H7 HV 확인 후**(측정 주체·시점 실증) | DP-C-05 G3, H7 |
-
-### 능력 부여 길목별 집행 주체 매핑표 (초안 — G1 검증 대상)
-
-| 길목 | 1차 게이트 후보 | 비고 |
-|------|----------------|------|
-| pVM 생성·이미지 로딩 | TEE (이미지·manifest 서명 검증, DP-C-05) | 검증 실패 시 키 방출 거부로 실행 차단 |
-| 메모리 share/donate | EL2 기 제공 hypercall 의미론 | pVM 측 수락(accept) 의미론 지원 여부가 관건 — HV 확인 |
-| SMMU 매핑 | DP-C-06에서 확정 (G3) | Host 단독 설정 구조는 불허 |
-| 채널 수립 | 양단 pVM의 상호 수락 + 채널 상대 인증 상대 인증 | 정책 위반 조합은 pVM 측에서 거부 (fail-closed) |
-| 키 방출 | TEE (manifest 권한·측정값 대조 후 방출) | 최후의 공통 게이트 — 다른 게이트가 뚫려도 자산 복호화 불가 |
-
-### 후속 DP에 주는 전제
-
-- DP-C-04·C-06은 "권한 = 서명된 manifest의 정적 선언, 집행 = TCB 게이트 fail-closed"를 공통 전제로 설계한다.
-- Host 프레임워크는 정책의 운반자·요청자이며 어떤 길목에서도 단독 결정자가 아니다.
-- 키 방출 게이트(TEE)는 모든 워크로드 보호 자산의 최종 방어선이다 — DP-C-08 설계의 출발 전제.
-
-> 상태: **조건부 채택 (검수 완료)** — G1 매핑 검증(HV 파트) 결과에 따라 확정
+| 항목 | 결정 |
+|------|------|
+| Host 권한 모델 | 기존 SELinux 정책을 사용한다. |
+| HW IP Host 측 사용 정책 | 고객사가 기존 SELinux 정책으로 결정한다. |
+| pVM 리소스 권한 모델 | pVM 리소스를 SELinux 정책 체계에 추가한다. |
+| Host app과 workload 권한 관계 | 분리한다. |
+| workload 권한 표현 | workload label/type을 통해 SELinux 정책으로 표현한다. |
+| 최종 결정 | SELinux 기반 Host/pVM 통합 권한 모델을 채택한다. |
