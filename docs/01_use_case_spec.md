@@ -17,8 +17,8 @@
 | Actor | Host Application |
 | Pre-Condition | Secure Camera pVM과 Secure AI pVM 이미지가 준비되어 있다 |
 | Post-Condition | 복수의 pVM이 격리된 상태로 독립적으로 동시 운용 중이다 |
-| Main Flow | 1. 사용자가 Secure Camera pVM을 생성하고 시작한다<br>2. 사용자가 Secure AI pVM을 생성하고 시작한다<br>3. 두 pVM이 독립된 메모리 공간에서 동시에 실행된다 |
-| Alternative Flow | 1. pVM 중 하나가 종료 혹은 Crash되어도 나머지 pVM은 영향받지 않고 계속 동작한다<br>2. 두 번째 pVM 생성에 필요한 자원이 부족하면 시스템은 기존 pVM을 유지하고 신규 생성 요청만 실패 처리한다<br>3. pVM 간 격리 검증이 실패하면 시스템은 실패한 pVM을 시작하지 않고 오류를 반환한다 |
+| Main Flow | 1. Host Application이 Secure Camera pVM 생성을 요청한다<br>2. 시스템은 Secure Camera pVM을 생성하고 시작한다<br>3. Host Application이 Secure AI pVM 생성을 요청한다<br>4. 시스템은 Secure AI pVM을 생성하고 시작한다<br>5. 시스템은 두 pVM을 독립된 메모리 공간에서 동시에 실행한다 |
+| Alternative Flow | 1. 시스템은 pVM 중 하나가 종료 혹은 Crash되어도 나머지 pVM을 계속 실행한다<br>2. 두 번째 pVM 생성에 필요한 자원이 부족하면 시스템은 기존 pVM을 유지하고 Host Application에 신규 생성 실패를 반환한다<br>3. pVM 간 격리 검증이 실패하면 시스템은 실패한 pVM을 시작하지 않고 Host Application에 오류를 반환한다 |
 
 ---
 
