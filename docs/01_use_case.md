@@ -43,12 +43,12 @@ actor "Host Application" as HostApp
 actor "Workload(Camera/AI)" as Workload
 
 rectangle "System" {
-  usecase "UC-01. pVM 생성/시작/정지/종료" as UC01
-  usecase "UC-02. 다중 pVM 동시 운용" as UC02
-  usecase "UC-03. Camera/AI HW 공유 사용" as UC03
-  usecase "UC-04. 가상화 도메인 간\n보안 데이터 전송" as UC04
-  usecase "UC-05. 보안 Workload 동적 탑재" as UC05
   usecase "UC-06. Secure OS\nENC/DEC 명령 전송" as UC06
+  usecase "UC-05. 보안 Workload 동적 탑재" as UC05
+  usecase "UC-04. 가상화 도메인 간\n보안 데이터 전송" as UC04
+  usecase "UC-03. Camera/AI HW 공유 사용" as UC03
+  usecase "UC-02. 다중 pVM 동시 운용" as UC02
+  usecase "UC-01. pVM 생성/시작/정지/종료" as UC01
 }
 
 actor "Normal Camera\nApplication" as NormalCameraApp
