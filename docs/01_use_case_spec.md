@@ -4,11 +4,11 @@
 
 | UC-01 | pVM 생성/시작/정지/종료 |
 |---|---|
-| Actor | 사용자 |
+| Actor | Host Application |
 | Pre-Condition | 시스템이 부팅되어 있고 pVM 이미지가 서명된 상태로 준비되어 있다 |
 | Post-Condition | pVM이 요청된 상태(Running 또는 Stopped)로 전환되었다 |
-| Main Flow | 1. 사용자가 pVM API로 pVM 생성을 요청한다<br>2. 시스템이 메모리/CPU 자원을 할당하고 pVM 인스턴스를 초기화한다<br>3. 사용자가 pVM 시작 명령을 호출한다<br>4. pVM이 격리된 상태로 Running 상태가 된다<br>5. 사용자가 pVM 정지 명령을 호출한다<br>6. 시스템이 pVM을 종료하고 할당 자원을 회수한다 |
-| Alternative Flow | pVM생성 실패 시 pVM 생성을 중단하고 사용자에게 오류를 반환한다 |
+| Main Flow | 1. Host Application이 pVM API로 pVM 생성을 요청한다<br>2. 시스템은 메모리/CPU 자원을 할당하고 pVM 인스턴스를 초기화한다<br>3. Host Application이 pVM 시작 명령을 호출한다<br>4. 시스템은 pVM을 Running 상태로 전환한다<br>5. Host Application이 pVM 정지 명령을 호출한다<br>6. 시스템은 pVM을 종료하고 할당 자원을 회수한다 |
+| Alternative Flow | 시스템은 pVM 생성 실패 시 생성을 중단하고 Host Application에 오류를 반환한다 |
 
 ---
 
