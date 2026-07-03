@@ -55,7 +55,7 @@
 | UC-06 | Secure OS ENC/DEC 명령 전송 |
 |---|---|
 | Actor | Workload(Camera/AI) |
-| Pre-Condition | Workload(Camera/AI)가 실행 중이고 pVM 내 Secure OS가 초기화되어 있다 |
+| Pre-Condition | Workload(Camera/AI)가 실행 중이고 pVM 내 Secure OS의 기능을 사용할 준비가 되어 있다 |
 | Post-Condition | 데이터가 암호화/복호화된 상태로 Workload(Camera/AI)에 반환되었다 |
 | Main Flow | 1. Workload(Camera/AI)가 Secure OS에 ENC/DEC 명령과 대상 데이터를 전달한다<br>2. 시스템은 Secure OS를 통해 데이터를 암호화 또는 복호화한다<br>3. 시스템은 처리된 데이터를 Workload(Camera/AI)에 반환한다<br>4. Workload(Camera/AI)는 처리된 데이터를 후속 보안 처리에 사용한다 |
 | Alternative Flow | 1. 시스템은 ENC/DEC 실패 시 오류를 반환하고 평문 데이터는 pVM 외부로 유출하지 않는다<br>2. 시스템은 Secure OS가 응답하지 않으면 요청을 시간 초과 처리하고 세션을 정리한다<br>3. 시스템은 잘못된 명령 또는 권한 없는 요청이 전달되면 처리를 거부하고 오류를 반환한다 |
