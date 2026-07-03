@@ -10,6 +10,7 @@
 |---|---|
 | Host Application | pVM 생성/운용과 보안 Workload 탑재를 요청하는 Host 측 애플리케이션 |
 | Workload(Camera/AI) | Camera HW/AI HW 사용, 도메인 간 데이터 전송, Secure OS 연동을 수행하는 보안 Workload |
+| Normal Camera Application | Host의 일반 Camera 기능으로 Camera HW 사용을 요청하는 애플리케이션 |
 
 ---
 
@@ -50,15 +51,18 @@ rectangle "System" {
   usecase "UC-06. Secure OS\nENC/DEC 명령 전송" as UC06
 }
 
+actor "Normal Camera\nApplication" as NormalCameraApp
+
 HostApp --> UC01
 HostApp --> UC02
-HostApp --> UC03
 HostApp --> UC04
 HostApp --> UC05
 
 Workload --> UC03
 Workload --> UC04
 Workload --> UC06
+
+UC03 <-- NormalCameraApp
 
 @enduml
 ```

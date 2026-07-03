@@ -22,3 +22,4 @@
 - VOS 정리 표의 `Stakeholder` 값에는 `SH-1` 같은 stakeholder 번호를 넣지 않는다.
 - VOS 정리 표의 VOS 문장은 큰따옴표로 감싸지 않는다.
 - VOS 정리 표의 VOS 문장은 핵심 요구만 간결하게 작성한다.
+- Use Case 명세의 Main Flow와 Alternative Flow는 각 항목을 Actor 또는 `시스템은`으로 시작한다.
