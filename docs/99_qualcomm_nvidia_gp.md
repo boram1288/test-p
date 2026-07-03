@@ -2,7 +2,7 @@
 
 ---
 
-결론부터 말씀드리면, **퀄컴(Qualcomm)과 엔비디아(Nvidia) 모두 순수 Linux 환경에서 GlobalPlatform(GP) TEE API를 완전히 버리고 'Android Secure HAL'로 대체하려는 직접적인 움직임은 없습니다.** 오히려 시장은 **기존의 GP API 표준을 유지하거나 Linux 자체의 보안 프레임워크를 강화**하는 방향, 그리고 Android 생태계와는 **상호 보완적인 아키텍처**를 가져가는 방향으로 움직이고 있습니다. 그렇게 보는 기술적/비즈니스적 배경은 다음과 같습니다.
+결론부터 말씀드리면, **퀄컴(Qualcomm)과 엔비디아(Nvidia) 모두 순수 Linux 환경에서 GlobalPlatform(GP) TEE API를 완전히 버리고 'Android Secure HAL'로 대체하려는 직접적인 움직임은 없습니다.** 오히려 시장은 **기존의 GP API 표준을 유지하거나 Linux 자체의 보안 Framework를 강화**하는 방향, 그리고 Android 생태계와는 **상호 보완적인 아키텍처**를 가져가는 방향으로 움직이고 있습니다. 그렇게 보는 기술적/비즈니스적 배경은 다음과 같습니다.
 
 ---
 
@@ -19,7 +19,7 @@
 
 엔비디아는 모바일보다는 AI, 자율주행(DRIVE OS), 서버/임베디드 Linux가 주력입니다.
 
-* **자체 보안 프레임워크(SE, HSM):** 엔비디아의 Jetson이나 DRIVE OS(Linux 기반)는 ARM TrustZone 기반의 TEE 아키텍처 외에도 Hardware Security Module(HSM) 및 Security Engine(SE) 하드웨어를 직접 제어하는 독자적인 하이퍼바이저 및 보안 서비스 아키텍처를 씁니다.
+* **자체 보안 Framework(SE, HSM):** 엔비디아의 Jetson이나 DRIVE OS(Linux 기반)는 ARM TrustZone 기반의 TEE 아키텍처 외에도 Hardware Security Module(HSM) 및 Security Engine(SE) 하드웨어를 직접 제어하는 독자적인 Hypervisor 및 보안 서비스 아키텍처를 씁니다.
 * **구글 의존성 최소화:** 엔비디아 입장에서는 오토모티브나 산업용 Linux 시장에서 구글이 주도하는 'Android Secure HAL' 규격을 굳이 가져와 아키텍처적 종속성을 만들 이유가 전혀 없습니다. 대신 오토모티브 분야에서는 AUTOSAR 보안 규격이나 ISO 21434 표준에 맞춘 Linux 보안 API를 제공합니다.
 
 ---
@@ -30,12 +30,12 @@
 
 | 비교 항목 | GlobalPlatform (GP) API | Android Secure HAL |
 | --- | --- | --- |
-| **디바이스 아키텍처** | 범용 TEE OS 기반 (다양한 OS에 이식 가능) | Android 프레임워크 (Binder IPC, AIDL) 의존적 |
+| **디바이스 아키텍처** | 범용 TEE OS 기반 (다양한 OS에 이식 가능) | Android Framework (Binder IPC, AIDL) 의존적 |
 | **주요 타겟** | Linux, RTOS, 임베디드, 모바일 전반 | Android 단말 (스마트폰, 태블릿, Android Automotive) |
 | **통신 메커니즘** | TEE 커널 드라이버 직접 호출 (`/dev/tee0`) | Android **Binder 서비스** 인터페이스 경유 |
 | **이식성 (Portability)** | 고성능 임베디드 장비에서 가볍게 구동 가능 | 전제 조건으로 Android 런타임/서브시스템 레이어 필요 |
 
-순수 Linux 환경에서 Android Secure HAL을 쓰려면, 통신 백본인 **Binder(IPC) 환경과 Android 표준 하드웨어 추상화 레이어 프레임워크를 전체 Linux에 포팅해야 하는 배보다 배꼽이 더 큰 상황**이 발생합니다.
+순수 Linux 환경에서 Android Secure HAL을 쓰려면, 통신 백본인 **Binder(IPC) 환경과 Android 표준 하드웨어 추상화 레이어 Framework를 전체 Linux에 포팅해야 하는 배보다 배꼽이 더 큰 상황**이 발생합니다.
 
 ---
 

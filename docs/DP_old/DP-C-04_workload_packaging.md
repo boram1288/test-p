@@ -1,4 +1,4 @@
-# DP-C-04 결정 과정: 무결성 보장을 위한 보안 워크로드 실행 방식 설계
+# DP-C-04 결정 과정: 무결성 보장을 위한 보안 Workload 실행 방식 설계
 
 > 일자: 2026-06-12
 > 관련 문서: `05_design_points.md` DP-C-04, `07_dp02_policy_model.md`, `11_dp06_zero_copy_channel.md`, `12_dp07_at_rest_protection.md`, `09_dp04_lifecycle_skeleton.md`
@@ -11,16 +11,16 @@
 
 ### 1.1 설계질문 (05 문서 DP-C-04)
 
-- 워크로드 패키지는 이미지, 메타데이터, 권한 manifest, 설정을 어떤 구조로 포함해야 하는가?
-- pVM 게스트의 부팅 규약, 가상 디바이스 인터페이스, pVM↔프레임워크 통신 규약은 어디까지 표준화할 것인가?
-- 워크로드 설치/로딩/교체 절차는 어떤 단계와 검증 지점을 가져야 하는가?
-- Secure OS 교체 시 프레임워크, Host 미들웨어, 타 워크로드가 수정되지 않도록 어떤 추상화 경계를 둘 것인가?
+- Workload 패키지는 이미지, 메타데이터, 권한 manifest, 설정을 어떤 구조로 포함해야 하는가?
+- pVM 게스트의 부팅 규약, 가상 디바이스 인터페이스, pVM↔Framework 통신 규약은 어디까지 표준화할 것인가?
+- Workload 설치/로딩/교체 절차는 어떤 단계와 검증 지점을 가져야 하는가?
+- Secure OS 교체 시 Framework, Host Middleware, 타 Workload가 수정되지 않도록 어떤 추상화 경계를 둘 것인가?
 - DP-09의 이미지 검증과 DP-02의 권한 정책을 패키지 탑재 절차에 어떻게 연결할 것인가?
 
 ### 1.2 선행 DP 결정이 주는 전제
 
 - **DP-02**: 패키지에는 서명된 manifest가 포함되며, manifest 권한은 TCB 게이트(TEE/EL2 집행 지점)에서 fail-closed로 대조된다. manifest 속성 정의는 DP-C-04(패키지 형식)/DP-09 측정값이 분담한다(DP-02 G2).
-- **DP-06**: pVM↔프레임워크 채널은 H2 share 링버퍼(steady-state) + donate(제한 용도) 하이브리드다. 패키지의 통신 규약 표준화는 이 채널 구조를 소비자로서 따른다. pVM↔TEE 부트스트랩은 Secure World 전용 버퍼(G3)다.
+- **DP-06**: pVM↔Framework 채널은 H2 share 링버퍼(steady-state) + donate(제한 용도) 하이브리드다. 패키지의 통신 규약 표준화는 이 채널 구조를 소비자로서 따른다. pVM↔TEE 부트스트랩은 Secure World 전용 버퍼(G3)다.
 - **DP-07 (5.4절 핸드오프)**: 패키지 컨테이너 포맷에 암호문 청크 레이아웃 + AEAD 태그 배치 + manifest hash↔ciphertext 바인딩 위치를 포함한다(포맷 구체는 본 DP 책임). 로딩 절차는 "TEE 키 방출 → pVM 내 chunked 복호화 → arena 직접 적재"의 2단계 startup을 수용한다. 삭제 절차 = 키 폐기 + 실행 중 인스턴스 강제 종료(DP-07 G6). per-device vs per-fleet 키 단위 확정 질문을 인수한다.
 - **DP-04**: pVM 생성/소멸은 H1~H6 계약과 pVM별 VMM 프로세스 구조를 따른다. 탑재 절차의 실행 주체는 이 구조 위에 놓인다.
 - **CONST-06**: Secure OS 신규 개발은 범위 밖이다 — 기존 Secure OS의 이식/수정 부담을 최소화하는 표준화 수준이어야 한다.
@@ -32,52 +32,52 @@
 
 ### 후보 A: 단일 표준 게스트 ABI (전면 표준화)
 
-모든 워크로드(경량 보안 워크로드/Secure OS 공통)가 단일 표준을 따른다: 표준 부팅 규약(진입점/메모리 맵/디바이스 트리), 표준 가상 디바이스 세트(virtio 서브셋), 프레임워크 제공 채널 라이브러리(DP-06 링버퍼 처리)를 정적 링크 또는 게스트 커널 드라이버로 탑재.
+모든 Workload(경량 보안 Workload/Secure OS 공통)가 단일 표준을 따른다: 표준 부팅 규약(진입점/메모리 맵/디바이스 트리), 표준 가상 디바이스 세트(virtio 서브셋), Framework 제공 채널 라이브러리(DP-06 링버퍼 처리)를 정적 링크 또는 게스트 커널 드라이버로 탑재.
 
-- **장점**: 프레임워크 측 수용 코드가 단일 경로라 QA-07(무수정 수용)이 가장 강하게 성립한다. 검증 지점/채널 규약이 균일해 DP-09/DP-02 연결이 단순하다.
+- **장점**: Framework 측 수용 코드가 단일 경로라 QA-07(무수정 수용)이 가장 강하게 성립한다. 검증 지점/채널 규약이 균일해 DP-09/DP-02 연결이 단순하다.
 - **단점**: 기존 Secure OS는 부팅 규약/디바이스 모델이 제각각이라 표준 ABI에 맞추는 이식 수정량이 커진다 — CONST-06(이식/수정만 허용)의 취지인 "이식 부담 최소화"와 긴장. Secure OS 커널 구조에 따라 표준 준수가 불가능한 경우 수용 자체가 막힌다(FR-07 위험).
 
 ### 후보 B: 프로파일 분리형 표준 (공통 포맷 + 2개 실행 프로파일)
 
 패키지 컨테이너 포맷/manifest/검증 절차는 **단일 표준**으로 통일하되, 게스트 실행 환경은 2개 프로파일로 나눈다.
 
-- **P1 (경량 워크로드 프로파일)**: 프레임워크가 제공하는 경량 런타임 베이스 이미지(커널+채널 스택) 위에 워크로드 페이로드(바이너리+모델 자산)를 얹는다. 워크로드는 베이스의 SDK 인터페이스만 사용 — 부팅/채널/복호화(DP-07 chunked 로더 포함)는 베이스가 처리.
+- **P1 (경량 Workload 프로파일)**: Framework가 제공하는 경량 런타임 베이스 이미지(커널+채널 스택) 위에 Workload 페이로드(바이너리+모델 자산)를 얹는다. Workload는 베이스의 SDK 인터페이스만 사용 — 부팅/채널/복호화(DP-07 chunked 로더 포함)는 베이스가 처리.
 - **P2 (Secure OS 프로파일)**: 자체 커널로 부팅하는 Secure OS는 최소 부팅 규약(진입점/메모리 맵 전달)과 채널 어댑터(DP-06 링버퍼 front-end) 구현만 요구한다. 나머지 내부 구조는 자율.
 - **패키지 구조(공통)**: `manifest(서명, 권한/자원/프로파일 선언, key id/version) + 이미지 구획(P1: 페이로드 / P2: 커널 이미지) + 보호 자산 구획(DP-07 암호문 청크 + AEAD 태그) + 설정`.
 - **장점**: FR-06(동적 탑재)과 FR-07(Secure OS 이식)을 각 프로파일이 분담해 모두 수용한다. P1은 QA-07 무수정 수용, P2는 이식 수정량 최소(CONST-06 정합). 검증/manifest/암호화 레이아웃은 단일이라 DP-09/DP-02/DP-07 연결 지점이 하나다.
-- **단점**: 프레임워크가 베이스 이미지(P1)와 부팅 규약 2종을 유지보수해야 한다. P2의 채널 어댑터 품질이 Secure OS 이식팀 역량에 의존한다.
+- **단점**: Framework가 베이스 이미지(P1)와 부팅 규약 2종을 유지보수해야 한다. P2의 채널 어댑터 품질이 Secure OS 이식팀 역량에 의존한다.
 
 ### 후보 C: 최소 표준 (manifest/이미지 blob만 표준화)
 
-manifest와 서명/암호화 구획만 표준화하고, 부팅 규약/가상 디바이스/통신 규약은 워크로드별 VMM 구성(DP-04 pVM별 VMM)에 위임한다.
+manifest와 서명/암호화 구획만 표준화하고, 부팅 규약/가상 디바이스/통신 규약은 Workload별 VMM 구성(DP-04 pVM별 VMM)에 위임한다.
 
 - **장점**: 이식 부담이 가장 작다 — 어떤 Secure OS든 VMM 구성만 맞추면 올라간다.
-- **단점**: 워크로드마다 VMM 구성/채널 처리 코드가 추가된다 — 신규 워크로드 수용이 "프레임워크 수정 없이"(QA-07) 성립하지 않을 위험. 검증 지점/채널 규약이 파편화되어 DP-09 검증과 DP-02 집행의 균일성이 깨진다. Secure OS 교체 시 무관 SW 무수정(QA-08)을 보장할 경계가 없다.
+- **단점**: Workload마다 VMM 구성/채널 처리 코드가 추가된다 — 신규 Workload 수용이 "Framework 수정 없이"(QA-07) 성립하지 않을 위험. 검증 지점/채널 규약이 파편화되어 DP-09 검증과 DP-02 집행의 균일성이 깨진다. Secure OS 교체 시 무관 SW 무수정(QA-08)을 보장할 경계가 없다.
 
 ### 공통 설계 요소
 
 - **설치/로딩/교체 절차의 검증 지점**: (1) 설치 시 — manifest 서명/패키지 무결성 검증(주체는 DP-09 확정), 정책 등록(DP-02). (2) 로딩 시 — pVM 생성(H1)/이미지 측정(DP-09)/TEE 키 방출 게이트(DP-07)/채널 수립(DP-06, 채널 상대 인증 자격). (3) 교체 시 — 구버전 인스턴스 강제 종료(DP-07 G6) + 키 epoch 전환(DP-07 G4) + 신버전 로딩. 각 지점 fail-closed.
-- **Secure OS 교체 경계(QA-08)**: 교체 가능 단위 = 패키지. 프레임워크/Host 미들웨어/타 워크로드가 보는 것은 manifest 선언과 채널 규약뿐 — 패키지 내부 변경이 경계 밖으로 새지 않는다.
+- **Secure OS 교체 경계(QA-08)**: 교체 가능 단위 = 패키지. Framework/Host Middleware/타 Workload가 보는 것은 manifest 선언과 채널 규약뿐 — 패키지 내부 변경이 경계 밖으로 새지 않는다.
 - **DP-07 인수 항목**: 암호문 청크 레이아웃(1~수 MB 단위), AEAD 태그 배치, manifest hash↔ciphertext 바인딩 위치, key id/version 필드, 2단계 startup(최소 부팅 → 모델 로딩) 지원.
-- **미해결 인수 질문**: per-workload 키의 per-device/per-fleet 단위(DP-07 4.3절) — 패키지 배포 모델(디바이스별 재암호화 vs fleet 공통 암호문)을 좌우한다.
+- **미해결 인수 질문**: per-Workload 키의 per-device/per-fleet 단위(DP-07 4.3절) — 패키지 배포 모델(디바이스별 재암호화 vs fleet 공통 암호문)을 좌우한다.
 
 ### 평가 기준
 
 | 기준 | 설명 |
 |------|------|
-| E1. 동적 확장성 | 신규 워크로드를 프레임워크 수정 없이 수용하는가 (FR-06, QA-07) |
+| E1. 동적 확장성 | 신규 Workload를 Framework 수정 없이 수용하는가 (FR-06, QA-07) |
 | E2. Secure OS 이식 적합성 | 기존 Secure OS의 이식 수정량이 CONST-06 취지에 맞게 최소인가 (FR-07) |
 | E3. 교체 격리 | Secure OS 교체 시 무관 SW 무수정이 구조적으로 보장되는가 (QA-08) |
 | E4. 선행 정합 | DP-02 manifest, DP-06 채널 규약, DP-07 암호화 레이아웃/2단계 startup과의 정합 |
 | E5. 검증 지점 명확성 | 설치/로딩/교체 각 단계의 검증 지점이 DP-09/DP-02와 단일하게 연결되는가 |
-| E6. 결합도 | Secure OS 이식팀과 프레임워크팀 간 인터페이스 결합도/유지보수 부담 |
+| E6. 결합도 | Secure OS 이식팀과 Framework팀 간 인터페이스 결합도/유지보수 부담 |
 
 ---
 
 ## 3. 평가 (평가: Codex)
 
 > 수행: `omc ask codex` (gpt-5.5, reasoning xhigh)
-> 원문: `.omc/artifacts/ask/codex-docs-fable-16-dp05-workload-packaging-md-docs-fable-17-dp09--2026-06-11T23-15-59-931Z.md`
+> 원문: `.omc/artifacts/ask/codex-docs-fable-16-dp05-Workload-packaging-md-docs-fable-17-dp09--2026-06-11T23-15-59-931Z.md`
 
 ### 3.1 후보별 평가 요약
 
@@ -97,7 +97,7 @@ manifest와 서명/암호화 구획만 표준화하고, 부팅 규약/가상 디
 
 후보 B를 채택하되 다음을 결정 조건으로 승격:
 
-- **P1 베이스 이미지 = 새로운 P1 공통 TCB.** 커널/채널 스택/chunked 로더가 키 수급과 평문 적재를 담당하므로 모든 P1 워크로드의 보안이 이 이미지 품질에 묶인다. manifest에 base image hash/version, rollback 방지, 패치 정책, 측정값 바인딩 포함 필수.
+- **P1 베이스 이미지 = 새로운 P1 공통 TCB.** 커널/채널 스택/chunked 로더가 키 수급과 평문 적재를 담당하므로 모든 P1 Workload의 보안이 이 이미지 품질에 묶인다. manifest에 base image hash/version, rollback 방지, 패치 정책, 측정값 바인딩 포함 필수.
 - **P2 채널 어댑터는 보안 경계 소비자다** — 이식 편의 코드가 아니다. DP-06 ring metadata/bounds check/sequence/cache maintenance/인증 실패 fail-closed를 검증하는 conformance test와 reference adapter가 필요하다.
 - **per-device/per-fleet 키 단위를 패키지 포맷에 반영.** per-fleet는 배포/단일 암호문에 유리하나 한 디바이스 키 노출 시 fleet 전체 blast radius. per-device는 crypto-erase/침해 격리에 유리하나 디바이스별 envelope/재암호화/manifest key table 관리 필요. **보호 자산은 per-device 기본, per-fleet는 명시적 위험 수용 옵션**이 적절.
 
@@ -113,7 +113,7 @@ manifest와 서명/암호화 구획만 표준화하고, 부팅 규약/가상 디
 
 ## 4. 검수 (검수: Claude)
 
-> 수행: critic 에이전트 (별도 컨텍스트, 전제 문서 8종 교차 대조, DP-09 문서와 합동 검수)
+> 수행: critic 에이전트 (별도 Context, 전제 문서 8종 교차 대조, DP-09 문서와 합동 검수)
 
 ### 4.1 판정
 
@@ -123,7 +123,7 @@ manifest와 서명/암호화 구획만 표준화하고, 부팅 규약/가상 디
 
 1. **Codex 등급/근거 타당** — A/B/C 상대 서열과 채택 후보 선택에 전제 문서와의 모순 없음. 후보 A E2 "하"의 근거인 CONST-06은 원문이 "신규 개발 제외 + 이식/수정만"이며 "이식량 최소화"는 취지 해석임을 명시한다.
 2. **(범주 정밀화) "P1 공통 TCB" 명명 교정** — P1 베이스 이미지는 게스트 내부 컴포넌트(99 문서: 해당 pVM 자신에 대해서만 신뢰)로, DP-01 5.4절(3)의 서비스 pVM 편입 절차(신뢰 모델 문서 개정) 대상이 **아니다**. 올바른 분류: **"per-domain 신뢰 베이스 + 측정 체인 루트(DP-09)"**. 침해 영향은 해당 도메인에 한정되나, 전 P1 도메인이 공유하므로 취약점은 systemic — "TCB 편입"이 아니라 "공통 의존 컴포넌트의 측정/패치/롤백 관리" 문제다.
-3. **(CRITICAL) P2 보안 게이트 경계 누락** — 기존 Secure OS는 자체 키 관리/자체 attestation을 가질 수 있다. P2가 자체 키로 자산을 복호화하면 DP-02 "키 방출 = 최후 공통 게이트(TEE)"를 우회하고, 자체 측정 루트는 DP-09 체인과 이중이 된다. P2 어댑터 conformance에 우회 금지 의무를 포함하거나, 자체 기능 보유 자산을 "프레임워크 보장 밖(P2 책임)"으로 경계를 그어야 한다.
+3. **(CRITICAL) P2 보안 게이트 경계 누락** — 기존 Secure OS는 자체 키 관리/자체 attestation을 가질 수 있다. P2가 자체 키로 자산을 복호화하면 DP-02 "키 방출 = 최후 공통 게이트(TEE)"를 우회하고, 자체 측정 루트는 DP-09 체인과 이중이 된다. P2 어댑터 conformance에 우회 금지 의무를 포함하거나, 자체 기능 보유 자산을 "Framework 보장 밖(P2 책임)"으로 경계를 그어야 한다.
 4. **(MAJOR) 패키지 버전 롤백 공격** — AT-2가 구버전 패키지 + 구버전 sealed key를 함께 되돌리면(과거에 유효했던 정당한 조합) 측정값/키 모두 통과한다. DP-07 G4 key epoch만으로는 부족 — manifest version/base image version의 단조성을 TEE anti-rollback 카운터로 강제하는 통합 정책 필요.
 5. **(정합) 패키지 구획 ↔ 측정 단위 1:1** — DP-C-04 패키지 구획 경계와 DP-09 측정 단위가 동일 구획 분류표를 참조해야 한다. 측정 종료점에 보호 자산 chunk manifest 포함 여부가 미고정이었다.
 6. **(MINOR) P1 베이스 패치 연쇄** — 베이스 패치 = 측정값 변경 = 전체 P1 fleet의 measured identity(채널 상대 인증)/키 대조(DP-07) 무효화 이벤트. 재봉인/재발급 롤아웃 절차를 패치 정책에 포함해야 한다.
@@ -134,10 +134,10 @@ manifest와 서명/암호화 구획만 표준화하고, 부팅 규약/가상 디
 
 ### 5.1 채택 구조
 
-**후보 B를 조건부 채택한다 — "공통 패키지 포맷 + 2개 실행 프로파일(P1 경량 워크로드 / P2 Secure OS)".**
+**후보 B를 조건부 채택한다 — "공통 패키지 포맷 + 2개 실행 프로파일(P1 경량 Workload / P2 Secure OS)".**
 
-- 패키지 컨테이너 포맷/manifest/서명/암호화 구획/검증 절차는 단일 표준이다. 게스트 실행 환경만 P1(프레임워크 제공 런타임 베이스 + 페이로드)/P2(자체 커널 + 최소 부팅 규약 + 채널 어댑터)로 나눈다.
-- 교체 단위 = 패키지. 프레임워크/Host 미들웨어/타 워크로드가 보는 것은 manifest 선언과 채널 규약뿐이다(QA-08 경계).
+- 패키지 컨테이너 포맷/manifest/서명/암호화 구획/검증 절차는 단일 표준이다. 게스트 실행 환경만 P1(Framework 제공 런타임 베이스 + 페이로드)/P2(자체 커널 + 최소 부팅 규약 + 채널 어댑터)로 나눈다.
+- 교체 단위 = 패키지. Framework/Host Middleware/타 Workload가 보는 것은 manifest 선언과 채널 규약뿐이다(QA-08 경계).
 - P1 베이스 이미지는 **"per-domain 신뢰 베이스 + 측정 체인 루트"**로 분류한다(전역 TCB 편입 아님 — DP-01 5.4절(3) 비적용). 전 P1 도메인 공통 의존이므로 base image hash/version/rollback 방지/패치 정책/측정값 바인딩을 manifest 필수 필드로 고정한다.
 - **후보 A**는 기각(Secure OS 수용성 부족), **후보 C**는 비교 기준선으로만 기록한다.
 
@@ -146,7 +146,7 @@ manifest와 서명/암호화 구획만 표준화하고, 부팅 규약/가상 디
 | # | 게이트 | 충족 조건 | 연동 |
 |---|--------|-----------|------|
 | G1 | (분류) P1 공통 신뢰 베이스 정의 | "per-domain 신뢰 베이스 + 측정 체인 루트"로 분류, 신뢰 모델 문서 개정 비적용 명시. manifest 필수 필드(base hash/version/rollback/패치 정책/측정값 바인딩) 고정 | DP-09 G2 |
-| G2 | (CRITICAL) P2 보안 게이트 경계 | P2가 자체 키 관리/attestation 보유 시 DP-07 키 방출 게이트/DP-09 측정 체인을 우회하지 않을 의무를 conformance에 포함. 우회 허용 자산은 "프레임워크 보장 밖(P2 책임)"으로 경계 명시 | DP-07, DP-09, DP-02 |
+| G2 | (CRITICAL) P2 보안 게이트 경계 | P2가 자체 키 관리/attestation 보유 시 DP-07 키 방출 게이트/DP-09 측정 체인을 우회하지 않을 의무를 conformance에 포함. 우회 허용 자산은 "Framework 보장 밖(P2 책임)"으로 경계 명시 | DP-07, DP-09, DP-02 |
 | G3 | (conformance) P2 채널 어댑터 검증 | DP-06 ring metadata/bounds check/sequence/cache maintenance/인증 실패 fail-closed를 검증하는 conformance test + reference adapter 제공 | DP-06 |
 | G4 | (포맷) DP-07 핸드오프 필드 확정 | 암호문 청크 레이아웃/AEAD 태그 배치/manifest hash↔ciphertext 바인딩 위치/key id/version/2단계 startup을 패키지 포맷 필수 필드로 고정 | DP-07 G4/5.4절 |
 | G5 | (정합) 패키지 구획 ↔ 측정 단위 1:1 | 패키지 구획(P1 페이로드/P2 커널/보호 자산 chunk manifest)과 DP-09 측정 단위가 동일 구획 분류표 참조. 측정 종료점 = 보호 자산 chunk manifest까지 | DP-09 G4 공동 |

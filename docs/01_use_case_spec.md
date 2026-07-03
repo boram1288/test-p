@@ -42,12 +42,12 @@
 
 ---
 
-| UC-05 | 보안 워크로드 동적 탑재 |
+| UC-05 | 보안 Workload 동적 탑재 |
 |---|---|
 | Actor | 사용자 |
-| Pre-Condition | 플랫폼이 실행 중이고 신규 워크로드 이미지가 서명되어 있다 |
-| Post-Condition | 신규 보안 워크로드가 펌웨어 재배포 없이 격리 환경에서 실행 중이다 |
-| Main Flow | 1. 사용자가 신규 보안 워크로드 이미지를 pVM 관리 API에 전달한다<br>2. 시스템이 이미지 서명을 검증한다<br>3. 시스템이 새 pVM 인스턴스를 생성하고 워크로드를 탑재한다<br>4. 새 워크로드가 기존 pVM들과 독립적으로 실행된다 |
+| Pre-Condition | 플랫폼이 실행 중이고 신규 Workload 이미지가 서명되어 있다 |
+| Post-Condition | 신규 보안 Workload가 펌웨어 재배포 없이 격리 환경에서 실행 중이다 |
+| Main Flow | 1. 사용자가 신규 보안 Workload 이미지를 pVM 관리 API에 전달한다<br>2. 시스템이 이미지 서명을 검증한다<br>3. 시스템이 새 pVM 인스턴스를 생성하고 Workload를 탑재한다<br>4. 새 Workload가 기존 pVM들과 독립적으로 실행된다 |
 | Alternative Flow | 서명 검증 실패 시 탑재를 중단하고 사용자에게 오류를 반환한다 |
 
 ---

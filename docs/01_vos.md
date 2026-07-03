@@ -8,10 +8,10 @@
 | 로봇 제조사 | ISP/NPU 하드웨어 가속을 그대로 사용해야 하며, Host의 일반 기능과 동시 사용 필요 | FR + QA(성능) |
 | 로봇 제조사 | Yocto/Ubuntu 기반 Linux 제품이며 Android 종속 솔루션은 채택 불가 | CONST |
 | 로봇 제조사 | 보안 기능의 전력/메모리 오버헤드가 과도하면 탑재 불가 | QA(성능/자원 효율) |
-| 상품 기획 | Secure Vision AI 외 향후 시나리오도 프레임워크 수정 없이 수용해야 사업 경쟁력 확보 | QA(확장성) |
+| 상품 기획 | Secure Vision AI 외 향후 시나리오도 Framework 수정 없이 수용해야 사업 경쟁력 확보 | QA(확장성) |
 | 과제 PM | 2026-10-30까지 E2E 데모 완료 필요, 인력은 Security/Hypervisor/SOC 설계 인력으로 한정 | CONST |
 | 내부 Security 개발자 | Secure Camera/Secure AI 도메인은 독립 운용되어야 하며, 한쪽 침해가 다른 쪽에 영향 없어야 함 | FR + QA(보안) |
-| SOC 설계 부서 | ISP/NPU는 다중 컨텍스트 미지원 HW라 DMA 경로(S2MPU) 통제 및 잔류 데이터 삭제 필요 | QA(보안) + CONST |
+| SOC 설계 부서 | ISP/NPU는 다중 Context 미지원 HW라 DMA 경로(S2MPU) 통제 및 잔류 데이터 삭제 필요 | QA(보안) + CONST |
 | 내부 Security 개발자 | 격리 도메인 간, pVM-Host 간 데이터 전달은 노출 없이 빠르게 이뤄져야 함 | FR + QA(성능/보안) |
 | 내부 Hypervisor 개발자 | pKVM 커널(EL2)은 기 포팅된 그대로 사용, EL2 수정 불가, 제공 hypercall 범위 내 설계 | CONST |
 | 내부 Security 개발자 | 기존 Secure OS의 pVM 이식 인터페이스가 명확해야 함 | QA(변경 용이성/이식성) |

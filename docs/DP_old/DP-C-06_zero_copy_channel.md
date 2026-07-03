@@ -110,7 +110,7 @@
 
 ## 4. 검수 (검수: Claude)
 
-> 수행: critic 에이전트 (별도 컨텍스트, 읽기 전용). 판정: **유보부 승인 (ACCEPT-WITH-RESERVATIONS)**
+> 수행: critic 에이전트 (별도 Context, 읽기 전용). 판정: **유보부 승인 (ACCEPT-WITH-RESERVATIONS)**
 
 **동의**: 하이브리드 권고(A steady-state + B 제한 용도)와 Codex의 정량 비교(B = 60 transition/s/stream, DP-C-06 1ms 목표 대입 시 stream당 최대 2ms/frame), 결함 5건 전부 타당.
 
@@ -145,7 +145,7 @@
 ### 후속 DP에 주는 전제
 
 - DP-C-08: 복호화 키의 pVM 전달 경로는 G3의 Secure World 전용 버퍼 모델을 사용한다(일반 채널 경유 금지).
-- DP-C-04: pVM↔프레임워크 통신 규약의 표준화는 "frame pool + ring + 제어 경로 분리" 구조를 전제한다.
+- DP-C-04: pVM↔Framework 통신 규약의 표준화는 "frame pool + ring + 제어 경로 분리" 구조를 전제한다.
 - 채널 상대 인증: 부트스트랩 순서와 G3 정본/서브셋 관계를 공유한다.
 
 > 상태: **조건부 채택 (검수 완료)** — G1(H6/H2 경계)/G2(H2 계약) 확인 결과에 따라 확정
