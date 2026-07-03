@@ -52,6 +52,7 @@ rectangle "System" {
 
 HostApp --> UC01
 HostApp --> UC02
+HostApp --> UC03
 HostApp --> UC04
 HostApp --> UC05
 
