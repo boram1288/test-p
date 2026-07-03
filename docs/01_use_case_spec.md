@@ -14,7 +14,7 @@
 
 | UC-02 | 다중 pVM 동시 운용 |
 |---|---|
-| Actor | 사용자 |
+| Actor | Host Application |
 | Pre-Condition | Secure Camera pVM과 Secure AI pVM 이미지가 준비되어 있다 |
 | Post-Condition | 복수의 pVM이 격리된 상태로 독립적으로 동시 운용 중이다 |
 | Main Flow | 1. 사용자가 Secure Camera pVM을 생성하고 시작한다<br>2. 사용자가 Secure AI pVM을 생성하고 시작한다<br>3. 두 pVM이 독립된 메모리 공간에서 동시에 실행된다 |
