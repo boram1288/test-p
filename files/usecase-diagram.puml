@@ -21,7 +21,6 @@ rectangle "Linux pKVM 기반 가상화 보안 플랫폼" {
   }
 
   package "pVM" {
-    usecase "UC-07\npVM내 HW IP 사용" as UC07
     usecase "UC-08\nHost으로 RPC 통신" as UC08
     usecase "UC-09\nGP API를 통한 pVM-TEE간 통신" as UC09
   }
@@ -40,7 +39,6 @@ CSAD --> UC03
 CSAD --> UC04
 CSAD --> UC05
 CSAD --> UC06
-CSAD --> UC07
 CSAD --> UC08
 CSAD --> UC09
 

@@ -22,7 +22,6 @@
 | UC-04 | 도메인 간 보안 데이터 전송 | pVM↔pVM, pVM↔Host 간 데이터를 비신뢰 주체에 노출 없이 전달한다 |
 | UC-05 | 보안 Workload 동적 탑재 | 펌웨어 재배포 없이 신규 보안 Workload를 pVM에 동적으로 탑재한다 |
 | UC-06 | Secure OS ENC/DEC 명령 전송 | pVM 내 Secure OS에 암호화/복호화 명령을 전송한다 |
-| UC-07 | pVM 모니터링 및 장애 복구 | pVM 상태를 모니터링하고 비정상 종료 시 자원을 안전 회수 후 재시작한다 |
 
 ---
 
@@ -47,7 +46,6 @@ rectangle "System" {
   usecase "UC-04. 가상화 도메인 간\n보안 데이터 전송" as UC04
   usecase "UC-05. 보안 Workload 동적 탑재" as UC05
   usecase "UC-06. Secure OS\nENC/DEC 명령 전송" as UC06
-  usecase "UC-07. pVM 상태 모니터링 및\n장애 복구" as UC07
 }
 
 User --> UC01
@@ -56,7 +54,6 @@ User --> UC03
 User --> UC04
 User --> UC05
 User --> UC06
-User --> UC07
 
 @enduml
 ```
@@ -64,4 +61,3 @@ User --> UC07
 ---
 
 > 유즈케이스 명세는 [`01_use_case_spec.md`](01_use_case_spec.md) 참조
-

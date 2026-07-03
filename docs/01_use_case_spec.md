@@ -59,13 +59,3 @@
 | Post-Condition | 데이터가 암호화/복호화된 상태로 반환되었다 |
 | Main Flow | 1. 사용자가 Secure OS에 ENC/DEC 명령과 대상 데이터를 전달한다<br>2. Secure OS가 데이터를 암호화 또는 복호화한다<br>3. 처리된 데이터가 사용자에게 반환된다<br>4. 사용자가 처리된 데이터를 외부 시스템으로 전달한다 |
 | Alternative Flow | ENC/DEC 실패 시 오류를 반환하고 평문 데이터는 pVM 외부로 유출하지 않는다 |
-
----
-
-| UC-07 | pVM 모니터링 및 장애 복구 |
-|---|---|
-| Actor | 사용자 |
-| Pre-Condition | pVM이 실행 중이고 모니터링이 활성화되어 있다 |
-| Post-Condition | 장애 pVM이 재시작되었고 다른 pVM과 Host는 영향받지 않았다 |
-| Main Flow | 1. 시스템이 pVM 상태 이상을 감지한다<br>2. 사용자에게 장애 알림이 전달된다<br>3. 시스템이 해당 pVM의 자원을 안전하게 회수한다<br>4. 다른 pVM과 Host는 정상 동작을 유지한다<br>5. 자동 재시작 정책 또는 사용자 명령에 따라 pVM이 재시작된다<br>6. 재시작된 pVM이 정상 상태로 복귀한다 |
-| Alternative Flow | 재시작 실패 시 pVM을 종료하고 사용자에게 알린다 |
