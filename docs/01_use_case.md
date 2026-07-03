@@ -8,7 +8,9 @@
 
 | 액터 | 설명 |
 |---|---|
-| 사용자 | pVM 기반 보안 플랫폼을 운용하는 주체 (로봇 앱 개발자, 시스템 운영자 등) |
+| Host Application | pVM 생성/운용과 보안 Workload 탑재를 요청하는 Host 측 애플리케이션 |
+| Camera Stream Workload | Camera HW를 사용해 영상 스트림을 처리하고 도메인 간 데이터 전송에 참여하는 보안 Workload |
+| AI 추론 Workload | AI HW 추론과 Secure OS 연동을 수행하고 도메인 간 데이터 전송에 참여하는 보안 Workload |
 
 ---
 
@@ -37,7 +39,9 @@ skinparam usecase {
   BorderColor Black
 }
 
-actor "사용자" as User
+actor "Host Application" as HostApp
+actor "Camera Stream\nWorkload" as CameraWorkload
+actor "AI 추론\nWorkload" as AIWorkload
 
 rectangle "System" {
   usecase "UC-01. pVM 생성/시작/정지/종료" as UC01
@@ -48,12 +52,18 @@ rectangle "System" {
   usecase "UC-06. Secure OS\nENC/DEC 명령 전송" as UC06
 }
 
-User --> UC01
-User --> UC02
-User --> UC03
-User --> UC04
-User --> UC05
-User --> UC06
+HostApp --> UC01
+HostApp --> UC02
+HostApp --> UC04
+HostApp --> UC05
+
+CameraWorkload --> UC03
+CameraWorkload --> UC04
+CameraWorkload --> UC06
+
+AIWorkload --> UC03
+AIWorkload --> UC04
+AIWorkload --> UC06
 
 @enduml
 ```
