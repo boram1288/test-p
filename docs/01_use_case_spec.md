@@ -28,7 +28,7 @@
 | Pre-Condition | Workload(Camera/AI)가 실행 중이고 Normal Camera Application이 Camera HW 사용을 요청할 수 있다 |
 | Post-Condition | Workload(Camera/AI)와 Normal Camera Application이 Camera/AI HW를 충돌/데이터 유출 없이 사용했다 |
 | Main Flow | 1. Workload(Camera/AI)가 Camera/AI HW 사용을 요청한다<br>2. 시스템은 S2MPU를 통해 요청한 HW 접근 권한을 Workload(Camera/AI)에 전용 할당한다<br>3. Workload(Camera/AI)는 Camera/AI HW로 보안 데이터를 처리한다<br>4. 시스템은 처리 완료 후 HW 버퍼의 잔류 데이터를 보안 격리하고 접근 권한을 반환한다<br>5. Normal Camera Application이 Camera HW 사용을 요청한다<br>6. 시스템은 Camera HW 접근 권한을 Normal Camera Application에 할당한다 |
-| Alternative Flow | 1. 시스템은 HW IP 접근 충돌 발생 시 요청을 큐에 대기시키고 현재 사용 완료 후 순차 처리한다<br>2. 시스템은 Camera/AI HW 사용 주체 전환 전 잔류 데이터 삭제가 실패하면 접근 권한 반환을 중단하고 오류를 기록한다<br>3. 시스템은 허가되지 않은 pVM 또는 애플리케이션이 Camera/AI HW 접근을 요청하면 S2MPU 정책으로 접근을 차단한다 |
+| Alternative Flow | 1. 시스템은 HW IP 접근 충돌 발생 시 요청을 큐에 대기시키고 현재 사용 완료 후 순차 처리한다<br>2. 시스템은 Camera/AI HW 사용 주체 전환 전 잔류 데이터 보안 격리가 실패하면 접근 권한 반환을 중단하고 오류를 기록한다<br>3. 시스템은 허가되지 않은 pVM 또는 애플리케이션이 Camera/AI HW 접근을 요청하면 S2MPU 정책으로 접근을 차단한다 |
 
 ---
 
