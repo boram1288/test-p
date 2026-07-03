@@ -12,7 +12,7 @@
 | 과제 PM | 2026-10-30까지 E2E 데모 완료 필요, 인력은 Security/Hypervisor/SOC 설계 인력으로 한정 | CONST |
 | 내부 Security 개발자 | Secure Camera/Secure AI 도메인은 독립 운용되어야 하며, 한쪽 침해가 다른 쪽에 영향 없어야 함 | FR + QA(보안) |
 | SOC 설계 부서 | Camera/AI HW는 다중 Context 미지원 HW라 DMA 경로(S2MPU) 통제 및 잔류 데이터 삭제 필요 | QA(보안) + CONST |
-| 내부 Security 개발자 | 격리 도메인 간, pVM-Host 간 데이터 전달은 노출 없이 빠르게 이뤄져야 함 | FR + QA(성능/보안) |
+| 내부 Security 개발자 | 도메인 간, pVM-Host 간 데이터 전달은 노출 없이 빠르게 이뤄져야 함 | FR + QA(성능/보안) |
 | 내부 Hypervisor 개발자 | pKVM 커널(EL2)은 기 포팅된 그대로 사용, EL2 수정 불가, 제공 hypercall 범위 내 설계 | CONST |
 | 내부 Security 개발자 | 기존 Secure OS의 pVM 이식 인터페이스가 명확해야 함 | QA(변경 용이성/이식성) |
 | 내부 Security 개발자 | 기존 TrustZone TEE(키 관리/인증) 기능은 무중단 유지, 기존 SMC 경로 보존 | FR + CONST |

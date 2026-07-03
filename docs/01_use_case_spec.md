@@ -32,7 +32,7 @@
 
 ---
 
-| UC-04 | 격리 도메인 간 보안 데이터 전송 |
+| UC-04 | 도메인 간 보안 데이터 전송 |
 |---|---|
 | Actor | 사용자 |
 | Pre-Condition | Secure Camera pVM과 Secure AI pVM이 모두 실행 중이다 |

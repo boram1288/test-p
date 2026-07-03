@@ -25,7 +25,7 @@
 | FR-01 | **pVM 생성/시작/정지/종료** | pVM의 생성/시작/정지/종료와 자원 할당/회수를 관리한다. | VOS-01, VOS-07 | UC-01 |
 | FR-02 | **다중 pVM 동시 운용** | Secure Camera, Secure AI 등 복수 pVM을 독립적으로 동시 운용한다. | VOS-07 | UC-02 |
 | FR-03 | **Camera/AI HW 공유 사용** | Camera/AI HW를 Host/pVM이 SW 중재로 공유하고, 사용 중인 pVM에만 S2MPU로 DMA 경로를 허용하며, 사용 주체 전환 시 잔류 데이터를 소거한다. | VOS-02, VOS-08 | UC-03 |
-| FR-04 | **격리 도메인 간 보안 데이터 전송** | pVM↔pVM, pVM↔Host 간 데이터를 비신뢰 주체에 노출 없이 전달하는 보안 채널을 제공하며, 영상 원본/AI 모델/추론 데이터는 격리 영역 내에만 유지하고 판단 결과만 Host로 전달한다. | VOS-01, VOS-09 | UC-04 |
+| FR-04 | **도메인 간 보안 데이터 전송** | pVM↔pVM, pVM↔Host 간 데이터를 비신뢰 주체에 노출 없이 전달하는 보안 채널을 제공하며, 영상 원본/AI 모델/추론 데이터는 격리 영역 내에만 유지하고 판단 결과만 Host로 전달한다. | VOS-01, VOS-09 | UC-04 |
 | FR-05 | **보안 Workload 동적 탑재** | 신규 보안 Workload를 펌웨어 재배포 없이 서명 검증 후 동적으로 pVM에 탑재한다. | VOS-05 | UC-05 |
 | FR-06 | **Secure OS ENC/DEC 명령 전송** | pVM 내 이식된 Secure OS를 게스트로 실행하고 ENC/DEC 명령을 전달하며, 기존 TrustZone TEE 기능(키 관리/인증)과 공존하여 SMC 경로를 보존한다. | VOS-11, VOS-12 | UC-06 |
 | FR-07 | **pVM 모니터링 및 장애 복구** | pVM 상태를 모니터링하고, 비정상 종료 시 자원을 안전 회수 후 재시작한다. | VOS-16 | UC-07 |

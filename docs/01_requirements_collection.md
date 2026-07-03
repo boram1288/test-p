@@ -85,7 +85,7 @@ flowchart TB
 | VOS-06 | 과제 PM | "2026-10-30까지 Secure Vision AI End-to-End 데모가 동작해야 한다. 인력은 Security/Hypervisor/SOC 설계 인력으로 한정된다." |
 | VOS-07 | 내부 Security 개발자 | "Secure Camera 도메인과 Secure AI 도메인은 서로 독립적으로 동시에 떠 있어야 하고, 한쪽이 침해돼도 다른 쪽은 안전해야 한다." |
 | VOS-08 | SOC 설계 부서 | "Camera/AI HW는 다중 Context를 지원하지 않는 HW다. pVM이 사용하는 동안 DMA 경로(S2MPU)까지 막지 않으면 격리가 깨지고, 사용 주체가 바뀔 때 잔류 데이터를 지우지 않으면 데이터가 샌다." |
-| VOS-09 | 내부 Security 개발자 | "두 격리 도메인 간(Camera→AI), pVM↔Host 간 데이터 전달은 노출 없이, 그리고 영상 파이프라인을 막지 않을 만큼 빠르게 이뤄져야 한다." |
+| VOS-09 | 내부 Security 개발자 | "두 도메인 간(Camera→AI), pVM↔Host 간 데이터 전달은 노출 없이, 그리고 영상 파이프라인을 막지 않을 만큼 빠르게 이뤄져야 한다." |
 | VOS-10 | 내부 Hypervisor 개발자 | "pKVM 커널(EL2)은 기 포팅된 것을 그대로 쓴다. EL2 코드 수정이 필요한 설계는 받을 수 없고, 제공되는 hypercall 인터페이스 범위 안에서 설계해야 한다." |
 | VOS-11 | 내부 Security 개발자 (SRCX, Secure OS 이식) | "기존 Secure OS를 pVM에 올리는 이식 작업의 인터페이스가 명확해야 한다. Framework가 바뀔 때마다 이식을 다시 하는 구조면 일정 내 불가능하다." |
 | VOS-12 | 내부 Security 개발자 (기존 TrustZone 공존) | "키 관리/인증 등 기존 TrustZone TEE 기능은 지금 그대로 동작해야 한다. 신규 Framework 도입으로 기존 SMC 경로가 깨지면 안 된다." |
@@ -102,7 +102,7 @@ flowchart TB
 |--------------------|----------|
 | R-1 Host 비신뢰 격리 | VOS-01, VOS-15 |
 | R-2 HW 고성능 연산 지원 | VOS-02, VOS-08 |
-| R-3 다중 격리 도메인 동시 운용 | VOS-07, VOS-09 |
+| R-3 다중 도메인 동시 운용 | VOS-07, VOS-09 |
 | R-4 동적 확장성 | VOS-05 |
 | R-5 기존 Secure OS 상호운용 | VOS-11, VOS-12 |
 | (R-1~R-5 외 신규) | **VOS-03(Linux 네이티브), VOS-04(자원 효율), VOS-06(일정/인력), VOS-10(pKVM 전제), VOS-13(시험 용이성), VOS-14(사용성), VOS-16(가용성)** |
