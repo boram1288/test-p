@@ -55,10 +55,6 @@
 |----|---------|------|----------|
 | CONST-01 | **Linux 네이티브** | Android 스택에 의존하지 않고 Linux에서 네이티브로 동작한다. | VOS-03 |
 | CONST-02 | **pKVM 커널 전제** | 기 포팅된 pKVM(EL2)을 전제로, EL2 수정 없이 hypercall 범위 내에서 설계한다. | VOS-10 |
-| CONST-03 | **기존 TEE 경로 무회귀** | 기존 TrustZone SMC 경로/TEE 기능(키 관리/인증)은 변경 없이 그대로 동작해야 한다. | VOS-12 |
-| CONST-04 | **규제 준수** | GDPR/개인정보보호법이 요구하는 기술적 격리를 충족/증빙해야 한다. | VOS-15 |
-| CONST-05 | **타겟 HW** | Camera/AI HW 탑재 ARM 기반 로봇용 SoC 대상이며, 두 IP는 단일 Context HW로 HW 설계 변경은 불가하다. | VOS-02, VOS-08 |
-| CONST-06 | **Secure OS 신규 개발 제외** | Secure OS는 신규 개발하지 않고 기존 Secure OS의 이식/수정만 다룬다. | - |
 
 ---
 

@@ -22,7 +22,7 @@
 
 ---
 
-| UC-03 | Camera/AI HW 배타적 공유 사용 |
+| UC-03 | Camera/AI HW 공유 사용 |
 |---|---|
 | Actor | Workload(Camera/AI), Normal Camera Application |
 | Pre-Condition | Workload(Camera/AI)가 실행 중이고 Normal Camera Application이 Camera HW 사용을 요청할 수 있다 |
