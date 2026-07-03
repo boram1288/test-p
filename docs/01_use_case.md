@@ -9,8 +9,7 @@
 | 액터 | 설명 |
 |---|---|
 | Host Application | pVM 생성/운용과 보안 Workload 탑재를 요청하는 Host 측 애플리케이션 |
-| Camera Stream Workload | Camera HW를 사용해 영상 스트림을 처리하고 도메인 간 데이터 전송에 참여하는 보안 Workload |
-| AI 추론 Workload | AI HW 추론과 Secure OS 연동을 수행하고 도메인 간 데이터 전송에 참여하는 보안 Workload |
+| Workload(Camera/AI) | Camera HW/AI HW 사용, 도메인 간 데이터 전송, Secure OS 연동을 수행하는 보안 Workload |
 
 ---
 
@@ -40,8 +39,7 @@ skinparam usecase {
 }
 
 actor "Host Application" as HostApp
-actor "Camera Stream\nWorkload" as CameraWorkload
-actor "AI 추론\nWorkload" as AIWorkload
+actor "Workload(Camera/AI)" as Workload
 
 rectangle "System" {
   usecase "UC-01. pVM 생성/시작/정지/종료" as UC01
@@ -57,13 +55,9 @@ HostApp --> UC02
 HostApp --> UC04
 HostApp --> UC05
 
-CameraWorkload --> UC03
-CameraWorkload --> UC04
-CameraWorkload --> UC06
-
-AIWorkload --> UC03
-AIWorkload --> UC04
-AIWorkload --> UC06
+Workload --> UC03
+Workload --> UC04
+Workload --> UC06
 
 @enduml
 ```
