@@ -16,7 +16,18 @@
       "Bash(npm --version)",
       "Bash(npx --version)",
       "Bash(npx --yes md-to-pdf docs/01_use_case_spec.md)",
-      "Bash(pip3 install *)"
+      "Bash(pip3 install *)",
+      "Bash(git *)",
+      "Bash(sed -i '/^| QA-02 | \\\\*\\\\*보안 \\(도메인 간 격리\\)/d' 02_requirements.md)",
+      "Bash(sed -i '/^| QA-03 | \\\\*\\\\*보안 \\(DMA 경로 격리\\)/d' 02_requirements.md)",
+      "Bash(sed -i 's/FR-01, FR-02, QA-02/FR-01, FR-02/' 02_requirements.md)",
+      "Bash(sed -i 's/FR-03, QA-03, CONST-05/FR-03, CONST-05/' 02_requirements.md)",
+      "Bash(sed -i 's/QA-01~QA-11/QA-01~QA-09/g' 02_requirements.md)",
+      "Bash(sed -i 's/PERF\\\\[\"성능<br\\\\/>QA-02, 05, 11\"\\\\]/PERF[\"성능<br\\\\/>QA-02, 03, 09\"]/' docs/04_architectural_drivers.md)",
+      "Bash(sed -i 's/QA 11건/QA 9건/g' docs/04_architectural_drivers.md)",
+      "Bash(sed -i 's/QS-01~11/QS-01~09/g' docs/04_architectural_drivers.md)",
+      "Bash(sed -i 's/QS-01~09/QS-01~09/g' docs/03_quality_attribute_workshop.md)",
+      "Bash(sed -i 's/Driver 20건 = 중요 FR 6 + 핵심 QA 8/Driver 18건 = 중요 FR 6 + 핵심 QA 6/' docs/04_architectural_drivers.md)"
     ]
   }
 }
