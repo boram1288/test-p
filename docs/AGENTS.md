@@ -21,3 +21,4 @@
 - `01_requirements_collection.md`의 `3. VOS (Voice of Stakeholder) 정리` 표는 `ID`, `Stakeholder`, `VOS` 컬럼만 사용한다.
 - VOS 정리 표의 `Stakeholder` 값에는 `SH-1` 같은 stakeholder 번호를 넣지 않는다.
 - VOS 정리 표의 VOS 문장은 큰따옴표로 감싸지 않는다.
+- VOS 정리 표의 VOS 문장은 핵심 요구만 간결하게 작성한다.
