@@ -22,13 +22,13 @@
 
 ---
 
-| UC-03 | Camera/AI HW 공유 사용 |
+| UC-03 | Camera/AI HW 배타적 공유 사용 |
 |---|---|
 | Actor | Workload(Camera/AI), Normal Camera Application |
 | Pre-Condition | Workload(Camera/AI)가 실행 중이고 Normal Camera Application이 Camera HW 사용을 요청할 수 있다 |
-| Post-Condition | Workload(Camera/AI)와 Normal Camera Application이 Camera/AI HW를 충돌/데이터 유출 없이 사용했다 |
-| Main Flow | 1. Workload(Camera/AI)가 Camera/AI HW 사용을 요청한다<br>2. 시스템은 S2MPU를 통해 요청한 HW 접근 권한을 Workload(Camera/AI)에 전용 할당한다<br>3. Workload(Camera/AI)는 Camera/AI HW로 보안 데이터를 처리한다<br>4. 시스템은 처리 완료 후 HW 버퍼의 잔류 데이터를 보안 격리하고 접근 권한을 반환한다<br>5. Normal Camera Application이 Camera HW 사용을 요청한다<br>6. 시스템은 Camera HW 접근 권한을 Normal Camera Application에 할당한다 |
-| Alternative Flow | 1. 시스템은 HW IP 접근 충돌 발생 시 요청을 큐에 대기시키고 현재 사용 완료 후 순차 처리한다<br>2. 시스템은 Camera/AI HW 사용 주체 전환 전 잔류 데이터 보안 격리가 실패하면 접근 권한 반환을 중단하고 오류를 기록한다<br>3. 시스템은 허가되지 않은 pVM 또는 애플리케이션이 Camera/AI HW 접근을 요청하면 S2MPU 정책으로 접근을 차단한다 |
+| Post-Condition | Workload(Camera/AI)와 Normal Camera Application이 Camera/AI HW를 서로 배타적으로(동시 점유 없이) 사용했고, 주체 전환 시 잔류 데이터 유출이 없었다 |
+| Main Flow | 1. Workload(Camera/AI)가 Camera/AI HW 사용을 요청한다<br>2. 시스템은 현재 HW를 점유한 다른 주체가 없음을 확인하고, S2MPU를 통해 HW 접근 권한을 Workload(Camera/AI)에 배타적으로 전용 할당한다 (점유 중 다른 주체의 접근은 차단)<br>3. Workload(Camera/AI)는 배타적으로 확보한 Camera/AI HW로 보안 데이터를 처리한다<br>4. 시스템은 처리 완료 후 HW 버퍼의 잔류 데이터를 보안 격리하고 접근 권한을 회수하여 HW를 유휴 상태로 전환한다<br>5. Normal Camera Application이 Camera HW 사용을 요청한다<br>6. 시스템은 HW가 유휴 상태(어떤 주체도 점유하지 않음)임을 확인하고 Camera HW 접근 권한을 Normal Camera Application에 배타적으로 할당한다 |
+| Alternative Flow | 1. 시스템은 한 주체가 HW를 점유 중일 때 다른 주체의 사용 요청이 들어오면 동시 접근을 허용하지 않고 요청을 큐에 대기시켜, 현재 사용 완료 및 권한 회수 후 순차 처리한다<br>2. 시스템은 Camera/AI HW 사용 주체 전환 전 잔류 데이터 보안 격리가 실패하면 접근 권한 회수/재할당을 중단하고 오류를 기록한다<br>3. 시스템은 허가되지 않은 pVM 또는 애플리케이션이 Camera/AI HW 접근을 요청하면 S2MPU 정책으로 접근을 차단한다 |
 
 ---
 
