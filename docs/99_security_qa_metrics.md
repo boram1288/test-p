@@ -55,7 +55,7 @@
 
 - **측정치**: 시도한 DMA 공격 벡터 수 대비 차단된 수 (차단율 100% 목표)
 - **Thunderclap** (NDSS 2019, Cambridge/SRI): FPGA로 악성 주변장치를 모사해 IOMMU 보호를 실공격으로 시험하는 평가 플랫폼. macOS/FreeBSD/Linux/Windows에서 IOMMU 우회 취약점을 실증하여, "IOMMU를 켰다"만으로는 격리가 증명되지 않음을 보임.
-- 본 과제 적용: 악성 Host(또는 비할당 pVM)가 ISP/NPU의 DMA 경로로 pVM 격리 메모리 접근을 시도하는 시나리오를 SMMU 설정별로 시험.
+- 본 과제 적용: 악성 Host(또는 비할당 pVM)가 Camera/AI HW의 DMA 경로로 pVM 격리 메모리 접근을 시도하는 시나리오를 SMMU 설정별로 시험.
 
 #### (2) 잔류 데이터 스캔
 

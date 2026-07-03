@@ -22,7 +22,7 @@
 | 내부 Security 개발자 | 내부 | 보안 Framework(Middleware/드라이버/통신) 개발, Secure OS 이식/공존 |
 | 내부 Hypervisor 개발자 | 내부 | pKVM 커널(EL2) 제공/유지, hypercall 인터페이스 협의 |
 | 검증 부서 | 내부 | 격리/성능 목표의 객관적 검증 |
-| SOC 설계 부서 | 내부 | ISP/NPU 등 SoC HW 설계, HW 인터페이스 제공 |
+| SOC 설계 부서 | 내부 | Camera/AI HW 등 SoC HW 설계, HW 인터페이스 제공 |
 | 로봇 제조사 | 외부 | SoC 채택 고객, 제품 요구 정의 |
 | 로봇 앱 개발자 | 외부 | Framework API로 보안 Workload 개발 |
 | 상품 기획 | 내부 | SoC 사업 전략/상품 방향 수립 |
@@ -63,9 +63,9 @@ flowchart TB
 |---|------|------------------|-----------|
 | M-1 | **문서 분석** | SH-1, SH-3 | 과제 소개서(`00_overview.md`), 2026-05-29 리뷰 회의 결정사항(과제명 변경, pKVM 포팅 제외, Secure OS 이식 포함), 보안 사고 사례 자료 [A][C][F][G] |
 | M-2 | **이해관계자 인터뷰** | SH-1, SH-2, SH-6, SH-8 | 상품 기획의 SoC 사업 전략, 과제 PM의 사업 목표, 로봇 제조사의 제품 요구(기술 미팅), Security 개발자의 기존 TrustZone Secure OS 공존 조건 |
-| M-3 | **레퍼런스 시나리오 워크스루** | SH-2, SH-6, SH-7 | Secure Vision AI 파이프라인(캡처→ISP→NPU 추론→판단 결과 전달)을 단계별로 추적하며 기능/품질 요구 식별 |
+| M-3 | **레퍼런스 시나리오 워크스루** | SH-2, SH-6, SH-7 | Secure Vision AI 파이프라인(캡처→Camera HW→AI HW 추론→판단 결과 전달)을 단계별로 추적하며 기능/품질 요구 식별 |
 | M-4 | **경쟁/유사 솔루션 벤치마킹** | SH-8, SH-5 | Android AVF(Microdroid, VirtualizationService) 구조 분석을 통한 시장/HW 관점의 기능 기준선 및 차별화 지점(Linux 네이티브, Secure OS 수용, TrustZone 공존) 식별 |
-| M-5 | **기술 검증(PoC)/파트 간 기술 협의** | SH-2, SH-3, SH-5 | pKVM hypercall 인터페이스 범위, HW IP(ISP/NPU)의 Host/pVM 간 공유(SW 중재) 실현 범위, Secure OS 이식 작업량 등 기술 제약 수집 |
+| M-5 | **기술 검증(PoC)/파트 간 기술 협의** | SH-2, SH-3, SH-5 | pKVM hypercall 인터페이스 범위, HW IP(Camera/AI HW)의 Host/pVM 간 공유(SW 중재) 실현 범위, Secure OS 이식 작업량 등 기술 제약 수집 |
 | M-6 | **품질 속성 워크숍(QAW)** | 전체 | 수집된 VOS를 품질 시나리오로 구체화하고 우선순위 결정 (3단계 "품질 속성 선정"에서 수행) |
 
 ---
@@ -78,13 +78,13 @@ flowchart TB
 | ID | Stakeholder | VOS |
 |----|-------------|-----------------|
 | VOS-01 | 로봇 제조사 | "Host OS(Linux 커널)가 해킹되더라도 카메라 영상 원본, AI 모델 가중치, 추론 중간 데이터는 절대 노출되면 안 된다." |
-| VOS-02 | 로봇 제조사 | "영상 처리와 AI 추론은 ISP/NPU 하드웨어 가속을 그대로 써야 한다. SW 처리만으로는 실시간성이 안 나온다. 그리고 ISP/NPU는 보안 시나리오 전용이 아니다. 일반 촬영/일반 AI 기능도 Host에서 같은 HW IP를 동시에 써야 한다." |
+| VOS-02 | 로봇 제조사 | "영상 처리와 AI 추론은 Camera/AI HW 하드웨어 가속을 그대로 써야 한다. SW 처리만으로는 실시간성이 안 나온다. 그리고 Camera/AI HW는 보안 시나리오 전용이 아니다. 일반 촬영/일반 AI 기능도 Host에서 같은 HW IP를 동시에 써야 한다." |
 | VOS-03 | 로봇 제조사 | "우리 제품은 Yocto/Ubuntu 기반 Linux다. Android 스택에 종속된 솔루션은 채택할 수 없다." |
 | VOS-04 | 로봇 제조사 | "보안 기능을 켰을 때 전력/메모리 오버헤드가 과도하면 제품에 탑재할 수 없다." |
 | VOS-05 | 상품 기획 | "Secure Vision AI 하나만 되는 솔루션은 의미가 없다. 이후 시나리오(개인정보 처리, 펌웨어 보호 등)를 Framework 수정 없이 수용해야 SoC 사업 경쟁력이 생긴다." |
 | VOS-06 | 과제 PM | "2026-10-30까지 Secure Vision AI End-to-End 데모가 동작해야 한다. 인력은 Security/Hypervisor/SOC 설계 인력으로 한정된다." |
 | VOS-07 | 내부 Security 개발자 | "Secure Camera 도메인과 Secure AI 도메인은 서로 독립적으로 동시에 떠 있어야 하고, 한쪽이 침해돼도 다른 쪽은 안전해야 한다." |
-| VOS-08 | SOC 설계 부서 | "ISP/NPU는 다중 Context를 지원하지 않는 HW다. pVM이 사용하는 동안 DMA 경로(S2MPU)까지 막지 않으면 격리가 깨지고, 사용 주체가 바뀔 때 잔류 데이터를 지우지 않으면 데이터가 샌다." |
+| VOS-08 | SOC 설계 부서 | "Camera/AI HW는 다중 Context를 지원하지 않는 HW다. pVM이 사용하는 동안 DMA 경로(S2MPU)까지 막지 않으면 격리가 깨지고, 사용 주체가 바뀔 때 잔류 데이터를 지우지 않으면 데이터가 샌다." |
 | VOS-09 | 내부 Security 개발자 | "두 격리 도메인 간(Camera→AI), pVM↔Host 간 데이터 전달은 노출 없이, 그리고 영상 파이프라인을 막지 않을 만큼 빠르게 이뤄져야 한다." |
 | VOS-10 | 내부 Hypervisor 개발자 | "pKVM 커널(EL2)은 기 포팅된 것을 그대로 쓴다. EL2 코드 수정이 필요한 설계는 받을 수 없고, 제공되는 hypercall 인터페이스 범위 안에서 설계해야 한다." |
 | VOS-11 | 내부 Security 개발자 (SRCX, Secure OS 이식) | "기존 Secure OS를 pVM에 올리는 이식 작업의 인터페이스가 명확해야 한다. Framework가 바뀔 때마다 이식을 다시 하는 구조면 일정 내 불가능하다." |

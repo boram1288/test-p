@@ -109,7 +109,7 @@ Host app domain:
 
 Workload type:
   secure_camera_workload_t -> Camera pVM 리소스 사용 가능
-  secure_ai_workload_t -> AI/NPU pVM 리소스 사용 가능
+  secure_ai_workload_t -> AI HW pVM 리소스 사용 가능
   unknown_workload_t -> pVM 리소스 사용 불가
 ```
 

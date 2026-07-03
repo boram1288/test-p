@@ -41,9 +41,9 @@
 
 ### 후보 B: 프레임 단위 소유권 이전 (donate 체인)
 
-프레임 버퍼마다 소유권을 Camera→AI로 이전(donate/이양)하고, 각 시점에 정확히 한 도메인만 해당 버퍼에 접근 가능하게 한다. dma-buf 핸들 흐름과 정합하며, HW IP(ISP) 출력 버퍼를 그대로 다음 단계(NPU 입력)로 인계하는 구조와 자연스럽게 연결된다.
+프레임 버퍼마다 소유권을 Camera→AI로 이전(donate/이양)하고, 각 시점에 정확히 한 도메인만 해당 버퍼에 접근 가능하게 한다. dma-buf 핸들 흐름과 정합하며, HW IP(Camera HW) 출력 버퍼를 그대로 다음 단계(AI HW 입력)로 인계하는 구조와 자연스럽게 연결된다.
 
-- **데이터 경로**: ISP 출력 버퍼(Camera 도메인 바인딩) → 소유권 이전 hypercall → AI 도메인 바인딩 → NPU 입력으로 사용 (복사 0회, 매핑 전환만)
+- **데이터 경로**: Camera HW 출력 버퍼(Camera 도메인 바인딩) → 소유권 이전 hypercall → AI 도메인 바인딩 → AI HW 입력으로 사용 (복사 0회, 매핑 전환만)
 - **장점**: 동시 접근이 없어 도메인 간 노출 면적이 최소(QA-02 가장 강함). DP-C-06의 SMMU 버퍼 바인딩과 같은 메커니즘 단위(버퍼 소유권)로 일원화된다.
 - **단점**: 프레임마다 hypercall(소유권 전환 + Stage-2/SMMU 갱신 + TLB 무효화)이 발생해 30fps × 다중 스트림에서 전환 비용이 누적될 수 있다(QS-05 위험). H2 의미론이 버퍼 단위 고빈도 이전을 지원하는지에 의존한다.
 
@@ -82,7 +82,7 @@
 | 기준 | A: share 링버퍼 | B: donate 체인 | C: Host 중계 암호화 |
 |------|:---:|:---:|:---:|
 | E1 Host 접근 차단 | 상(조건부) — H2 share가 Host IPA를 배제하면 성립 | 상(조건부) — 이전이 EL2/H2/H6에서 집행되면 성립 | 하 — Host가 버퍼/경로에 접근, 구조적 차단 아님 |
-| E2 zero-copy | 상(조건부) — 링 슬롯을 ISP 출력/NPU 입력 버퍼로 직접 쓰면 복사 0회 | 상 — 매핑 전환만 발생 | 하 — 암복호화가 목적 자체를 부정 |
+| E2 zero-copy | 상(조건부) — 링 슬롯을 Camera HW 출력/AI HW 입력 버퍼로 직접 쓰면 복사 0회 | 상 — 매핑 전환만 발생 | 하 — 암복호화가 목적 자체를 부정 |
 | E3 1080p30 실시간성 | 상 — 정상 상태에서 per-frame hypercall/SMMU rebind 없음 | 중 — 매 프레임 donate/recycle 비용과 jitter 누적 | 하 — 대용량 영상에서 비용/지연 큼 |
 | E4 도메인 노출 | 중 — 양단 동시 매핑이라 침해 pVM이 채널 데이터/커서 접근 가능 | 상 — 한 시점 한 도메인 소유 | 중하 — replay/drop/tamper 표면 큼 |
 | E5 생명주기/철회 | 중 — crash/강제 revoke/in-flight DMA 처리 보강 필요 | 중 — owner crash/revoke/sanitize 실패 처리 미정 | 하 — Host 큐 소거를 TCB로 닫기 어려움 |
@@ -100,10 +100,10 @@
 
 ### 3.3 지적된 결함/누락
 
-1. A의 "Camera가 슬롯에 기록"이 CPU copy인지 ISP DMA 직접 출력인지 불명확 — ISP 출력이 private buffer 후 ring copy면 zero-copy가 아님.
+1. A의 "Camera가 슬롯에 기록"이 CPU copy인지 Camera HW DMA 직접 출력인지 불명확 — Camera HW 출력이 private buffer 후 ring copy면 zero-copy가 아님.
 2. ring metadata 무결성 모델 부족 — cursor, slot state, sequence, bounds check, cache maintenance, backpressure/drop 정책 필요.
 3. B는 return/recycle 경로까지 포함한 H2 상태 머신과 비용 실측 부재.
-4. 강제 철회 시 in-flight ISP/NPU DMA, stuck device, unshare 실패, scrub 완료 기준이 비어 있음.
+4. 강제 철회 시 in-flight Camera/AI HW DMA, stuck device, unshare 실패, scrub 완료 기준이 비어 있음.
 5. DP-C-05 G3의 pVM↔TEE SMC 파라미터 버퍼를 pVM↔pVM 채널과 "동일 H2 share"로 뭉뚱그리면 안 됨 — Secure World는 별도 소유권/ABI 규칙 필요.
 
 ---
@@ -116,7 +116,7 @@
 
 **이견 1 (MAJOR)**: 후보 B의 "H2 고빈도 이전 지원" 단서는 단순 의존이 아니라 DP-C-03 G1/G2(HV 확정 게이트)에 직접 걸리는 미확인 게이트다 — 결정문에서 게이트로 승격해야 한다.
 
-**이견 2 (MAJOR, 신규 발견)**: 후보 A의 zero-copy 성립 조건(ISP가 share 영역에 직접 DMA 출력)과 DP-C-06 H6의 단일 도메인 재바인딩 시퀀스가 같은 물리 버퍼에 상충 적용될 수 있다 — "ISP가 share 영역에 DMA 출력하는 동안 SMMU 스트림은 어느 도메인에 바인딩되는가, AI pVM의 동시 read 매핑은 H6 시퀀스와 양립하는가"가 미해결. 현재 상태는 "정합 미증명"이며 게이트로 닫아야 한다.
+**이견 2 (MAJOR, 신규 발견)**: 후보 A의 zero-copy 성립 조건(Camera HW가 share 영역에 직접 DMA 출력)과 DP-C-06 H6의 단일 도메인 재바인딩 시퀀스가 같은 물리 버퍼에 상충 적용될 수 있다 — "Camera HW가 share 영역에 DMA 출력하는 동안 SMMU 스트림은 어느 도메인에 바인딩되는가, AI pVM의 동시 read 매핑은 H6 시퀀스와 양립하는가"가 미해결. 현재 상태는 "정합 미증명"이며 게이트로 닫아야 한다.
 
 **이견 3 (MAJOR)**: 2절 공통 설계 요소의 "pVM↔TEE 버퍼를 채널과 동일 H2 share로 해결" 기술은 DP-C-05 G3의 의도와 어긋난다(Codex 결함 5 동의). Secure World는 별도 소유권/ABI 모델이 필요하다.
 
@@ -136,7 +136,7 @@
 
 | # | 조건 | 처리 |
 |---|------|------|
-| G1 | **(정합 미증명) HW IP DMA 버퍼의 H6/H2 경계 정의**: ISP/NPU 직접 출력 버퍼의 SMMU 바인딩(H6 단일 도메인 재바인딩)과 채널 share 매핑(H2 양단 동시 매핑)이 같은 버퍼에서 양립하는 의미론을 DP-C-06 G2의 H6 8항목과 1:1 대조로 정의. PoC 검증 항목 등록. 양립 불가 시 해당 구간은 후보 B(donate)로 처리 | DP-C-03 계약 문서, DP-C-06 PoC |
+| G1 | **(정합 미증명) HW IP DMA 버퍼의 H6/H2 경계 정의**: Camera/AI HW 직접 출력 버퍼의 SMMU 바인딩(H6 단일 도메인 재바인딩)과 채널 share 매핑(H2 양단 동시 매핑)이 같은 버퍼에서 양립하는 의미론을 DP-C-06 G2의 H6 8항목과 1:1 대조로 정의. PoC 검증 항목 등록. 양립 불가 시 해당 구간은 후보 B(donate)로 처리 | DP-C-03 계약 문서, DP-C-06 PoC |
 | G2 | **후보 B 성립 게이트**: B는 DP-C-03 G1의 H2 계약 명세(소유권 상태 머신/accept/unshare 실패/회수 시 소거 조건)와 고빈도 이전 지원에 종속. H2 미지원 시 B 폐기, A 단독 + pool 편입은 수립 시 1회 share로 대체. 두 경로 모두 DP-C-03 G2(HV 확정) 미통과 시 폴백 발동 | DP-C-03 G1/G2 |
 | G3 | **DP-C-05 G3 인수 분리/정본화**: pVM↔TEE SMC 파라미터/credential 버퍼는 pVM↔pVM 채널과 **별도의 Secure World 전용 소유권 모델**로 본 DP가 정본으로 정의한다(2절 공통 설계 요소의 "동일 H2 share" 기술은 본 게이트로 교정/대체). 채널 상대 인증의 최소 credential buffer는 이 정본의 부트스트랩 서브셋 | 상세 설계, 채널 상대 인증 설계 |
 | G4 | **생명주기 완결성**: ring metadata 무결성 모델(cursor/slot state/sequence/bounds check/cache maintenance/backpressure/drop 정책)과 강제 철회 시 in-flight DMA 처리/scrub 완료 기준/unshare 실패 처리를 상세 설계로 고정. DP-C-02 G4/DP-C-06 G4와 연동 | 상세 설계 |

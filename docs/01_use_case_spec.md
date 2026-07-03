@@ -37,7 +37,7 @@
 | Actor | 사용자 |
 | Pre-Condition | Secure Camera pVM과 Secure AI pVM이 모두 실행 중이다 |
 | Post-Condition | 영상 데이터가 Host에 노출되지 않고 Secure AI pVM에 전달되었다 |
-| Main Flow | 1. Secure Camera pVM이 영상 프레임 데이터를 보안 공유 버퍼에 기록한다<br>2. 공유 버퍼는 두 pVM만 접근 가능하며 Host는 직접 읽을 수 없다<br>3. Secure AI pVM이 공유 버퍼에서 데이터를 읽어 NPU 추론 입력으로 사용한다<br>4. 전송 완료 후 공유 버퍼가 초기화된다 |
+| Main Flow | 1. Secure Camera pVM이 영상 프레임 데이터를 보안 공유 버퍼에 기록한다<br>2. 공유 버퍼는 두 pVM만 접근 가능하며 Host는 직접 읽을 수 없다<br>3. Secure AI pVM이 공유 버퍼에서 데이터를 읽어 AI HW 추론 입력으로 사용한다<br>4. 전송 완료 후 공유 버퍼가 초기화된다 |
 | Alternative Flow | 수신 pVM이 응답 없는 경우 전송을 중단하고 공유 버퍼를 초기화한다 |
 
 ---
