@@ -1,0 +1,22 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:8787"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(python3 *)",
+      "Bash(git add *)",
+      "Bash(git commit -q -m '과제 배경/필요성 6카드 HTML 슬라이드 2장 추가 *)",
+      "Bash(git push *)",
+      "Bash(git pull *)",
+      "Bash(git checkout *)",
+      "Bash(git commit -m ' *)",
+      "Bash(grep -nE '^#{1,2} ' ppt/ppt-slides.md)",
+      "Bash(pandoc --version)",
+      "Bash(npm --version)",
+      "Bash(npx --version)",
+      "Bash(npx --yes md-to-pdf docs/01_use_case_spec.md)",
+      "Bash(pip3 install *)"
+    ]
+  }
+}
