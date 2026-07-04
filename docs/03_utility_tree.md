@@ -24,18 +24,18 @@
 ```plantuml
 @startmindmap
 * Utility
-** 보안 (Security)
-*** 기밀성 (Host 침해)
+**[#D6EAF8] 보안 (Security)
+***[#D6EAF8] 기밀성 (Host 침해)
 ****[#D6EAF8] (H,H) Host 루트 권한 공격자가\npVM 메모리 읽기를 시도해도\n전 케이스 차단, 격리 메모리 노출 0건\nQA-01
-*** HW 접근 격리
+***[#D6EAF8] HW 접근 격리
 ****[#D6EAF8] (H,H) Camera/AI HW 사용 주체 전환 시\nS2MPU 권한 중첩 구간 없음\nQA-02
-** 성능 (Performance)
-*** 실시간 처리
+**[#D6EAF8] 성능 (Performance)
+***[#D6EAF8] 실시간 처리
 ****[#D6EAF8] (H,H) 1080p 30fps 유입 시\n비격리 대비 저하 10% 이내\nQA-03
-*** 통신 오버헤드
+***[#D6EAF8] 통신 오버헤드
 ****[#D6EAF8] (H,M) 도메인 프레임 전달 시\nzero-copy\nQA-05
-** 확장성 (Extensibility)
-*** 신규 Workload 수용
+**[#D6EAF8] 확장성 (Extensibility)
+***[#D6EAF8] 신규 Workload 수용
 ****[#D6EAF8] (H,H) 신규 보안 Workload 추가 시\n코어 수정 LoC 최소화\nQA-04
 ** 가용성 (Availability)
 *** pVM 장애 격리
