@@ -23,62 +23,40 @@
 
 ```plantuml
 @startmindmap
+<style>
+mindmapDiagram {
+  boxless {
+    FontColor #1F2933
+  }
+}
+</style>
 * Utility
 **[#D6EAF8] 보안 (Security)
 ***[#D6EAF8] 기밀성 (Host 침해)
-****[#D6EAF8] 1순위 / (H,H)\nHost가 완전히 침해되어도\npVM 내 영상/모델/추론 데이터 노출 없음\n읽힌 바이트 수 = 0건\nQA-01
+****_ Host가 완전히 침해되어도 pVM 내 영상/모델/추론 데이터 노출 없음\n[읽힌 바이트 수 = 0건]
 ***[#D6EAF8] HW 접근 격리
-****[#D6EAF8] 2순위 / (H,H)\nCamera/AI HW 사용 주체 전환 시\n배타적 접근 항상 보장\nS2MPU 권한 중첩 구간 없음\nQA-02
+****_ Camera/AI HW 사용 주체 전환 시 배타적 접근 항상 보장\n[S2MPU 권한 중첩 구간 없음]
 **[#D6EAF8] 성능 (Performance)
 ***[#D6EAF8] 실시간 처리
-****[#D6EAF8] 3순위 / (H,H)\n영상 입력 유입 시 Camera/AI HW 가속으로\n격리 환경에서도 실시간 처리\n비격리 대비 처리 성능 저하 10% 이내\nQA-03
+****_ 영상 입력 유입 시 Camera/AI HW 가속으로 격리 환경에서도 실시간 처리\n[비격리 대비 처리 성능 저하 10% 이내]
 ***[#D6EAF8] 통신 오버헤드
-****[#D6EAF8] 5순위 / (H,M)\n도메인 간 대용량 데이터 전달 시\n실시간성을 해치지 않음\ndma-buf 전달 시 memcpy 호출 0회\nQA-05
-**[#D6EAF8] 확장성 (Extensibility)
-***[#D6EAF8] 신규 Workload 수용
-****[#D6EAF8] 4순위 / (H,H)\n신규 Workload 추가 시\n소스 수정 없이 패키징/탑재만으로 수용\nFramework 코어 변경 0 LoC\nQA-04
+****_ 도메인 간 대용량 데이터 전달 시 실시간성을 해치지 않음\n[dma-buf 전달 시 memcpy 호출 0회]
 ** 가용성 (Availability)
 *** pVM 장애 격리
-**** 6순위 / (M,M)\npVM 비정상 종료/오동작 시\nHost/다른 pVM/로봇 기본 동작 유지\nWorkload 서비스 3초 이내 재개\nQA-06
-** 자원 효율 (Resource Efficiency)
-*** 메모리/전력 오버헤드
-**** 7순위 / (M,M)\n보안 기능 활성화 시\n메모리/전력 오버헤드 탑재 가능 한도 유지\n추가 메모리 256MB 이하, 전력 증가 5% 이하\nQA-07
-** 시험 용이성 (Testability)
-*** 자동화 검증
-**** 8순위 / (M,M)\nHost 침해 모사 시험으로\n격리 검증을 객관적으로 수행\n공격 벡터 자동화 시험 커버 100%\nQA-08
+****_ pVM 비정상 종료/오동작 시 Host/다른 pVM/로봇 기본 동작 유지\n[Workload 서비스 3초 이내 재개]
+**[#D6EAF8] 확장성 (Extensibility)
+***[#D6EAF8] 신규 Workload 수용
+****_ 신규 Workload 추가 시 소스 수정 없이 패키징/탑재만으로 수용\n[Framework 코어 변경 0 LoC]
 ** 변경 용이성 (Modifiability)
 *** Secure OS 교체성
-**** 9순위 / (M,M)\nSecure OS/Framework 버전 변경 시\n정의된 인터페이스만으로 대응\nSecure OS 패키지 외부 변경 파일 0개\nQA-09
+****_ Secure OS/Framework 버전 변경 시 정의된 인터페이스만으로 대응\n[Secure OS 패키지 외부 변경 파일 0개]
+** 자원 효율 (Resource Efficiency)
+*** 메모리/전력 오버헤드
+****_ 보안 기능 활성화 시 메모리/전력 오버헤드 탑재 가능 한도 유지\n[추가 메모리 256MB 이하, 전력 증가 5% 이하]
+** 시험 용이성 (Testability)
+*** 자동화 검증
+****_ Host 침해 모사 시험으로 격리 검증을 객관적으로 수행\n[공격 벡터 자동화 시험 커버 100%]
 @endmindmap
-```
-
-```text
-Utility
-├─ 보안 (Security)
-│  ├─ 기밀성 (Host 침해)
-│  │  └─ 1순위 / (H,H) Host가 완전히 침해되어도 pVM 내 영상/모델/추론 데이터 노출 없음, 읽힌 바이트 수 = 0건 — QA-01
-│  └─ HW 접근 격리
-│     └─ 2순위 / (H,H) Camera/AI HW 사용 주체 전환 시 배타적 접근 항상 보장, S2MPU 권한 중첩 구간 없음 — QA-02
-├─ 성능 (Performance)
-│  ├─ 실시간 처리
-│  │  └─ 3순위 / (H,H) 영상 입력 유입 시 Camera/AI HW 가속으로 격리 환경에서도 실시간 처리, 비격리 대비 처리 성능 저하 10% 이내 — QA-03
-│  └─ 통신 오버헤드
-│     └─ 5순위 / (H,M) 도메인 간 대용량 데이터 전달 시 실시간성을 해치지 않음, dma-buf 전달 시 memcpy 호출 0회 — QA-05
-├─ 확장성 (Extensibility)
-│  └─ 신규 Workload 수용
-│     └─ 4순위 / (H,H) 신규 Workload 추가 시 소스 수정 없이 패키징/탑재만으로 수용, Framework 코어 변경 0 LoC — QA-04
-├─ 가용성 (Availability)
-│  └─ pVM 장애 격리
-│     └─ 6순위 / (M,M) pVM 비정상 종료/오동작 시 Host/다른 pVM/로봇 기본 동작 유지, Workload 서비스 3초 이내 재개 — QA-06
-├─ 자원 효율 (Resource Efficiency)
-│  └─ 메모리/전력 footprint
-│     └─ 7순위 / (M,M) 보안 기능 활성화 시 메모리/전력 오버헤드가 탑재 가능 한도 이내, 추가 메모리 256MB 이하, 전력 증가 5% 이하 — QA-07
-├─ 시험 용이성 (Testability)
-│  └─ 격리 검증 자동화
-│     └─ 8순위 / (M,M) Host 침해 모사 시험으로 격리 검증을 객관적으로 수행, 공격 벡터 자동화 시험 커버 100% — QA-08
-└─ 변경 용이성 (Modifiability)
-   └─ Secure OS 교체
-      └─ 9순위 / (M,M) Secure OS/Framework 버전 변경 시 정의된 인터페이스만으로 대응, Secure OS 패키지 외부 변경 파일 0개 — QA-09
 ```
 
 ### 2.1 응답 측정치 상세와 수치 근거
@@ -128,21 +106,3 @@ Utility
 | QA-07 | 자원 효율 | 보안 기능 활성화 시 메모리/전력 오버헤드가 탑재 가능 한도 이내로 유지된다.<br>`[(격리 메모리 - 비격리 메모리) <= 256MB, (격리 전력 - 비격리 전력) / 비격리 전력 <= 5%]` | M | M | 7순위 |
 | QA-08 | 시험 용이성 (격리 검증) | 격리 검증이 필요할 때 Host 침해를 모사한 시험으로 객관적으로 검증할 수 있다.<br>`[(전체 공격 벡터 항목 - 미커버 항목) / 전체 항목 = 100%]` | M | M | 8순위 |
 | QA-09 | 변경 용이성 (Secure OS 교체) | Secure OS/Framework 버전이 변경될 때 정의된 인터페이스만으로 대응하고 재이식하지 않는다.<br>`[Secure OS 교체 전후 diff에서 Secure OS 패키지 외부 변경 파일 수 = 0개]` | M | M | 9순위 |
-
-### 3.3 핵심 품질 속성 선정
-
-| 순위 | 품질 속성 그룹 | 포함 QA | 비고 |
-|:---:|---------------|---------|------|
-| 1 | **보안 (Security)** | QA-01 | Host 침해 시 pVM 데이터 기밀성을 보장해야 하는 최상위 핵심 driver |
-| 2 | **보안 (Security)** | QA-02 | Camera/AI HW의 배타적 접근을 보장하는 격리 핵심 driver |
-| 3 | **성능 (Performance)** | QA-03 | 격리 환경에서도 로봇 영상 처리 실시간성을 만족해야 하는 핵심 driver |
-| 4 | **확장성 (Extensibility)** | QA-04 | 신규 보안 Workload를 소스 수정 없이 수용하는 과제 차별화 지점 |
-| 5 | **성능 (Performance)** | QA-05 | 실시간 처리를 보조하는 도메인 간 대용량 데이터 전달 요구 |
-| 6 | **가용성 (Availability)** | QA-06 | pVM 장애가 Host/다른 pVM/기본 동작으로 전파되지 않도록 보장 |
-| 7 | **자원 효율 (Resource Efficiency)** | QA-07 | 메모리/전력 예산과 가격 경쟁력에 연결되는 교차 관심사 |
-| 8 | **시험 용이성 (Testability)** | QA-08 | 격리 주장을 자동화 시험으로 검증하기 위한 설계/검증 요구 |
-| 9 | **변경 용이성 (Modifiability)** | QA-09 | Secure OS/Framework 교체 시 재이식 비용을 제한하는 유지보수 요구 |
-
-## 다음 단계
-
-선정된 핵심 품질 속성(보안, 성능, 확장성)을 FR/CONST와 결합하여, **Architectural Driver 선정** 단계에서 아키텍처 설계를 주도할 동인을 확정한다.
