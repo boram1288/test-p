@@ -21,6 +21,74 @@
 
 ## 2. Utility Tree
 
+```mermaid
+flowchart TD
+  U["Utility"]
+
+  U --> SEC["보안 (Security)"]
+  SEC --> CONF["기밀성 (Host 침해)"]
+  CONF --> QA01["(H,H) Host 루트 권한 공격자가<br/>pVM 메모리 읽기를 시도해도<br/>전 케이스 차단, 격리 메모리 노출 0건<br/>QA-01"]
+  SEC --> HW["HW 접근 격리"]
+  HW --> QA02["(H,H) Camera/AI HW 사용 주체 전환 시<br/>S2MPU 권한 중첩 구간 없음<br/>QA-02"]
+
+  U --> PERF["성능 (Performance)"]
+  PERF --> RT["실시간 처리"]
+  RT --> QA03["(H,H) 1080p 30fps 유입 시<br/>비격리 대비 저하 10% 이내<br/>QA-03"]
+  PERF --> IPC["통신 오버헤드"]
+  IPC --> QA05["(H,M) 도메인 프레임 전달 시<br/>zero-copy<br/>QA-05"]
+
+  U --> EXT["확장성 (Extensibility)"]
+  EXT --> WL["신규 Workload 수용"]
+  WL --> QA04["(H,H) 신규 보안 Workload 추가 시<br/>코어 수정 LoC 최소화<br/>QA-04"]
+
+  U --> AVAIL["가용성 (Availability)"]
+  AVAIL --> FAIL["pVM 장애 격리"]
+  FAIL --> QA06["(M,M) pVM 장애 시<br/>Host/다른 pVM/로봇 기본 동작 유지 및<br/>pVM 3초 이내 재시작<br/>QA-06"]
+
+  U --> RES["자원 효율 (Resource Efficiency)"]
+  RES --> MEM["메모리/전력 오버헤드"]
+  MEM --> QA07["(M,M) Framework+pVM 2개 상시 운용 시<br/>추가 메모리 256MB 이하,<br/>전력 증가 5% 이내<br/>QA-07"]
+
+  U --> TEST["시험 용이성 (Testability)"]
+  TEST --> AUTO["자동화 검증"]
+  AUTO --> QA08["(M,H) 주요 격리 요구사항<br/>자동화 시험 커버 100%<br/>QA-08"]
+
+  U --> MOD["변경 용이성 (Modifiability)"]
+  MOD --> OS["Secure OS 교체성"]
+  OS --> QA09["(M,H) Secure OS 교체 시<br/>패키지 외부 변경 파일 0개<br/>QA-09"]
+```
+
+```plantuml
+@startmindmap
+* Utility
+** 보안 (Security)
+*** 기밀성 (Host 침해)
+**** (H,H) Host 루트 권한 공격자가\npVM 메모리 읽기를 시도해도\n전 케이스 차단, 격리 메모리 노출 0건\nQA-01
+*** HW 접근 격리
+**** (H,H) Camera/AI HW 사용 주체 전환 시\nS2MPU 권한 중첩 구간 없음\nQA-02
+** 성능 (Performance)
+*** 실시간 처리
+**** (H,H) 1080p 30fps 유입 시\n비격리 대비 저하 10% 이내\nQA-03
+*** 통신 오버헤드
+**** (H,M) 도메인 프레임 전달 시\nzero-copy\nQA-05
+** 확장성 (Extensibility)
+*** 신규 Workload 수용
+**** (H,H) 신규 보안 Workload 추가 시\n코어 수정 LoC 최소화\nQA-04
+** 가용성 (Availability)
+*** pVM 장애 격리
+**** (M,M) pVM 장애 시\nHost/다른 pVM/로봇 기본 동작 유지 및\npVM 3초 이내 재시작\nQA-06
+** 자원 효율 (Resource Efficiency)
+*** 메모리/전력 오버헤드
+**** (M,M) Framework+pVM 2개 상시 운용 시\n추가 메모리 256MB 이하,\n전력 증가 5% 이내\nQA-07
+** 시험 용이성 (Testability)
+*** 자동화 검증
+**** (M,H) 주요 격리 요구사항\n자동화 시험 커버 100%\nQA-08
+** 변경 용이성 (Modifiability)
+*** Secure OS 교체성
+**** (M,H) Secure OS 교체 시\n패키지 외부 변경 파일 0개\nQA-09
+@endmindmap
+```
+
 ```text
 Utility
 ├─ 보안 (Security)
