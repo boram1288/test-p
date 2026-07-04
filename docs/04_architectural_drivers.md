@@ -4,7 +4,7 @@
 >
 > 진행 순서: 요구사항 수집 → 요구사항 도출 → 품질 속성 선정 → **Architectural Driver 선정(본 문서)**
 
-관련 문서: [`02_requirements.md`](02_requirements.md), [`03_quality_attribute_workshop.md`](03_quality_attribute_workshop.md), [`03_utility_tree.md`](03_utility_tree.md)
+관련 문서: [`02_requirements.md`](02_requirements.md), [`03_quality_attribute_specification.md`](03_quality_attribute_specification.md), [`03_utility_tree.md`](03_utility_tree.md)
 
 ---
 
@@ -13,7 +13,7 @@
 | 구분 | 선정 원칙 |
 |------|----------|
 | **FR (기능)** | 전체 FR 중 구조 결정성이 높은 중요 FR을 선별한다. 구조에 영향 없이 상위 구조 안에서 구현 가능한 FR은 제외한다. |
-| **QA (품질)** | QAW/Utility Tree에서 우선순위가 높은 핵심 QA를 선정한다. 새 QA 번호 체계에서는 1~5순위가 QA-01~QA-05에 해당한다. |
+| **QA (품질)** | Quality Attribute Specification과 Utility Tree에서 우선순위가 높은 핵심 QA를 선정한다. 새 QA 번호 체계에서는 1~5순위가 QA-01~QA-05에 해당한다. |
 | **CONST (제약)** | 전체를 선정한다. 제약은 협상 불가능한 전제로서 모든 설계 결정의 선택지를 한정한다. |
 
 ---
@@ -60,7 +60,7 @@
 
 ## 3. QA 선정 평가
 
-QAW(`03_quality_attribute_workshop.md`)와 Utility Tree(`03_utility_tree.md`)의 우선순위 평가 결과를 따른다.
+Quality Attribute Specification(`03_quality_attribute_specification.md`)과 Utility Tree(`03_utility_tree.md`)의 우선순위 평가 결과를 따른다.
 
 | ID | 품질 속성 | 우선순위 | 선정 여부 | 근거 |
 |----|----------|:--------:|----------|------|

@@ -2,7 +2,7 @@
 
 > 본 문서는 `04_architectural_drivers.md` 5.2절의 설계 착수 순서, `99_additional_decision_points.md`의 교차(cross-cutting) Decision Point, 추가로 식별한 보안 정책 결정을 통합하여, 아키텍처 설계 착수 전 확정해야 할 **Decision Point**를 정리한다.
 >
-> 진행 순서: 요구사항 수집 → 요구사항 도출 → QAW → Architectural Driver 선정 → **Decision Point 목록(본 문서)**
+> 진행 순서: 요구사항 수집 → 요구사항 도출 → 품질 속성 명세 → Architectural Driver 선정 → **Decision Point 목록(본 문서)**
 
 ---
 

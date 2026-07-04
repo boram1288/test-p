@@ -1,7 +1,7 @@
 # 요구사항 수집
 
 > 본 문서는 `00_overview.md`(과제 소개)를 기준 문서로 하여, 요구사항 분석의 첫 단계인 **요구사항 수집** 결과를 정리한다.
-> 진행 순서: **요구사항 수집(본 문서)** → 요구사항 도출(FR/QA/CONST) → 품질 속성 선정(QAW) → Architectural Driver 선정
+> 진행 순서: **요구사항 수집(본 문서)** → 요구사항 도출(FR/QA/CONST) → 품질 속성 명세 → Architectural Driver 선정
 
 ---
 
@@ -66,7 +66,7 @@ flowchart TB
 | M-3 | **레퍼런스 시나리오 워크스루** | SH-2, SH-6, SH-7 | Secure Vision AI 파이프라인(캡처→Camera HW→AI HW 추론→판단 결과 전달)을 단계별로 추적하며 기능/품질 요구 식별 |
 | M-4 | **경쟁/유사 솔루션 벤치마킹** | SH-8, SH-5 | Android AVF(Microdroid, VirtualizationService) 구조 분석을 통한 시장/HW 관점의 기능 기준선 및 차별화 지점(Linux 네이티브, Secure OS 수용, TrustZone 공존) 식별 |
 | M-5 | **기술 검증(PoC)/파트 간 기술 협의** | SH-2, SH-3, SH-5 | pKVM hypercall 인터페이스 범위, HW IP(Camera/AI HW)의 Host/pVM 간 공유(SW 중재) 실현 범위, Secure OS 이식 작업량 등 기술 제약 수집 |
-| M-6 | **품질 속성 워크숍(QAW)** | 전체 | 수집된 VOS를 품질 시나리오로 구체화하고 우선순위 결정 (3단계 "품질 속성 선정"에서 수행) |
+| M-6 | **품질 속성 명세** | 전체 | 수집된 VOS를 측정 가능한 품질 속성 명세로 구체화하고 우선순위 결정 (3단계 "품질 속성 명세"에서 수행) |
 
 ---
 
