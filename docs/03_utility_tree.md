@@ -34,6 +34,13 @@
 ****[#D6EAF8] 3순위 / (H,H)\n영상 입력 유입 시 Camera/AI HW 가속으로\n격리 환경에서도 실시간 처리\n비격리 대비 처리 성능 저하 10% 이내\nQA-03
 ***[#D6EAF8] 통신 오버헤드
 ****[#D6EAF8] 5순위 / (H,M)\n도메인 간 대용량 데이터 전달 시\n실시간성을 해치지 않음\ndma-buf 전달 시 memcpy 호출 0회\nQA-05
+**[#FADBD8] 보안 vs 성능 Trade-off
+*** 보안 강화 방향
+****_ pVM 격리/S2MPU 권한 전환/침해 검증 강화\n[QA-01, QA-02]
+*** 성능 저하 위험
+****_ I/O 경로 증가, HW 전환 지연, 버퍼 공유 제약\n[QA-03 10% 이내, QA-05 memcpy 0회]
+*** 설계 균형점
+****_ 격리 불변 조건은 유지하고 dma-buf zero-copy와 HW 가속 경로로 오버헤드 최소화
 **[#D6EAF8] 확장성 (Extensibility)
 ***[#D6EAF8] 신규 Workload 수용
 ****[#D6EAF8] 4순위 / (H,H)\n신규 Workload 추가 시\n소스 수정 없이 패키징/탑재만으로 수용\nFramework 코어 변경 0 LoC\nQA-04
