@@ -1,2 +1,4 @@
 .omc/
 .tokensave
+~*
+*.tmp:RVContext
