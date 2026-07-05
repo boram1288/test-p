@@ -4,7 +4,7 @@
 
 ## 1. 개발 대상 System
 
-개발 대상 System은 **Secure Vision AI Platform**이며, 더 구체적으로는 **로봇용 커스텀 SoC와 함께 제공되는 보안 Framework**이다.
+개발 대상 System은 **Linux pKVM 기반 가상화 보안 Framework**이다.
 
 문서상 구현 책임은 pKVM 자체나 SoC HW 자체가 아니라, 그 위에서 보안 pVM과 Workload를 운용하는 Framework 계층에 있다. 따라서 System 경계 안쪽은 보안 Framework의 Middleware, 커널 드라이버, 통신, 중재, 검증 지원 계층으로 본다.
 
@@ -28,7 +28,6 @@
 | Secure Inter-domain Channel | pVM-pVM, pVM-Host 간 보안 데이터 전송, 공유 메모리/RPC/dma-buf 기반 zero-copy 후보 | FR-04, QA-05 |
 | Secure OS Adapter | pVM 내 Workload의 ENC/DEC 요청을 Secure OS로 전달 | FR-06, QA-09, CS-03 |
 | Fault/Recovery Manager | pVM 장애 격리, 자원 회수, Workload 서비스 재개 | QA-06 |
-| Verification/Test Support | Stage-2, S2MPU, 보안 채널 격리 검증 자동화 지원 | QA-08 |
 
 ## 3. 외부 모듈 및 외부 의존 요소
 
@@ -37,17 +36,59 @@
 | Host Application | pVM 생성/운용, Workload 탑재를 요청하는 외부 클라이언트 |
 | Normal Camera Application | Host의 일반 카메라 기능으로 Camera HW 사용을 요청 |
 | Workload(Camera/AI) | pVM 안에서 실행되는 보안 Workload. Framework가 탑재/운용하지만 Workload 자체는 확장 단위로 본다 |
-| pKVM / EL2 Hypervisor | 이미 포팅된 전제 모듈. System은 EL2 수정 없이 hypercall 범위 내에서 사용 |
-| Host OS / Linux | Android 의존 없이 Yocto/Ubuntu 기반 Linux에서 동작해야 하는 실행 환경 |
+| pKVM(EL2 Hypervisor) | 이미 포팅된 전제 모듈. System은 EL2 수정 없이 hypercall 범위 내에서 사용 |
+| Host OS(Linux) | Android 의존 없이 Yocto/Ubuntu 기반 Linux에서 동작해야 하는 실행 환경 |
 | Camera HW | 외부 SoC HW IP. Framework가 접근을 중재 |
 | AI HW | 외부 SoC HW IP. Framework가 접근을 중재 |
 | S2MPU / DMA 보호 메커니즘 | HW 접근 격리와 DMA 격리를 위한 SoC 보안 기능 |
-| Secure OS | ENC/DEC 요청을 처리하는 보안 OS. 교체 가능해야 함 |
-| OP-TEE / TrustZone TEE | 기존 ENC/DEC 기능 및 SMC 경로를 유지해야 하는 외부 보안 실행 환경 |
-| Robot basic functions / Robot product environment | pVM 장애가 전파되면 안 되는 외부 운용 환경 |
-| Robot app developer / Robot manufacturer | Framework API와 제품 요구를 제공하는 외부 사용자/고객 |
+| Secure OS(TEE) | ENC/DEC 요청을 처리하는 외부 보안 OS. 교체 가능해야 함 |
 
-## 4. System 경계 요약
+## 4. Context Diagram
+
+```plantuml
+@startuml
+left to right direction
+
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+
+rectangle "Linux pKVM 기반\n가상화 보안 Framework" as System {
+  component "pVM Lifecycle\nManager" as PVM
+  component "Multi-pVM\nOrchestrator" as ORCH
+  component "Workload Loader /\nVerifier" as LOADER
+  component "HW IP Mediation\nLayer" as HWMD
+  component "DMA/S2MPU Isolation\nController" as ISO
+  component "Secure Inter-domain\nChannel" as CH
+  component "Secure OS\nAdapter" as OSAD
+  component "Fault/Recovery\nManager" as FAULT
+}
+
+actor "Host Application" as HostApp
+actor "Normal Camera\nApplication" as CamApp
+component "Workload\n(Camera/AI)" as Workload
+node "pKVM\n(EL2 Hypervisor)" as PKVM
+node "Host OS\n(Linux)" as HostOS
+node "Camera HW" as CameraHW
+node "AI HW" as AIHW
+node "S2MPU / DMA\n보호 메커니즘" as S2MPU
+node "Secure OS\n(TEE)" as SecureOS
+
+HostApp --> System : pVM 생성/운용 요청\nWorkload 탑재 요청
+CamApp --> System : Camera HW 사용 요청
+
+System --> Workload : 서명 검증\n탑재/실행
+Workload --> System : HW 접근 요청\n보안 채널 사용\nSecure OS 연동 요청
+
+System --> PKVM : hypercall 인터페이스 사용\nEL2 수정 없이 연동
+System --> HostOS : Linux 네이티브 실행\nAndroid 비의존
+System --> CameraHW : HW 접근 중재
+System --> AIHW : HW 접근 중재
+System --> S2MPU : 접근 권한 갱신\nDMA 격리 설정
+System --> SecureOS : ENC/DEC 명령 전달\nTEE 기능 연동
+@enduml
+```
+
+## 5. System 경계 요약
 
 System 경계 안쪽은 다음 책임을 가진다.
 
@@ -57,20 +98,17 @@ System 경계 안쪽은 다음 책임을 가진다.
 - DMA/S2MPU 기반 HW 접근 격리
 - pVM-pVM, pVM-Host 간 보안 데이터 전송
 - Secure OS ENC/DEC 연동
-- pVM 장애 격리와 복구
-- 격리 보장 검증 지원
 
 System 경계 바깥쪽은 다음 요소로 본다.
 
 - Host Application, Normal Camera Application
 - pVM 내부 Workload(Camera/AI)
-- pKVM/EL2 Hypervisor와 hypercall 인터페이스
-- Host OS/Linux 실행 환경
+- pKVM(EL2 Hypervisor)와 hypercall 인터페이스
+- Host OS(Linux) 실행 환경
 - Camera/AI HW, S2MPU/DMA 보호 메커니즘
-- Secure OS, OP-TEE/TrustZone TEE
-- 로봇 제품 환경, 로봇 제조사, 로봇 앱 개발자
+- Secure OS(TEE)
 
-## 5. 판단 기준
+## 6. 판단 기준
 
 다음 기준으로 내부/외부를 구분했다.
 
@@ -78,4 +116,3 @@ System 경계 바깥쪽은 다음 요소로 본다.
 |---|---|
 | System 내부 | Secure Vision AI Platform/보안 Framework가 직접 제공해야 하는 기능, 품질 속성 달성을 위해 Framework가 통제해야 하는 계층 |
 | 외부 모듈 | Framework가 사용하거나 연동하지만 직접 구현 대상이 아닌 실행 환경, HW, OS, Hypervisor, 애플리케이션, 사용자/고객 |
-
