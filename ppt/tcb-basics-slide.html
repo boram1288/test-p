@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TCB Basics</title>
+  <style>
+    :root {
+      --ink: #17212b;
+      --muted: #526171;
+      --line: #8aa0b7;
+      --blue: #dcedff;
+      --blue-strong: #2f6fad;
+      --green: #e2f5e7;
+      --green-strong: #26744a;
+      --yellow: #fff0c9;
+      --yellow-strong: #9a6500;
+      --red: #ffe2df;
+      --red-strong: #b33a2f;
+      --gray: #eef1f4;
+      --white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: #111820;
+      font-family: Arial, "Noto Sans KR", sans-serif;
+      color: var(--ink);
+    }
+
+    .slide {
+      width: 1600px;
+      height: 900px;
+      margin: 0 auto;
+      background: var(--white);
+      padding: 34px 42px;
+      display: grid;
+      grid-template-rows: 86px 1fr 106px;
+      gap: 20px;
+    }
+
+    .header {
+      display: grid;
+      grid-template-columns: 1fr 390px;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 43px;
+      letter-spacing: 0;
+      line-height: 1.12;
+    }
+
+    .subtitle {
+      margin-top: 9px;
+      font-size: 20px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .key-message {
+      border: 3px solid var(--blue-strong);
+      background: var(--blue);
+      padding: 16px 18px;
+      border-radius: 8px;
+      font-size: 22px;
+      line-height: 1.32;
+      font-weight: 700;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 0.92fr 1.18fr 0.88fr;
+      gap: 20px;
+      min-height: 0;
+    }
+
+    .panel {
+      border: 2px solid #c5d0dc;
+      border-radius: 8px;
+      padding: 18px;
+      background: #fbfcfe;
+      min-height: 0;
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 25px;
+      line-height: 1.2;
+    }
+
+    .explain {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 14px;
+    }
+
+    .definition {
+      border-left: 8px solid var(--blue-strong);
+      background: var(--blue);
+      padding: 16px;
+      border-radius: 6px;
+    }
+
+    .definition .big {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .definition p {
+      margin: 0;
+      font-size: 21px;
+      line-height: 1.35;
+    }
+
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .word-card {
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 126px;
+    }
+
+    .word-card strong {
+      display: block;
+      font-size: 23px;
+      margin-bottom: 8px;
+    }
+
+    .word-card span {
+      font-size: 18px;
+      line-height: 1.32;
+      display: block;
+    }
+
+    .trusted {
+      background: var(--red);
+      border: 2px solid var(--red-strong);
+    }
+
+    .trustworthy {
+      background: var(--green);
+      border: 2px solid var(--green-strong);
+    }
+
+    .rule-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .rule {
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      gap: 12px;
+      align-items: center;
+      background: var(--gray);
+      border: 2px solid #c8d1da;
+      border-radius: 8px;
+      padding: 11px 12px;
+      min-height: 74px;
+    }
+
+    .picto {
+      width: 48px;
+      height: 48px;
+      position: relative;
+      margin: auto;
+    }
+
+    .picto.shield {
+      background: var(--blue-strong);
+      clip-path: polygon(50% 2%, 90% 18%, 82% 72%, 50% 96%, 18% 72%, 10% 18%);
+    }
+
+    .picto.gate::before {
+      content: "";
+      position: absolute;
+      inset: 5px 10px;
+      border: 6px solid var(--yellow-strong);
+      border-bottom: 0;
+      border-radius: 22px 22px 0 0;
+    }
+
+    .picto.gate::after {
+      content: "";
+      position: absolute;
+      left: 7px;
+      right: 7px;
+      bottom: 6px;
+      height: 18px;
+      background: var(--yellow-strong);
+      border-radius: 3px;
+    }
+
+    .picto.lens {
+      border: 7px solid var(--green-strong);
+      border-radius: 50%;
+    }
+
+    .picto.lens::after {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 7px;
+      right: -13px;
+      bottom: 3px;
+      transform: rotate(42deg);
+      background: var(--green-strong);
+      border-radius: 4px;
+    }
+
+    .rule b {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 3px;
+    }
+
+    .rule span {
+      display: block;
+      font-size: 17px;
+      line-height: 1.25;
+      color: var(--muted);
+    }
+
+    .diagram {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 12px;
+      padding: 18px;
+    }
+
+    .layers {
+      display: grid;
+      grid-template-rows: repeat(6, 1fr);
+      gap: 8px;
+      height: 100%;
+    }
+
+    .layer {
+      display: grid;
+      grid-template-columns: 92px 1fr 96px;
+      gap: 10px;
+      align-items: stretch;
+      min-height: 68px;
+    }
+
+    .el {
+      border-radius: 8px;
+      background: #23384d;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+    }
+
+    .box {
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 18px;
+      line-height: 1.18;
+      font-weight: 700;
+    }
+
+    .trust-badge {
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 15px;
+      line-height: 1.2;
+      font-weight: 700;
+      border: 2px solid;
+      padding: 6px;
+    }
+
+    .must-trust {
+      background: var(--red);
+      color: var(--red-strong);
+      border-color: var(--red-strong);
+    }
+
+    .less-trust {
+      background: var(--gray);
+      color: #65717d;
+      border-color: #b7c0ca;
+    }
+
+    .secure {
+      background: #f8f1fb;
+      border-color: #9673a6;
+    }
+
+    .normal {
+      background: #f3f8ff;
+      border-color: #6c8ebf;
+    }
+
+    .tcb-note {
+      margin-top: 4px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .note {
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 18px;
+      line-height: 1.28;
+      font-weight: 700;
+    }
+
+    .note.red {
+      background: var(--red);
+      border: 2px solid var(--red-strong);
+    }
+
+    .note.green {
+      background: var(--green);
+      border: 2px solid var(--green-strong);
+    }
+
+    .right {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 14px;
+    }
+
+    .asset-map {
+      display: grid;
+      gap: 11px;
+    }
+
+    .asset {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 12px;
+      align-items: center;
+      border: 2px solid #c5d0dc;
+      background: #fff;
+      border-radius: 8px;
+      padding: 11px;
+    }
+
+    .asset-icon {
+      height: 42px;
+      border-radius: 9px;
+      background: var(--blue-strong);
+      position: relative;
+    }
+
+    .asset-icon.video::before,
+    .asset-icon.model::before,
+    .asset-icon.log::before,
+    .asset-icon.power::before {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border: 4px solid #fff;
+      border-radius: 4px;
+    }
+
+    .asset-icon.model {
+      background: var(--green-strong);
+    }
+
+    .asset-icon.log {
+      background: var(--yellow-strong);
+    }
+
+    .asset-icon.power {
+      background: var(--red-strong);
+    }
+
+    .asset b {
+      font-size: 19px;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .asset span {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.22;
+      display: block;
+    }
+
+    .footer {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .takeaway {
+      border-radius: 8px;
+      padding: 14px 15px;
+      border: 2px solid #c5d0dc;
+      background: #fbfcfe;
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .num {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #23384d;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+    }
+
+    .takeaway b {
+      font-size: 18px;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .takeaway span {
+      font-size: 15px;
+      line-height: 1.22;
+      color: var(--muted);
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <section class="slide">
+    <header class="header">
+      <div>
+        <h1>TCB는 “믿어야만 하는 최소 부품 목록”이다</h1>
+        <div class="subtitle">Trusted Computing Base: 보안이 깨지지 않으려면 반드시 올바르게 동작해야 하는 HW, 펌웨어, OS, 드라이버, 프레임워크의 집합</div>
+      </div>
+      <div class="key-message">핵심은 “많이 믿자”가 아니라<br />믿어야 하는 범위를 작게 만들고, 그 작은 범위를 검증 가능하게 만드는 것</div>
+    </header>
+
+    <main class="main">
+      <section class="panel explain">
+        <h2>보안 비전공자용 직관</h2>
+        <div class="definition">
+          <div class="big">TCB = 금고의 문 + 자물쇠 + 경비 절차</div>
+          <p>금고 안의 영상, AI 모델, 추론 데이터가 안전하려면 이 부품들은 우회되거나 조작되면 안 된다.</p>
+        </div>
+        <div class="compare">
+          <div class="word-card trusted">
+            <strong>trusted</strong>
+            <span>설계상 보안이 그 부품에 의존한다는 뜻. “안전함이 증명됨”은 아니다.</span>
+          </div>
+          <div class="word-card trustworthy">
+            <strong>trustworthy</strong>
+            <span>검증, 감사, 테스트를 통해 실제로 믿을 만하다고 확인된 상태.</span>
+          </div>
+        </div>
+        <div class="rule-stack">
+          <div class="rule">
+            <div class="picto shield"></div>
+            <div><b>Tamper-proof</b><span>비신뢰 주체가 TCB를 바꿀 수 없어야 한다.</span></div>
+          </div>
+          <div class="rule">
+            <div class="picto gate"></div>
+            <div><b>Always invoked</b><span>모든 접근은 TCB의 중재를 반드시 지나야 한다.</span></div>
+          </div>
+          <div class="rule">
+            <div class="picto lens"></div>
+            <div><b>Verifiable</b><span>작고 단순해야 분석하고 검증할 수 있다.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel diagram">
+        <h2>우리 시스템에서 무엇을 믿게 되는가?</h2>
+        <div class="layers">
+          <div class="layer">
+            <div class="el">EL0</div>
+            <div class="box normal">Host Middleware / Framework / Apps<br />pVM 내부 Workload</div>
+            <div class="trust-badge less-trust">가능하면<br />비신뢰</div>
+          </div>
+          <div class="layer">
+            <div class="el">EL1</div>
+            <div class="box normal">Host Linux Kernel<br />Framework Kernel Drivers</div>
+            <div class="trust-badge must-trust">드라이버는<br />주의</div>
+          </div>
+          <div class="layer">
+            <div class="el">pVM</div>
+            <div class="box normal">Guest OS + Secure Camera / AI Workload<br />보호 대상 데이터 처리</div>
+            <div class="trust-badge less-trust">격리 대상</div>
+          </div>
+          <div class="layer">
+            <div class="el">EL2</div>
+            <div class="box normal">pKVM Hypervisor<br />Stage-2 메모리 격리</div>
+            <div class="trust-badge must-trust">핵심 TCB</div>
+          </div>
+          <div class="layer">
+            <div class="el">S-EL1</div>
+            <div class="box secure">TrustZone Secure OS Firmware<br />ENC/DEC, 보안 서비스</div>
+            <div class="trust-badge must-trust">핵심 TCB</div>
+          </div>
+          <div class="layer">
+            <div class="el">EL3</div>
+            <div class="box secure">Secure Monitor / SPD<br />SMC 라우팅</div>
+            <div class="trust-badge must-trust">루트 신뢰</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel right">
+        <h2>TCB가 지켜야 하는 것</h2>
+        <div class="asset-map">
+          <div class="asset">
+            <div class="asset-icon video"></div>
+            <div><b>기밀성</b><span>Host가 침해되어도 영상, 모델, 추론 데이터가 읽히지 않음</span></div>
+          </div>
+          <div class="asset">
+            <div class="asset-icon model"></div>
+            <div><b>무결성</b><span>pVM 이미지, Workload, 정책이 몰래 바뀌지 않음</span></div>
+          </div>
+          <div class="asset">
+            <div class="asset-icon power"></div>
+            <div><b>가용성</b><span>한 pVM 장애가 Host와 다른 pVM으로 번지지 않음</span></div>
+          </div>
+          <div class="asset">
+            <div class="asset-icon log"></div>
+            <div><b>책임 추적성</b><span>침해 시도와 차단 결과를 나중에 증명할 수 있음</span></div>
+          </div>
+          <div class="tcb-note">
+            <div class="note red">TCB가 커질수록<br />검증해야 할 곳이 늘어난다.</div>
+            <div class="note green">TCB가 작을수록<br />설명과 증빙이 쉬워진다.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="takeaway">
+        <div class="num">1</div>
+        <div><b>분리</b><span>비신뢰 앱과 보호 데이터를 다른 경계에 둔다.</span></div>
+      </div>
+      <div class="takeaway">
+        <div class="num">2</div>
+        <div><b>중재</b><span>HW, 메모리, TEE 접근은 반드시 통제 지점을 지난다.</span></div>
+      </div>
+      <div class="takeaway">
+        <div class="num">3</div>
+        <div><b>최소화</b><span>TCB에 넣는 코드는 줄이고 단순하게 유지한다.</span></div>
+      </div>
+      <div class="takeaway">
+        <div class="num">4</div>
+        <div><b>검증</b><span>trusted를 trustworthy로 만들 증거를 남긴다.</span></div>
+      </div>
+    </footer>
+  </section>
+</body>
+</html>
