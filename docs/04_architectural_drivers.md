@@ -49,12 +49,12 @@
 
 | ID | 제약사항 |
 |----|---------|
-| CONST-01 | Linux 네이티브 |
-| CONST-02 | pKVM 커널 전제 (EL2 수정 불가) |
-| CONST-03 | TrustZone 기능 무회귀 |
-| CONST-04 | 개인정보/규제 고려 |
-| CONST-05 | 단일 Context HW IP |
-| CONST-06 | 서명된 Workload만 탑재 |
+| CS-01 | Linux 네이티브 |
+| CS-02 | pKVM 커널 전제 (EL2 수정 불가) |
+| CS-03 | TrustZone 기능 무회귀 |
+| CS-04 | 개인정보/규제 고려 |
+| CS-05 | 단일 Context HW IP |
+| CS-06 | 서명된 Workload만 탑재 |
 
 ---
 
@@ -84,7 +84,7 @@ Quality Attribute Specification(`03_quality_attribute_specification.md`)과 Util
 |------|-------------|----------------|
 | 기능 (FR) | FR-01, FR-02, FR-03, FR-04, FR-05, FR-06 | 없음 |
 | 품질 (QA) | QA-01, QA-02, QA-03, QA-04, QA-05 | QA-06, QA-07, QA-08, QA-09 |
-| 제약 (CONST) | CONST-01, CONST-02, CONST-03, CONST-04, CONST-05, CONST-06 | 없음 |
+| 제약 (CONST) | CS-01, CS-02, CS-03, CS-04, CS-05, CS-06 | 없음 |
 
 ---
 
@@ -94,21 +94,21 @@ Quality Attribute Specification(`03_quality_attribute_specification.md`)과 Util
 
 | 순서 | 작업 | 관련 Driver | 후속 Decision Point |
 |:---:|------|-------------|---------------------|
-| 1 | 신뢰 모델 확정 — TCB 범위, 공격자 모델, 보호 범위 결정 | QA-01, CONST-02, CONST-04 | T-1~T-5 |
-| 2 | 생명주기/다중 pVM 관리 골격 설계 | FR-01, FR-02, CONST-01 (QA-06 후속 확인) | T-1 |
-| 3 | HW IP 중재 구조 실현 가능성 검증(PoC) | FR-03, QA-02, QA-03, CONST-05 | T-2 |
+| 1 | 신뢰 모델 확정 — TCB 범위, 공격자 모델, 보호 범위 결정 | QA-01, CS-02, CS-04 | T-1~T-5 |
+| 2 | 생명주기/다중 pVM 관리 골격 설계 | FR-01, FR-02, CS-01 (QA-06 후속 확인) | T-1 |
+| 3 | HW IP 중재 구조 실현 가능성 검증(PoC) | FR-03, QA-02, QA-03, CS-05 | T-2 |
 | 4 | 통신/데이터 경로(zero-copy 보안 채널) 구조 설계 | FR-04, QA-01, QA-05 | T-3 |
-| 5 | 보안 Workload 실행 방식 결정 | FR-05, QA-04, CONST-06 | T-4 |
-| 6 | Secure OS 실행 환경 및 TrustZone 연동 구조 배치 | FR-06, CONST-03, CONST-06 (QA-09 후속 확인) | T-4/T-5 |
+| 5 | 보안 Workload 실행 방식 결정 | FR-05, QA-04, CS-06 | T-4 |
+| 6 | Secure OS 실행 환경 및 TrustZone 연동 구조 배치 | FR-06, CS-03, CS-06 (QA-09 후속 확인) | T-4/T-5 |
 
 ### 5.2 핵심 후속 질문
 
 | ID | 질문 | 근거 |
 |----|------|------|
-| Q-1 | Host 측 Framework를 TCB에 포함할 것인가, 아니면 비신뢰 중재자로 둘 것인가? | QA-01, CONST-02 |
-| Q-2 | Camera/AI HW 주체 전환 시 S2MPU 권한 회수/부여를 어떤 계층에서 원자적으로 보장할 것인가? | QA-02, FR-03, CONST-05 |
+| Q-1 | Host 측 Framework를 TCB에 포함할 것인가, 아니면 비신뢰 중재자로 둘 것인가? | QA-01, CS-02 |
+| Q-2 | Camera/AI HW 주체 전환 시 S2MPU 권한 회수/부여를 어떤 계층에서 원자적으로 보장할 것인가? | QA-02, FR-03, CS-05 |
 | Q-3 | 실시간 경로에서 어느 구간까지 zero-copy를 보장하고, 어떤 메타데이터만 복사할 것인가? | QA-03, QA-05, FR-04 |
-| Q-4 | 신규 Workload의 신뢰성은 서명 검증, manifest, 권한 정책 중 어디에서 확정할 것인가? | QA-04, FR-05, CONST-06 |
+| Q-4 | 신규 Workload의 신뢰성은 서명 검증, manifest, 권한 정책 중 어디에서 확정할 것인가? | QA-04, FR-05, CS-06 |
 | Q-5 | Secure OS 교체 가능성을 초기 구조에서 어느 수준까지 인터페이스화할 것인가? | QA-09, FR-06 |
 
 ---

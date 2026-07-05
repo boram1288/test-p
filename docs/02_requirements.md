@@ -13,7 +13,7 @@
 - **FR (Functional Requirement)**: 시스템이 제공해야 하는 기능. 유즈케이스의 Main/Alternative/Exception Flow에서 도출한다.
 - **QA (Quality Attribute Requirement)**: 기능이 만족해야 하는 품질 조건. VOS에서 반복적으로 등장한 보안, 성능, 확장성, 자원, 변경성, 가용성, 시험성을 도출한다.
 - **CONST (Constraint)**: 설계 선택지를 제한하는 제약. 과제 전제, 기존 포팅 상태, 표준/호환성 요구에서 도출한다.
-- **명명**: FR-nn / QA-nn / CONST-nn.
+- **명명**: FR-nn / QA-nn / CS-nn.
 
 ---
 
@@ -52,12 +52,12 @@ QA 번호는 `03_utility_tree.md`의 리프 시나리오 우선순위 순서와 
 
 | ID | 제약사항 | 설명 | 출처 VOS |
 |----|---------|------|---------|
-| CONST-01 | **Linux 네이티브** | Android 스택에 의존하지 않고 Linux에서 네이티브로 동작한다. | VOS-03 |
-| CONST-02 | **pKVM 커널 전제** | 기 포팅된 pKVM(EL2)을 전제로, EL2 수정 없이 hypercall 범위 내에서 설계한다. | VOS-10 |
-| CONST-03 | **TrustZone 기능 무회귀** | 기존 OP-TEE/TrustZone 기반 ENC/DEC 기능은 유지되어야 한다. | VOS-12 |
-| CONST-04 | **개인정보/규제 고려** | 영상/AI 데이터는 개인정보 및 규제 요구를 고려하여 보호되어야 한다. | VOS-15 |
-| CONST-05 | **단일 Context HW IP** | Camera/AI HW가 다중 Context를 하드웨어적으로 제공하지 않는 경우 SW 중재로 공유해야 한다. | VOS-02, VOS-08 |
-| CONST-06 | **서명된 Workload만 탑재** | 동적 탑재되는 Workload는 서명 검증을 통과해야 한다. | VOS-05 |
+| CS-01 | **Linux 네이티브** | Android 스택에 의존하지 않고 Linux에서 네이티브로 동작한다. | VOS-03 |
+| CS-02 | **pKVM 커널 전제** | 기 포팅된 pKVM(EL2)을 전제로, EL2 수정 없이 hypercall 범위 내에서 설계한다. | VOS-10 |
+| CS-03 | **TrustZone 기능 무회귀** | 기존 OP-TEE/TrustZone 기반 ENC/DEC 기능은 유지되어야 한다. | VOS-12 |
+| CS-04 | **개인정보/규제 고려** | 영상/AI 데이터는 개인정보 및 규제 요구를 고려하여 보호되어야 한다. | VOS-15 |
+| CS-05 | **단일 Context HW IP** | Camera/AI HW가 다중 Context를 하드웨어적으로 제공하지 않는 경우 SW 중재로 공유해야 한다. | VOS-02, VOS-08 |
+| CS-06 | **서명된 Workload만 탑재** | 동적 탑재되는 Workload는 서명 검증을 통과해야 한다. | VOS-05 |
 
 ---
 
@@ -66,20 +66,20 @@ QA 번호는 `03_utility_tree.md`의 리프 시나리오 우선순위 순서와 
 | VOS | 도출된 요구사항 |
 |-----|----------------|
 | VOS-01 (Host 침해 시 데이터 비노출) | FR-01, FR-04, QA-01 |
-| VOS-02 (Camera/AI HW 가속 필수, Host와 동시 사용) | FR-03, QA-02, QA-03, CONST-05 |
-| VOS-03 (Android 종속 불가) | CONST-01 |
+| VOS-02 (Camera/AI HW 가속 필수, Host와 동시 사용) | FR-03, QA-02, QA-03, CS-05 |
+| VOS-03 (Android 종속 불가) | CS-01 |
 | VOS-04 (전력/메모리 오버헤드 제한) | QA-07 |
 | VOS-05 (Framework 수정 없는 시나리오 확장) | FR-05, QA-04 |
 | VOS-06 (일정/인력) | (도출 제외 — 프로젝트 관리 사항으로, 아키텍처 요구사항으로 다루지 않음) |
 | VOS-07 (다중 도메인 독립 동시 운용) | FR-01, FR-02 |
-| VOS-08 (단일 Context HW, DMA 격리/잔류 데이터 소거) | FR-03, CONST-05 |
+| VOS-08 (단일 Context HW, DMA 격리/잔류 데이터 소거) | FR-03, CS-05 |
 | VOS-09 (노출 없는 저오버헤드 도메인 간 전달) | FR-04, QA-05 |
-| VOS-10 (pKVM 기 포팅 전제, EL2 수정 불가) | CONST-02 |
+| VOS-10 (pKVM 기 포팅 전제, EL2 수정 불가) | CS-02 |
 | VOS-11 (Secure OS 이식 인터페이스 명확성) | FR-06, QA-09 |
-| VOS-12 (기존 TrustZone 기능 무회귀) | FR-06, CONST-03 |
+| VOS-12 (기존 TrustZone 기능 무회귀) | FR-06, CS-03 |
 | VOS-13 (격리 보장의 객관적 검증) | QA-08 |
 | VOS-14 (단순/문서화된 API) | (도출 제외 — 본 단계의 아키텍처 요구사항에서 제외, 상세 설계 단계에서 검토) |
-| VOS-15 (시장의 프라이버시/규제 요구, GDPR 등) | QA-01, CONST-04 |
+| VOS-15 (시장의 프라이버시/규제 요구, GDPR 등) | QA-01, CS-04 |
 | VOS-16 (pVM 장애 시 무영향) | QA-06 |
 
 ---
