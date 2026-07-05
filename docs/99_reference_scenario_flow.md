@@ -37,8 +37,8 @@ repeat
   :9. Camera 영상 프레임 전달;
   :10. AI HW 추론 수행;
   :11. AI 데이터 암호화 저장;
-repeat while (처리할 영상 프레임이 더 있는가?) is (예)
-:12. Host Application으로 결과 전달;
+  :12. Host Application으로 결과 전달;
+repeat while (Application이 pVM 종료 명령을 보냈는가?) is (아니오)
 :13. 장애 처리 혹은 파이프라인 종료;
 stop
 @enduml
