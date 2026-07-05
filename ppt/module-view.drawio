@@ -86,26 +86,26 @@
           <mxGeometry x="1140" y="770" width="320" height="120" as="geometry" />
         </mxCell>
 
-        <mxCell id="host-app" value="Host Application" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+        <mxCell id="host-app" value="Host Application" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#e6e6e6;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="540" y="180" width="240" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="normal-camera-app" value="Normal Camera Application" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+        <mxCell id="normal-camera-app" value="Normal Camera Application" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#e6e6e6;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="540" y="250" width="240" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="camera-workload" value="Camera Workload" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
+        <mxCell id="camera-workload" value="Camera Workload" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#e6e6e6;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="860" y="210" width="240" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="ai-workload" value="AI Workload" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
+        <mxCell id="ai-workload" value="AI Workload" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#e6e6e6;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="1180" y="210" width="240" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="secure-os-tee-framework" value="Secure OS TEE Framework" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
+        <mxCell id="secure-os-tee-framework" value="Secure OS TEE Framework" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#e6e6e6;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="220" y="350" width="240" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="crypto-ta" value="Crypto / Key Management TA" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
+        <mxCell id="crypto-ta" value="Crypto / Key Management TA" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#e6e6e6;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="220" y="420" width="240" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="security-hw-driver" value="Security HW Driver" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
+        <mxCell id="security-hw-driver" value="Security HW Driver" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#e6e6e6;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="220" y="490" width="240" height="50" as="geometry" />
         </mxCell>
 
@@ -134,7 +134,7 @@
         <mxCell id="camera-os-adapter" value="Secure OS Adapter" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="860" y="450" width="240" height="45" as="geometry" />
         </mxCell>
-        <mxCell id="camera-driver" value="Camera Driver" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
+        <mxCell id="camera-driver" value="Camera Driver" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#e6e6e6;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="860" y="560" width="240" height="45" as="geometry" />
         </mxCell>
 
@@ -147,7 +147,7 @@
         <mxCell id="ai-os-adapter" value="Secure OS Adapter" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="1180" y="450" width="240" height="45" as="geometry" />
         </mxCell>
-        <mxCell id="ai-driver" value="AI Driver" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
+        <mxCell id="ai-driver" value="AI Driver" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#e6e6e6;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="1180" y="560" width="240" height="45" as="geometry" />
         </mxCell>
 
@@ -158,10 +158,10 @@
           <mxGeometry x="530" y="670" width="260" height="45" as="geometry" />
         </mxCell>
 
-        <mxCell id="pkvm" value="pKVM (EL2 Hypervisor)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+        <mxCell id="pkvm" value="pKVM (EL2 Hypervisor)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#e6e6e6;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="530" y="725" width="890" height="35" as="geometry" />
         </mxCell>
-        <mxCell id="secure-os-kernel" value="Secure OS (TEE)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#ffffff;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
+        <mxCell id="secure-os-kernel" value="Secure OS (TEE)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#e6e6e6;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
           <mxGeometry x="220" y="800" width="240" height="60" as="geometry" />
         </mxCell>
       </root>
