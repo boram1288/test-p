@@ -73,8 +73,8 @@
 | Stimulus | pVM 비정상 종료(크래시, 무응답) |
 | Environment | 다중 pVM 운용 중인 로봇 통상 동작 상태 |
 | Artifact | Host OS, 타 pVM, 로봇 기본 동작 |
-| Response | 장애가 해당 pVM에 한정되고, Framework가 자원을 안전하게 회수한 뒤 재시작한다. |
-| Response Measure | Host/타 pVM 다운타임 0, Workload 서비스 재개 3초 이내 |
+| Response | 장애가 해당 pVM에 한정되고, Framework가 자원을 안전하게 회수해야 한다. |
+| Response Measure | Host/타 pVM 다운타임 0초 |
 
 ## QS-07: 자원 효율
 

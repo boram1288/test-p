@@ -54,7 +54,7 @@ QA 번호는 `03_utility_tree.md`의 리프 시나리오 우선순위 순서와 
 |----|---------|------|---------|
 | CS-01 | **Linux 네이티브** | Android 스택에 의존하지 않고 Linux에서 네이티브로 동작한다. | VOS-03 |
 | CS-02 | **pKVM 커널 전제** | 기 포팅된 pKVM(EL2)을 전제로, EL2 수정 없이 hypercall 범위 내에서 설계한다. | VOS-10 |
-| CS-03 | **TrustZone 기능 무회귀** | 기존 OP-TEE/TrustZone 기반 ENC/DEC 기능은 유지되어야 한다. | VOS-12 |
+| CS-03 | **GP 표준 규격 준수** | GlobalPlatform 표준 규격을 준수해야 한다. | VOS-12 |
 | CS-04 | **개인정보/규제 고려** | 영상/AI 데이터는 개인정보 및 규제 요구를 고려하여 보호되어야 한다. | VOS-15 |
 | CS-05 | **단일 Context HW IP** | Camera/AI HW가 다중 Context를 하드웨어적으로 제공하지 않는 경우 SW 중재로 공유해야 한다. | VOS-02, VOS-08 |
 | CS-06 | **서명된 Workload만 탑재** | 동적 탑재되는 Workload는 서명 검증을 통과해야 한다. | VOS-05 |

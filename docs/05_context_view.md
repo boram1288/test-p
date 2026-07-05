@@ -33,15 +33,14 @@
 
 | 외부 모듈/요소 | System과의 관계 |
 |---|---|
-| Host Application | pVM 생성/운용, Workload 탑재를 요청하는 외부 클라이언트 |
-| Normal Camera Application | Host의 일반 카메라 기능으로 Camera HW 사용을 요청 |
-| Workload(Camera/AI) | pVM 안에서 실행되는 보안 Workload. Framework가 탑재/운용하지만 Workload 자체는 확장 단위로 본다 |
-| pKVM(EL2 Hypervisor) | 이미 포팅된 전제 모듈. System은 EL2 수정 없이 hypercall 범위 내에서 사용 |
-| Host OS(Linux) | Android 의존 없이 Yocto/Ubuntu 기반 Linux에서 동작해야 하는 실행 환경 |
-| Camera HW | 외부 SoC HW IP. Framework가 접근을 중재 |
-| AI HW | 외부 SoC HW IP. Framework가 접근을 중재 |
-| S2MPU / DMA 보호 메커니즘 | HW 접근 격리와 DMA 격리를 위한 SoC 보안 기능 |
-| Secure OS(TEE) | ENC/DEC 요청을 처리하는 외부 보안 OS. 교체 가능해야 함 |
+| Host Application | pVM 생성/운용 요청, Workload 탑재 요청 |
+| Normal Camera Application | Camera HW 사용 요청 |
+| Workload(Camera/AI) | Camera/AI HW 사용 요청, ENC/DEC 요청 |
+| pKVM(EL2 Hypervisor) | pVM 생성/삭제, CPU/Memroy 할당 |
+| Camera HW Driver | Camera HW 사용 |
+| AI HW Driver | AI HW 사용 |
+| S2MPU/DMA HW Driver | HW 접근 격리, DMA 격리 |
+| Secure OS(TEE) | ENC/DEC 동작 |
 
 ## 4. Context Diagram
 
