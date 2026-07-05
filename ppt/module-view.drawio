@@ -1,122 +1,168 @@
 <mxfile host="Electron">
-  <diagram name="Module View" id="module-view">
-    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+  <diagram name="Module View" id="module-view-layer-architecture">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="950" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Module View - Linux pKVM 기반 가상화 보안 Framework" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=24;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="360" y="30" width="880" height="40" as="geometry" />
-        </mxCell>
-        <mxCell id="system" value="Linux pKVM 기반 가상화 보안 Framework" style="rounded=1;whiteSpace=wrap;html=1;fontSize=20;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=3;verticalAlign=top;spacingTop=16;" vertex="1" parent="1">
-          <mxGeometry x="300" y="120" width="1000" height="560" as="geometry" />
+        <mxCell id="title" value="Module View - Layer Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=26;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="420" y="30" width="760" height="40" as="geometry" />
         </mxCell>
 
-        <mxCell id="api" value="Framework API / Request Dispatcher" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="610" y="170" width="380" height="60" as="geometry" />
+        <mxCell id="col-tee" value="TEE" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;fontStyle=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="180" y="100" width="320" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="pvm" value="pVM Lifecycle&lt;br&gt;Manager" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="380" y="280" width="200" height="80" as="geometry" />
+        <mxCell id="col-host" value="Host Domain" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="500" y="100" width="320" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="orch" value="Multi-pVM&lt;br&gt;Orchestrator" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="610" y="280" width="200" height="80" as="geometry" />
+        <mxCell id="col-camera" value="Secure Camera pVM Domain" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="820" y="100" width="320" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="loader" value="Workload Loader /&lt;br&gt;Verifier" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="840" y="280" width="200" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="fault" value="Fault / Recovery&lt;br&gt;Manager" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="1070" y="280" width="180" height="80" as="geometry" />
+        <mxCell id="col-ai" value="Secure AI pVM Domain" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;fontStyle=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="100" width="320" height="50" as="geometry" />
         </mxCell>
 
-        <mxCell id="mediation" value="HW IP Mediation&lt;br&gt;Layer" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="380" y="440" width="200" height="80" as="geometry" />
+        <mxCell id="row-el0" value="EL0" style="rounded=0;whiteSpace=wrap;html=1;fontSize=22;fontStyle=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="150" width="100" height="170" as="geometry" />
         </mxCell>
-        <mxCell id="isolation" value="DMA / S2MPU Isolation&lt;br&gt;Controller" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="610" y="440" width="200" height="80" as="geometry" />
+        <mxCell id="row-el1" value="EL1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=22;fontStyle=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="320" width="100" height="330" as="geometry" />
         </mxCell>
-        <mxCell id="channel" value="Secure Inter-domain&lt;br&gt;Channel" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="840" y="440" width="200" height="80" as="geometry" />
+        <mxCell id="row-el2" value="EL2" style="rounded=0;whiteSpace=wrap;html=1;fontSize=22;fontStyle=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="650" width="100" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="osadapter" value="Secure OS&lt;br&gt;Adapter" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="1070" y="440" width="180" height="80" as="geometry" />
-        </mxCell>
-
-        <mxCell id="pkvm-adapter" value="pKVM Hypercall&lt;br&gt;Adapter" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="450" y="580" width="200" height="70" as="geometry" />
-        </mxCell>
-        <mxCell id="hw-adapter" value="HW Driver&lt;br&gt;Adapter" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="700" y="580" width="200" height="70" as="geometry" />
-        </mxCell>
-        <mxCell id="tee-adapter" value="TEE Command&lt;br&gt;Adapter" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="950" y="580" width="200" height="70" as="geometry" />
+        <mxCell id="row-sel3" value="S-EL3" style="rounded=0;whiteSpace=wrap;html=1;fontSize=22;fontStyle=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="770" width="100" height="120" as="geometry" />
         </mxCell>
 
-        <mxCell id="host-app" value="Host&lt;br&gt;Application" style="ellipse;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="80" y="170" width="150" height="80" as="geometry" />
+        <mxCell id="tee-el0" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8f1fb;strokeColor=#d6c5df;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="180" y="150" width="320" height="170" as="geometry" />
         </mxCell>
-        <mxCell id="normal-camera" value="Normal Camera&lt;br&gt;Application" style="ellipse;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="80" y="450" width="150" height="80" as="geometry" />
+        <mxCell id="host-el0" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f3f8ff;strokeColor=#c7d8ef;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="150" width="320" height="170" as="geometry" />
         </mxCell>
-        <mxCell id="workload" value="Workload&lt;br&gt;(Camera / AI)" style="ellipse;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="1370" y="300" width="150" height="90" as="geometry" />
+        <mxCell id="camera-el0" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f2fbf1;strokeColor=#c8dfc1;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="150" width="320" height="170" as="geometry" />
         </mxCell>
-
-        <mxCell id="pkvm" value="pKVM&lt;br&gt;(EL2 Hypervisor)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#eeeeee;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="390" y="760" width="220" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="drivers" value="Camera / AI / S2MPU-DMA&lt;br&gt;HW Drivers" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#eeeeee;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="690" y="760" width="220" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="secure-os" value="Secure OS&lt;br&gt;(TEE)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#eeeeee;strokeColor=#666666;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="990" y="760" width="220" height="80" as="geometry" />
+        <mxCell id="ai-el0" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff9e8;strokeColor=#e6d9a8;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="150" width="320" height="170" as="geometry" />
         </mxCell>
 
-        <mxCell id="e1" value="pVM 생성/운용 요청&lt;br&gt;Workload 탑재 요청" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="host-app" target="api">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="tee-el1" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8f1fb;strokeColor=#d6c5df;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="180" y="320" width="320" height="330" as="geometry" />
         </mxCell>
-        <mxCell id="e2" value="Camera HW 사용 요청" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="normal-camera" target="mediation">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="host-el1" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f3f8ff;strokeColor=#c7d8ef;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="320" width="320" height="330" as="geometry" />
         </mxCell>
-        <mxCell id="e3" value="HW 접근 요청&lt;br&gt;보안 채널 사용&lt;br&gt;ENC/DEC 요청" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="workload" target="channel">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="camera-el1" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f2fbf1;strokeColor=#c8dfc1;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="320" width="320" height="330" as="geometry" />
         </mxCell>
-        <mxCell id="e4" value="요청 분배" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="api" target="orch">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="ai-el1" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff9e8;strokeColor=#e6d9a8;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="320" width="320" height="330" as="geometry" />
         </mxCell>
-        <mxCell id="e5" value="생명주기 제어" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="orch" target="pvm">
-          <mxGeometry relative="1" as="geometry" />
+
+        <mxCell id="tee-el2" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8f1fb;strokeColor=#d6c5df;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="180" y="650" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e6" value="서명 검증 / 탑재" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="orch" target="loader">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="host-el2" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f3f8ff;strokeColor=#c7d8ef;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="650" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e7" value="장애 감지 / 복구 요청" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="fault" target="orch">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="camera-el2" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f2fbf1;strokeColor=#c8dfc1;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="650" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e8" value="pVM 생성/삭제&lt;br&gt;CPU/Memory 할당" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="pvm" target="pkvm-adapter">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="ai-el2" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff9e8;strokeColor=#e6d9a8;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="650" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e9" value="HW 사용 중재" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="mediation" target="isolation">
-          <mxGeometry relative="1" as="geometry" />
+
+        <mxCell id="tee-sel3" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8f1fb;strokeColor=#d6c5df;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="180" y="770" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e10" value="권한 갱신&lt;br&gt;DMA 격리 설정" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="isolation" target="hw-adapter">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="host-sel3" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f3f8ff;strokeColor=#c7d8ef;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="770" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e11" value="pVM-pVM / pVM-Host&lt;br&gt;보안 데이터 전달" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="channel" target="mediation">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="camera-sel3" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f2fbf1;strokeColor=#c8dfc1;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="770" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e12" value="ENC/DEC 명령 전달" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="osadapter" target="tee-adapter">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="ai-sel3" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff9e8;strokeColor=#e6d9a8;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="770" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e13" value="hypercall 인터페이스" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="pkvm-adapter" target="pkvm">
-          <mxGeometry relative="1" as="geometry" />
+
+        <mxCell id="host-app" value="Host Application" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="540" y="180" width="240" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="e14" value="HW Driver 호출" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="hw-adapter" target="drivers">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="normal-camera-app" value="Normal Camera Application" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="540" y="250" width="240" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="e15" value="TEE 기능 연동" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="tee-adapter" target="secure-os">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="camera-workload" value="Camera Workload" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="860" y="210" width="240" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="e16" value="Secure OS 요청 라우팅" style="endArrow=classic;html=1;rounded=0;strokeWidth=2;fontSize=13;" edge="1" parent="1" source="channel" target="osadapter">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="ai-workload" value="AI Workload" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="210" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="secure-os-tee-framework" value="Secure OS TEE Framework" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="220" y="350" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="crypto-ta" value="Crypto / Key Management TA" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="220" y="420" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="security-hw-driver" value="Security HW Driver" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="220" y="490" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="framework-api" value="Framework API / Request Dispatcher" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="530" y="340" width="260" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="pvm-lifecycle" value="pVM Lifecycle Manager" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="530" y="395" width="260" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="multi-pvm" value="Multi-pVM Orchestrator" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="530" y="450" width="260" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="workload-loader" value="Workload Loader / Verifier" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="530" y="505" width="260" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="fault-recovery" value="Fault / Recovery Manager" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="530" y="560" width="260" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="camera-framework" value="Camera Framework" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="860" y="340" width="240" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="camera-channel" value="Secure Inter-domain Channel" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="860" y="395" width="240" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="camera-os-adapter" value="Secure OS Adapter" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="860" y="450" width="240" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="camera-driver" value="Camera Driver" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="860" y="560" width="240" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ai-framework" value="AI Framework" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="340" width="240" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ai-channel" value="Secure Inter-domain Channel" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="395" width="240" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ai-os-adapter" value="Secure OS Adapter" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="450" width="240" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ai-driver" value="AI Driver" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="560" width="240" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="hw-mediation" value="HW IP Mediation Layer" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="530" y="615" width="260" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="dma-isolation" value="DMA / S2MPU Isolation Controller" style="rounded=1;whiteSpace=wrap;html=1;fontSize=15;fontStyle=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="530" y="670" width="260" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pkvm" value="pKVM (EL2 Hypervisor)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="530" y="725" width="890" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="secure-os-kernel" value="Secure OS (TEE)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;fillColor=#ffffff;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="220" y="800" width="240" height="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
