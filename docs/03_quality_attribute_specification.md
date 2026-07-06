@@ -16,19 +16,8 @@
 | Response | Stage-2 격리에 의해 모든 접근이 차단되고, 비정상 접근 시도가 기록된다. |
 | Response Measure | 침투 시험 전 케이스에서 격리 메모리 노출 0건 |
 
-## QS-02: 보안 - HW 접근 격리
 
-| Field | Specification |
-|-------|---------------|
-| Description | Camera/AI HW 사용 주체 전환 시 두 주체의 권한이 중첩되지 않아야 한다. |
-| Source | Host 일반 기능과 보안 파이프라인 |
-| Stimulus | Camera/AI HW 사용 주체 전환 또는 동시 사용 요구 |
-| Environment | SW 중재 기반 HW IP 공유 운용 중 |
-| Artifact | HW IP 중재 계층, S2MPU 권한 상태 |
-| Response | 이전 주체 권한 회수 후 다음 주체 권한을 부여하며, 권한 중첩 구간이 발생하지 않는다. |
-| Response Measure | S2MPU 권한 상태 로그에서 권한 중첩 구간 없음 (위반 횟수 = 0) |
-
-## QS-03: 성능 - 실시간 처리
+## QS-02: 성능 - 실시간 처리
 
 | Field | Specification |
 |-------|---------------|
@@ -40,7 +29,7 @@
 | Response | Camera/AI HW 가속으로 프레임 드롭 없이 처리한다. |
 | Response Measure | 비격리 구성 대비 처리 성능 저하 10% 이내 |
 
-## QS-04: 확장성 - 신규 Workload 수용
+## QS-03: 확장성 - 신규 Workload 수용
 
 | Field | Specification |
 |-------|---------------|
@@ -52,7 +41,7 @@
 | Response | 펌웨어 재배포/Framework 수정 없이 Workload 패키징/탑재만으로 수용된다. |
 | Response Measure | Framework 코어 수정 0 LoC |
 
-## QS-05: 성능 - 도메인 간 통신 오버헤드
+## QS-04: 성능 - 도메인 간 통신 오버헤드
 
 | Field | Specification |
 |-------|---------------|
@@ -64,7 +53,7 @@
 | Response | 데이터 노출 없이 전달되며 파이프라인 실시간성이 유지된다. |
 | Response Measure | 도메인 간 dma-buf 버퍼 전달 시 memcpy 호출 횟수 0회 |
 
-## QS-06: 가용성 - pVM 장애 격리
+## QS-05: 가용성 - pVM 장애 격리
 
 | Field | Specification |
 |-------|---------------|
@@ -76,7 +65,7 @@
 | Response | 장애가 해당 pVM에 한정되고, Framework가 자원을 안전하게 회수해야 한다. |
 | Response Measure | Host/타 pVM 다운타임 0초 |
 
-## QS-07: 자원 효율
+## QS-06: 자원 효율
 
 | Field | Specification |
 |-------|---------------|
@@ -88,7 +77,7 @@
 | Response | 비격리 구성 대비 추가 자원 소모가 제품 탑재 가능 한도 이내로 유지된다. |
 | Response Measure | 추가 메모리 256MB 이하, 전력 증가 5% 이내 |
 
-## QS-08: 시험 용이성 - 격리 보장 검증
+## QS-07: 시험 용이성 - 격리 보장 검증
 
 | Field | Specification |
 |-------|---------------|
@@ -100,7 +89,7 @@
 | Response | Host 침해 모사 도구 등 재현 가능한 자동화 시험으로 격리 유지가 검증된다. |
 | Response Measure | 격리 요구사항별 공격 벡터 자동화 시험 커버 100% |
 
-## QS-09: 변경 용이성 - Secure OS 교체
+## QS-08: 변경 용이성 - Secure OS 교체
 
 | Field | Specification |
 |-------|---------------|

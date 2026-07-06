@@ -23,13 +23,13 @@
 | 모듈 | 역할 | 관련 요구/품질 |
 |---|---|---|
 | pVM Lifecycle Manager | pVM 생성/시작/정지/종료, 자원 할당/회수 | FR-01 |
-| Multi-pVM Orchestrator | Secure Camera pVM, Secure AI pVM 등 복수 pVM 동시 운용 | FR-02, QA-06 |
-| Workload Loader / Verifier | 서명 검증 후 보안 Workload 동적 탑재 | FR-05, QA-04, CS-06 |
-| HW IP Mediation Layer | Camera/AI HW를 Host와 pVM이 공유하도록 SW 중재 | FR-03, QA-02, CS-05 |
-| DMA/S2MPU Isolation Controller | HW 사용 주체 전환 시 권한 회수/부여, DMA 격리, 잔류 데이터 방지 | FR-03, QA-02 |
-| Secure Inter-domain Channel | pVM-pVM, pVM-Host 간 보안 데이터 전송, 공유 메모리/RPC/dma-buf 기반 zero-copy 후보 | FR-04, QA-05 |
-| Secure OS Adapter | pVM 내 Workload의 ENC/DEC 요청을 Secure OS로 전달 | FR-06, QA-09, CS-03 |
-| Fault/Recovery Manager | pVM 장애 격리, 자원 회수, Workload 서비스 재개 | QA-06 |
+| Multi-pVM Orchestrator | Secure Camera pVM, Secure AI pVM 등 복수 pVM 동시 운용 | FR-02, QA-05 |
+| Workload Loader / Verifier | 서명 검증 후 보안 Workload 동적 탑재 | FR-05, QA-03, CS-06 |
+| HW IP Mediation Layer | Camera/AI HW를 Host와 pVM이 공유하도록 SW 중재 | FR-03, CS-05 |
+| DMA/S2MPU Isolation Controller | HW 사용 주체 전환 시 권한 회수/부여, DMA 격리, 잔류 데이터 방지 | FR-03 |
+| Secure Inter-domain Channel | pVM-pVM, pVM-Host 간 보안 데이터 전송, 공유 메모리/RPC/dma-buf 기반 zero-copy 후보 | FR-04, QA-04 |
+| Secure OS Adapter | pVM 내 Workload의 ENC/DEC 요청을 Secure OS로 전달 | FR-06, QA-08, CS-03 |
+| Fault/Recovery Manager | pVM 장애 격리, 자원 회수, Workload 서비스 재개 | QA-05 |
 
 ## 3. 외부 모듈 및 외부 의존 요소
 
