@@ -33,14 +33,14 @@
 
 | 외부 모듈/요소 | 짧은 역할 | System과의 관계 |
 |---|---|---|
-| Host Application | 보안 서비스 요청자 | pVM 생성/운용 요청, Workload 탑재 요청 |
-| Normal Camera Application | 일반 Camera 사용 주체 | Camera HW 사용 요청 |
-| Workload(Camera/AI) | pVM 내부 보안 Workload | Camera/AI HW 사용 요청, ENC/DEC 요청 |
-| pKVM(EL2 Hypervisor) | pVM 실행 기반 | pVM 생성/삭제, CPU/Memory 할당 |
-| Camera HW Driver | Camera HW 제어 | Camera HW 사용 |
-| AI HW Driver | AI HW 제어 | AI HW 사용 |
-| S2MPU/DMA HW Driver | HW 접근 격리 제어 | HW 접근 격리, DMA 격리 |
-| Secure OS(TEE) | 보안 연산 제공 | ENC/DEC 동작 |
+| Host Application | System에 보안 서비스 생명주기를 요청하는 주체 | pVM 생성/운용 요청, Workload 탑재 요청 |
+| Normal Camera Application | System의 HW 중재와 충돌할 수 있는 일반 Camera 사용 주체 | Camera HW 사용 요청 |
+| Workload(Camera/AI) | System이 pVM에 탑재하고 HW/보안 기능 사용을 중재하는 실행 단위 | Camera/AI HW 사용 요청, ENC/DEC 요청 |
+| pKVM(EL2 Hypervisor) | System이 pVM 생성과 자원 제어를 위임하는 실행 기반 | pVM 생성/삭제, CPU/Memory 할당 |
+| Camera HW Driver | System이 Camera HW 접근을 요청하는 외부 제어 경로 | Camera HW 사용 |
+| AI HW Driver | System이 AI HW 접근을 요청하는 외부 제어 경로 | AI HW 사용 |
+| S2MPU/DMA HW Driver | System이 HW 사용 주체 전환 시 접근 격리를 요청하는 제어 경로 | HW 접근 격리, DMA 격리 |
+| Secure OS(TEE) | System이 민감 데이터 ENC/DEC 처리를 위임하는 보안 실행 환경 | ENC/DEC 동작 |
 
 ## 4. Context Diagram
 
