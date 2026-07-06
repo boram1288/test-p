@@ -31,16 +31,16 @@
 
 ## 3. 외부 모듈 및 외부 의존 요소
 
-| 외부 모듈/요소 | System과의 관계 |
-|---|---|
-| Host Application | pVM 생성/운용 요청, Workload 탑재 요청 |
-| Normal Camera Application | Camera HW 사용 요청 |
-| Workload(Camera/AI) | Camera/AI HW 사용 요청, ENC/DEC 요청 |
-| pKVM(EL2 Hypervisor) | pVM 생성/삭제, CPU/Memroy 할당 |
-| Camera HW Driver | Camera HW 사용 |
-| AI HW Driver | AI HW 사용 |
-| S2MPU/DMA HW Driver | HW 접근 격리, DMA 격리 |
-| Secure OS(TEE) | ENC/DEC 동작 |
+| 외부 모듈/요소 | 짧은 역할 | System과의 관계 |
+|---|---|---|
+| Host Application | 보안 서비스 요청자 | pVM 생성/운용 요청, Workload 탑재 요청 |
+| Normal Camera Application | 일반 Camera 사용 주체 | Camera HW 사용 요청 |
+| Workload(Camera/AI) | pVM 내부 보안 Workload | Camera/AI HW 사용 요청, ENC/DEC 요청 |
+| pKVM(EL2 Hypervisor) | pVM 실행 기반 | pVM 생성/삭제, CPU/Memory 할당 |
+| Camera HW Driver | Camera HW 제어 | Camera HW 사용 |
+| AI HW Driver | AI HW 제어 | AI HW 사용 |
+| S2MPU/DMA HW Driver | HW 접근 격리 제어 | HW 접근 격리, DMA 격리 |
+| Secure OS(TEE) | 보안 연산 제공 | ENC/DEC 동작 |
 
 ## 4. Context Diagram
 
