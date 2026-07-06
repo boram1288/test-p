@@ -33,7 +33,8 @@
       "Bash(xxd \"17818F80.tmp:RVContext\")",
       "Bash(grep -E \"^\\\\-.*\\\\.tmp$\")",
       "Bash(rtk grep *)",
-      "Bash(echo \"--- exit: $?\")"
+      "Bash(echo \"--- exit: $?\")",
+      "Bash(rtk git *)"
     ]
   }
 }
