@@ -2,6 +2,8 @@
 
 본 문서는 `docs/01_*`, `docs/02_requirements.md`, `docs/03_*` 문서를 기준으로 개발 대상 System과 외부 모듈을 식별한다.
 
+**핵심 문장:** 본 System은 pKVM 기반 pVM의 생명주기, Workload 탑재, Camera/AI HW 접근, 도메인 간 데이터 전송을 중재하고, Hypervisor/HW Driver/Secure OS 등 외부 실행 기반과 연동해 보안 격리와 성능 요구를 만족하는 Framework이다.
+
 ## 1. 개발 대상 System
 
 개발 대상 System은 **Linux pKVM 기반 가상화 보안 Framework**이다.
