@@ -160,3 +160,101 @@ SMC 방식은 Normal World와 Secure World가 1:1로 직접 소통하는 반면,
 * **안드로이드 pKVM (Protected 가상화):** 안드로이드 기기에서 일반 가상머신(VM)과 호스트 OS, 그리고 Secure World 간에 중요한 암호화 키나 데이터를 실시간으로 안전하게 공유 및 격리할 때 활용됩니다.
 * **Arm CCA (Confidential Compute Architecture):** 클라우드 서버 환경에서 Hypervisor조차 믿지 못하는 '기밀 가상 머신(Realm)'을 생성하고 관리하기 위한 하부 인프라로 필수 채택됩니다.
 * **차세대 오토모티브 및 고성능 IoT:** 자율주행용 SoC(예: Qualcomm Ride, Nvidia DRIVE 등) 내에서 계기판 가상화, 인포테인먼트, ADAS 보안 모듈이 서로 섞이지 않도록 Secure World를 쪼개어 멀티 파티션으로 관리할 때 핵심 통신 백본으로 쓰입니다.
+
+---
+
+FF-A를 이용한 pVM 간 DMABUF 공유는 어떻게 가능한가?
+
+---
+
+FF-A의 메모리 관리 ABI(`FFA_MEM_SHARE`/`LEND`/`DONATE`)와 리눅스 DMABUF를 결합하면, pVM 간 프레임 버퍼를 **복사 없이(zero-copy), 하이퍼바이저가 소유권을 강제하는 방식**으로 전달할 수 있다. 핵심 아이디어는 "DMABUF의 페이지 목록(sg_table)을 FF-A 메모리 트랜잭션 디스크립터로 변환해 상대 pVM에 lend/share하고, 수신 측에서 retrieve한 영역을 다시 DMABUF로 import한다"는 것이다.
+
+## 1. 전제: 역할 매핑
+
+FF-A 스펙(DEN0077A)의 메모리 관리 모델은 파티션(endpoint) 간 소유권(Ownership)과 접근 권한(Access)을 상태 기계로 정의한다. pVM 간 공유에서는 각 역할이 다음과 같이 대응된다.
+
+| FF-A 개념 | pVM 시나리오 대응 | 비고 |
+|-----------|------------------|------|
+| Sender / Owner | Camera pVM (프레임 생산자) | DMABUF exporter |
+| Receiver / Borrower | AI pVM (프레임 소비자) | DMABUF importer |
+| Relayer | 하이퍼바이저 (pKVM EL2) | NS world VM 간 트랜잭션의 중재자. 디스크립터 검증, Stage-2 매핑 변경, handle 발급 |
+| Endpoint ID | 각 pVM에 하이퍼바이저가 부여하는 16-bit ID | `FFA_ID_GET`으로 조회 |
+| Global Handle | 공유 트랜잭션을 식별하는 64-bit 값 | Relayer가 발급, 수신자에게 전달해야 할 유일한 토큰 |
+
+FF-A가 "Secure World와의 통신 전용"이 아니라는 점이 중요하다. 스펙상 Normal World의 VM들도 FF-A endpoint이며, 이때 하이퍼바이저가 VM 간 트랜잭션의 relayer 역할을 수행하도록 정의되어 있다. 즉 pVM↔pVM 공유는 SPMC(Secure World) 개입 없이 하이퍼바이저 계층에서 완결된다.
+
+## 2. 공유 방식 선택: SHARE vs LEND vs DONATE
+
+| ABI | 송신자 접근 | 수신자 접근 | 소유권 | 프레임 파이프라인 적용 |
+|-----|------------|------------|--------|----------------------|
+| `FFA_MEM_SHARE` | 유지 | 획득 | 송신자 유지 | 상시 공유 버퍼 풀 — 구성 시 1회 호출, 이후 hypercall 없음 |
+| `FFA_MEM_LEND` | **상실** (Stage-2 매핑 제거) | 획득 | 송신자 유지 | 프레임 단위 배타적 이전 — 어느 시점에도 접근자는 1개 도메인 |
+| `FFA_MEM_DONATE` | 상실 | 획득 | **이전** | 반환 없는 영구 이전 (프레임 순환에는 부적합) |
+
+- **SHARE**는 성능 우선(반복 구간 hypercall 0회), **LEND**는 기밀성 우선(노출 창 최소)이다. 이 선택은 `08_candidate_architectures.md`의 DP-C1 후보와 정확히 대응한다: SHARE 기반 상시 풀 = C1-1, LEND/RELINQUISH 왕복 = C1-3. 즉 FF-A는 두 후보를 **동일한 표준 ABI 집합 위에서 구성 차이로만** 구현할 수 있게 해준다.
+- LEND는 수신자가 여럿일 수 있으나(multi-borrower), 프레임 파이프라인에서는 단일 수신자로 충분하다.
+
+## 3. 단계별 흐름 (LEND 기준)
+
+```
+  Camera pVM (Owner)            pKVM (Relayer, EL2)            AI pVM (Borrower)
+ ───────────────────           ─────────────────────          ───────────────────
+ [0] FFA_VERSION/FEATURES 협상, FFA_RXTX_MAP으로 TX/RX 버퍼 등록,
+     FFA_ID_GET으로 endpoint ID 확보          (양쪽 pVM 모두, 초기화 시 1회)
+
+ [1] dma heap에서 버퍼 할당
+     → dma-buf export
+     → sg_table(페이지 목록) 확보
+ [2] 메모리 트랜잭션 디스크립터 작성
+     (수신자 = AI endpoint ID,
+      권한 = RW, 캐시 속성,
+      composite region = 페이지 범위 목록)
+     → TX 버퍼에 기록
+ [3] FFA_MEM_LEND ──────────▶ 디스크립터 검증
+                              소유권 상태 갱신
+                              Camera Stage-2 매핑 제거
+                              64-bit handle 발급
+     ◀────────────── handle
+ [4] handle 전달 ────────────────────────────────────────────▶ (FFA_MSG_SEND_DIRECT_REQ
+                                                               또는 기존 제어 채널)
+ [5]                          영역 기술을 RX 버퍼로 반환 ◀──── FFA_MEM_RETRIEVE_REQ(handle)
+                              AI Stage-2 매핑 생성 ──────────▶
+ [6]                                                           retrieve된 IPA 범위를
+                                                               dma-buf로 import
+                                                               → 장치/추론 엔진 사용
+ [7]                          AI Stage-2 매핑 제거 ◀────────── FFA_MEM_RELINQUISH
+ [8] FFA_MEM_RECLAIM ───────▶ Camera 매핑 복원,
+                              소유권 상태 원복
+     (버퍼 풀로 반환, 다음 프레임에 재사용)
+```
+
+- **[0] RXTX 버퍼**: 트랜잭션 디스크립터가 레지스터에 담기지 않으므로, 각 endpoint는 `FFA_RXTX_MAP`으로 하이퍼바이저와 공유하는 TX/RX 버퍼 쌍을 등록해 둔다.
+- **[2] composite region**: 버퍼가 물리적으로 조각나 있으면 디스크립터의 주소 범위 목록이 길어진다. TX 버퍼 크기를 넘으면 `FFA_MEM_FRAG_TX/RX`(v1.1)로 분할 전송한다. CMA/contiguous heap에서 할당하면 범위 1~수 개로 억제되어 디스크립터 비용이 최소화된다.
+- **[4] handle 전달**: handle 자체는 비밀이 아니지만(하이퍼바이저가 retrieve 요청자의 endpoint ID를 디스크립터의 수신자 목록과 대조해 거부하므로), 전달 채널은 필요하다. FF-A 직접 메시지를 쓰면 스택이 FF-A로 단일화되고, 기존 vsock 제어 채널을 쓰면 DP-C1 C1-4(제어·데이터 분리)와 동형이 된다.
+- **[6] 수신 측 import**: retrieve 응답의 IPA 범위로 sg_table을 구성해 dma-buf로 감싸는 importer 드라이버가 게스트 커널에 필요하다. 이후 게스트 내 장치(NPU 등)나 사용자 공간은 일반 DMABUF와 동일하게 사용한다.
+
+SHARE 기반 풀이라면 [1]~[5]가 파이프라인 구성 시 1회만 수행되고, 반복 구간은 "링 인덱스 갱신 + 알림"만 남는다. 알림은 FF-A v1.1의 **notification** 메커니즘(`FFA_NOTIFICATION_SET/GET`)이나 직접 메시지로 처리할 수 있다.
+
+## 4. 리눅스 구현 요소
+
+| 계층 | 구성요소 | 상태 |
+|------|----------|------|
+| 게스트 커널 FF-A 전송 | `drivers/firmware/arm_ffa` — `ffa_mem_share/lend()`, 파티션 검색, 메시지/notification API | 메인라인 (5.14+) |
+| 버퍼 할당 | dma-buf heaps (`/dev/dma_heap/*`, CMA/system heap) | 메인라인 |
+| 송신 측 접합 | dma-buf의 sg_table → FF-A 메모리 트랜잭션 디스크립터 변환 + LEND/SHARE 호출 드라이버 | 신규 개발 필요. Linaro의 restricted/protected dma-buf heap(디코더 보안 버퍼를 FF-A로 Secure World에 lend) 패치가 동일 패턴의 선행 사례 |
+| 수신 측 접합 | RETRIEVE 결과를 dma-buf로 export하는 importer 드라이버 | 신규 개발 필요 |
+| 하이퍼바이저 | VM 간 FF-A relayer (디스크립터 검증, Stage-2 조작, handle 관리) | **핵심 확인 사항** — 아래 5절 |
+
+## 5. 제약과 확인 사항 (본 과제 관점)
+
+1. **pKVM의 relayer 지원 범위 (CS-02 관문)**: 현재 AVF의 pKVM은 host↔Secure World FF-A 중재(EL2 FF-A proxy)와 pKVM 고유 hypercall(`MEM_SHARE` 0xc6000003 등, `99_pvmfw.md` 3.4절)을 제공하며, **pVM을 FF-A endpoint로 취급하는 guest-to-guest relayer는 스펙상 정의만 있고 upstream 구현이 완결되어 있지 않다**. 따라서 실제 채택 전에는 (a) 대상 커널의 pKVM이 VM 간 FF-A 트랜잭션을 지원하는지, (b) 미지원 시 pKVM 고유 lend/share hypercall로 동일 의미론을 구성할 수 있는지(EL2 수정 불가 제약 내에서)를 확인해야 한다. 이 확인은 DP-C1 C1-3의 "hypercall 의미론 실현 가능성 선행 확인"과 동일한 관문이다.
+2. **캐시 일관성**: 디스크립터의 메모리 속성(Normal WB, shareability)이 양쪽 매핑에서 일치해야 하며, non-coherent 장치(카메라 ISP, NPU)가 개입하면 소유권 이전 시점에 캐시 유지보수(clean/invalidate)가 프레임당 비용으로 추가된다 — QA-04(5ms) 예산 산정에 포함할 것.
+3. **잔류 데이터(VOS-08)**: LEND 순환에서 RECLAIM으로 돌아온 버퍼에는 이전 프레임이 남아 있다. 풀 반환 전 소거 또는 "다음 기록이 전체 덮어쓰기임을 보장"하는 프로토콜이 필요하다. DONATE와 달리 LEND/SHARE는 스펙이 소거를 강제하지 않는다(트랜잭션 디스크립터의 zero-memory 플래그는 relayer 구현 의존).
+4. **성능 예산**: LEND 방식은 프레임당 hypercall 4회(LEND/RETRIEVE/RELINQUISH/RECLAIM) + Stage-2 갱신 + TLB 무효화가 고정 비용이다. 30fps 기준 실측으로 QA-04 잔여 예산을 확인해야 하며, 미달 시 SHARE 풀 + notification 조합으로 전환하는 것이 FF-A 내에서의 자연스러운 후퇴 경로다.
+5. **격리 논증 관점의 이점**: 소유권 상태와 Stage-2 매핑이 모두 하이퍼바이저(relayer) 한 곳에서 강제되므로, "Host 및 비수신 도메인은 프레임에 접근 불가"라는 QA-01 논증이 FF-A 상태 기계 하나로 환원된다. 표준 ABI라서 격리 증빙(QA-07)의 시험 시나리오도 스펙의 상태 전이표를 그대로 재사용할 수 있다.
+
+## 요약
+
+- DMABUF는 "게스트 내부"의 버퍼 공유 추상화이고, FF-A 메모리 관리 ABI는 "도메인 간" 소유권 이전 추상화다. 둘을 잇는 접합 드라이버(sg_table ↔ 트랜잭션 디스크립터 변환) 2개를 게스트에 추가하면, pVM 간 zero-copy DMABUF 공유가 표준 ABI 위에서 성립한다.
+- SHARE(상시 풀, 성능 우선)와 LEND(프레임 단위 배타 이전, 기밀성 우선)는 같은 인프라의 구성 차이이므로, DP-C1의 C1-1/C1-3 후보를 늦게 바인딩(late-binding)할 수 있는 공통 기반이 된다.
+- 단, pKVM의 VM 간 relayer 구현 성숙도가 채택의 선행 관문이며, 미성숙 시 pKVM 고유 hypercall로 동일 의미론을 구성하는 대안 경로를 함께 설계해 두어야 한다.
