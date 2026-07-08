@@ -278,6 +278,8 @@ dmabuf fd는 해당 커널 인스턴스에 로컬인 파일 디스크립터다. 
 | `ffa_mem_share()`/`ffa_mem_lend()` | **in-kernel API만 존재**, 유저스페이스 ioctl 없음. mainline의 유일한 실사용자는 OP-TEE FF-A 드라이버(`drivers/tee/optee/ffa_abi.c`) |
 | 수신자(borrower) 경로 | **부재** — `arm_ffa` 드라이버는 리눅스가 송신자(sender)인 경로만 구현. `FFA_MEM_RETRIEVE_REQ`로 남이 공유한 메모리를 받아 매핑하는 코드가 없다(통상 retrieve는 Secure World SP의 역할이었기 때문) |
 
+**보충 — "retrieve는 Secure World SP의 역할이었다"는 말의 의미**: FF-A 메모리 공유는 항상 "주는 쪽(sender)"과 "받는 쪽(receiver)"의 코드가 쌍으로 필요하다. sender는 `FFA_MEM_SHARE/LEND`를 호출하고, receiver는 handle을 받아 `FFA_MEM_RETRIEVE_REQ`를 호출해야 자기 주소 공간에 매핑된다. 그런데 지금까지 FF-A가 실제로 쓰인 유일한 토폴로지는 **리눅스(Normal World) → SP(Secure World)** 단방향이었다. 예를 들어 OP-TEE에 공유 메모리를 등록하는 경우, 메모리 소유자는 항상 리눅스이므로 리눅스는 sender 역할만 하면 되고, retrieve는 받는 쪽인 OP-TEE OS(또는 Hafnium 같은 SPMC 위의 SP 런타임)가 **자기 쪽 코드로** 수행한다. 즉 retrieve 구현은 존재하지만 리눅스 커널이 아니라 Secure World 소프트웨어(OP-TEE, Hafnium, Trusty 등)에 들어 있다. 반대로 "누군가가 리눅스에게 메모리를 공유해 주는" 시나리오는 지금까지 없었기 때문에, 리눅스 `arm_ffa` 드라이버에는 receiver 코드를 넣을 이유가 없었던 것이다. pVM 간 공유에서는 수신 pVM 안에서 돌아가는 것이 리눅스이므로, 이 "리눅스가 borrower가 되는" 최초의 시나리오가 생기고, 그래서 수신측 코드가 신규 개발 항목이 된다.
+
 따라서 per-buffer 동적 공유의 공백은 송신측보다 **수신측(retrieve)이 본질**이다. 송신측 접합은 기존 export 심볼(`dma_buf_get/attach/map` + `ffa_mem_share`)을 잇는 수백 LoC 래퍼 수준이지만, 수신측은 arm_ffa 드라이버 확장 + Stage-1 매핑 + dmabuf exporter까지 필요하다.
 
 ## 3. 신규 개발 이전에 가능한 경로
