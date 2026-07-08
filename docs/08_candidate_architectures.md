@@ -303,6 +303,16 @@ HV ..> AI : 생성/격리
 
 ---
 
+### 1.5 Android AVF 구조 매핑
+
+Android AVF(Android Virtualization Framework)는 DP-A1 후보 중 **A1-2. pVM별 위임형 인스턴스 모니터**에 가장 가깝다. AVF에서는 `VirtualizationService`/`virtmgr`가 VM 생성 요청, 전역 자원 할당, `crosvm` 프로세스 기동·감시를 맡고, 각 VM은 별도 `crosvm` 인스턴스가 메모리 구성, vCPU 실행, virtio 백엔드 등 개별 실행 책임을 담당한다. 즉 단일 manager가 모든 pVM 실행을 내부 스레드로 직접 끌고 가는 A1-1 구조가 아니라, pVM별 monitor가 분리되는 per-instance 구조다.
+
+다만 `VirtualizationService`/`virtmgr`가 CID 같은 전역 자원을 배분하고 `crosvm` child process를 감시하므로, 순수 A1-2라기보다는 **A1-2에 A1-4. 계층형 하이브리드의 경량 coordinator 성격이 일부 결합된 구조**로 보는 것이 정확하다. DP-A1 후보 평가 관점에서는 Android AVF를 "검증된 선행 사례는 A1-2 계열이며, 전역 조정이 필요한 경우 A1-4 방향으로 확장된다"는 근거로 활용할 수 있다.
+
+참고: Android 공식 문서 `Android Virtualization Framework`, `VirtualizationService`.
+
+---
+
 ## 2. DP-C1. 도메인 간 프레임 전달 채널 구조
 
 ### 2.1 문제 정의
