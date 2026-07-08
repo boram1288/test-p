@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="context-view" id="ctx-view-001">
-    <mxGraphModel dx="2360" dy="894" grid="1" gridSize="1" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" background="none" math="0" shadow="0">
+    <mxGraphModel dx="2148" dy="736" grid="1" gridSize="1" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -690,6 +690,22 @@
         </mxCell>
         <mxCell id="smq_BvbotuKK9OZPBV0B-16" edge="1" parent="1" source="smq_BvbotuKK9OZPBV0B-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.058;entryY=0.003;entryDx=0;entryDy=0;entryPerimeter=0;curved=1;strokeWidth=3;endArrow=open;endFill=0;endSize=13;" target="smq_BvbotuKK9OZPBV0B-14">
           <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PIIsMdpEL3ivHEQLRN2R-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=20;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="보안 강화" vertex="1">
+          <mxGeometry height="66" width="187" x="1906" y="2459" as="geometry" />
+        </mxCell>
+        <mxCell id="PIIsMdpEL3ivHEQLRN2R-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=20;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;" value="&lt;div&gt;확장성 감소&lt;/div&gt;성능 감소" vertex="1">
+          <mxGeometry height="66" width="187" x="1906" y="2657" as="geometry" />
+        </mxCell>
+        <mxCell id="PIIsMdpEL3ivHEQLRN2R-4" edge="1" parent="1" style="shape=flexArrow;endArrow=classic;startArrow=classic;html=1;rounded=0;width=17;startSize=10;endSize=9;startWidth=35;endWidth=36;fontStyle=1;fontSize=21;fontColor=#FF0000;fillColor=#f5f5f5;strokeColor=#666666;labelBackgroundColor=none;" value="Trade-Off">
+          <mxGeometry height="100" relative="1" width="100" x="0.0095" y="98" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="1999" y="2540" as="sourcePoint" />
+            <mxPoint x="1999" y="2645" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PIIsMdpEL3ivHEQLRN2R-5" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;fontSize=20;fontStyle=0" value="I/O 경로 증가&lt;div&gt;HW 전환 지연&lt;/div&gt;&lt;div&gt;버퍼 공유 제약&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="135" x="2104" y="2659" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
