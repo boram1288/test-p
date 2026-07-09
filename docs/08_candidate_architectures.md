@@ -42,62 +42,26 @@ pVM 생명주기(생성/시작/정지/종료, FR-01)와 다중 pVM 동시 운용
 
 **구조 다이어그램**
 
-```drawio
-<mxfile host="app.diagrams.net" modified="2026-07-09T00:00:00.000Z" agent="Codex" version="24.7.17" type="device">
-  <diagram id="a1-1-centralized-manager" name="A1-1">
-    <mxGraphModel dx="1280" dy="720" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1280" pageHeight="720" math="0" shadow="0">
-      <root>
-        <mxCell id="0"/>
-        <mxCell id="1" parent="0"/>
-        <mxCell id="title" value="A1-1. 중앙집중형 단일 Manager 데몬" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=28;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="320" y="34" width="640" height="46" as="geometry"/>
-        </mxCell>
-        <mxCell id="host" value="Host (비신뢰, EL0/EL1)" style="swimlane;html=1;whiteSpace=wrap;rounded=0;startSize=38;horizontal=1;fillColor=#f8f9fa;strokeColor=#5f6368;fontSize=18;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="70" y="110" width="520" height="500" as="geometry"/>
-        </mxCell>
-        <mxCell id="app" value="Host Application" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f0fe;strokeColor=#1a73e8;fontSize=16;fontStyle=1" vertex="1" parent="host">
-          <mxGeometry x="110" y="70" width="300" height="78" as="geometry"/>
-        </mxCell>
-        <mxCell id="mgr" value="pvm-managerd&lt;br&gt;(API / 정책 PDP+PEP / 생명주기&lt;br&gt;채널 배선 / 장애 복구 / 자원 원장)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fce8e6;strokeColor=#d93025;fontSize=16;fontStyle=1" vertex="1" parent="host">
-          <mxGeometry x="85" y="210" width="350" height="116" as="geometry"/>
-        </mxCell>
-        <mxCell id="drv" value="Framework 커널 드라이버" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fef7e0;strokeColor=#f9ab00;fontSize=16;fontStyle=1" vertex="1" parent="host">
-          <mxGeometry x="110" y="400" width="300" height="78" as="geometry"/>
-        </mxCell>
-        <mxCell id="hv" value="pKVM (EL2)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e6f4ea;strokeColor=#188038;fontSize=18;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="690" y="410" width="230" height="92" as="geometry"/>
-        </mxCell>
-        <mxCell id="cam" value="Secure Camera pVM" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8eaed;strokeColor=#3c4043;fontSize=16;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="980" y="210" width="230" height="92" as="geometry"/>
-        </mxCell>
-        <mxCell id="ai" value="Secure AI pVM" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8eaed;strokeColor=#3c4043;fontSize=16;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="980" y="470" width="230" height="92" as="geometry"/>
-        </mxCell>
-        <mxCell id="edge-app-mgr" value="Framework API" style="endArrow=block;html=1;rounded=0;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=14" edge="1" parent="host" source="app" target="mgr">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="edge-mgr-drv" value="ioctl" style="endArrow=block;html=1;rounded=0;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=14" edge="1" parent="host" source="mgr" target="drv">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="edge-drv-hv" value="hypercall" style="endArrow=block;html=1;rounded=0;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=14" edge="1" parent="1" source="drv" target="hv">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="edge-mgr-cam" value="생성/채널/복구&lt;br&gt;(전 기능 관장)" style="endArrow=open;html=1;rounded=0;dashed=1;strokeWidth=2;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=14" edge="1" parent="1" source="mgr" target="cam">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="edge-mgr-ai" value="생성/채널/복구&lt;br&gt;(전 기능 관장)" style="endArrow=open;html=1;rounded=0;dashed=1;strokeWidth=2;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=14" edge="1" parent="1" source="mgr" target="ai">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="edge-hv-cam" value="Stage-2 격리" style="endArrow=open;html=1;rounded=0;dashed=1;strokeWidth=2;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;fontSize=14" edge="1" parent="1" source="hv" target="cam">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="edge-hv-ai" value="Stage-2 격리" style="endArrow=open;html=1;rounded=0;dashed=1;strokeWidth=2;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0;entryY=0.2;entryDx=0;entryDy=0;fontSize=14" edge="1" parent="1" source="hv" target="ai">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-      </root>
-    </mxGraphModel>
-  </diagram>
-</mxfile>
+```plantuml
+@startuml
+title A1-1. 중앙집중형 단일 Manager 데몬
+node "Host (비신뢰, EL0/EL1)" {
+  rectangle "Host Application" as APP
+  rectangle "pvm-managerd\n(API / 정책 PDP+PEP / 생명주기\n채널 배선 / 장애 복구 / 자원 원장)" as MGR
+  rectangle "Framework 커널 드라이버" as DRV
+}
+rectangle "pKVM (EL2)" as HV
+node "Secure Camera pVM" as CAM
+node "Secure AI pVM" as AI
+
+APP --> MGR : Framework API
+MGR --> DRV : ioctl
+DRV --> HV : hypercall
+MGR ..> CAM : 생성/채널/복구 (전 기능 관장)
+MGR ..> AI : 생성/채널/복구 (전 기능 관장)
+HV ..> CAM : Stage-2 격리
+HV ..> AI : Stage-2 격리
+@enduml
 ```
 
 **장점 / 단점 / 트레이드오프**
