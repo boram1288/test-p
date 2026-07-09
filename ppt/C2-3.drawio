@@ -1,0 +1,55 @@
+<mxfile host="app.diagrams.net" modified="2026-07-09T00:00:00.000Z" agent="Claude" version="24.7.17" type="device">
+  <diagram id="c2-3-exclusive-switching" name="C2-3">
+    <mxGraphModel dx="1280" dy="720" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1280" pageHeight="700" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="title" value="C2-3. 요청별 직접 할당 + 배타적 소유권 스위칭" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=26;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="240" y="34" width="800" height="46" as="geometry"/>
+        </mxCell>
+        <mxCell id="host" value="Host (비신뢰)" style="swimlane;html=1;whiteSpace=wrap;rounded=0;startSize=38;horizontal=1;fillColor=#f8f9fa;strokeColor=#5f6368;fontSize=18;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="70" y="140" width="360" height="330" as="geometry"/>
+        </mxCell>
+        <mxCell id="hdrv" value="Host HW 드라이버&lt;br&gt;(할당 기간 동안 직접 제어)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f0fe;strokeColor=#1a73e8;fontSize=16;fontStyle=1" vertex="1" parent="host">
+          <mxGeometry x="30" y="60" width="300" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="fdrv" value="Framework 커널 드라이버&lt;br&gt;소유권 원장 / hand-off 프로토콜" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fef7e0;strokeColor=#f9ab00;fontSize=16;fontStyle=1" vertex="1" parent="host">
+          <mxGeometry x="30" y="190" width="300" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="pvmbox" value="Secure Camera/AI pVM" style="swimlane;html=1;whiteSpace=wrap;rounded=0;startSize=38;horizontal=1;fillColor=#e8eaed;strokeColor=#3c4043;fontSize=18;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="70" y="510" width="360" height="160" as="geometry"/>
+        </mxCell>
+        <mxCell id="pdrv" value="pVM HW 드라이버&lt;br&gt;(할당 기간 동안 직접 제어)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8eaed;strokeColor=#3c4043;fontSize=16;fontStyle=1" vertex="1" parent="pvmbox">
+          <mxGeometry x="30" y="60" width="300" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="hw" value="Camera/AI HW IP" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8eaed;strokeColor=#3c4043;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="940" y="200" width="260" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="hv" value="pKVM (EL2)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e6f4ea;strokeColor=#188038;fontSize=18;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="600" y="480" width="230" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="mpu" value="S2MPU" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e6f4ea;strokeColor=#188038;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="940" y="480" width="260" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-hdrv-hw" value="배타 소유 구간 (일반)" style="endArrow=block;html=1;rounded=0;strokeWidth=2;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;fontSize=14" edge="1" parent="1" source="hdrv" target="hw">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-pdrv-hw" value="배타 소유 구간 (보안)" style="endArrow=block;html=1;rounded=0;strokeWidth=2;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;fontSize=14" edge="1" parent="1" source="pdrv" target="hw">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-fdrv-hdrv" value="소유권 회수/부여" style="endArrow=open;html=1;rounded=0;dashed=1;strokeWidth=2;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;fontSize=14" edge="1" parent="host" source="fdrv" target="hdrv">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-fdrv-pdrv" value="소유권 회수/부여" style="endArrow=open;html=1;rounded=0;dashed=1;strokeWidth=2;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;fontSize=14" edge="1" parent="1" source="fdrv" target="pdrv">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-fdrv-hv" value="hand-off&lt;br&gt;(정지 - 소거 - S2MPU 전환 - 재할당)" style="endArrow=block;html=1;rounded=0;strokeWidth=2;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=14" edge="1" parent="1" source="fdrv" target="hv">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e-hv-mpu" value="소유권 전환 프로그래밍" style="endArrow=block;html=1;rounded=0;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=14" edge="1" parent="1" source="hv" target="mpu">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
