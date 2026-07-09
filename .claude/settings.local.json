@@ -6,7 +6,8 @@
       "Bash(rtk git *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "Bash(rtk grep *)"
+      "Bash(rtk grep *)",
+      "Bash(python3 *)"
     ]
   }
 }
