@@ -22,33 +22,33 @@
 
 ---
 
-| UC-03 | Camera/AI HW 공유 사용 |
+| UC-03 | 보안 Workload 동적 탑재 |
+|---|---|
+| Actor | Host Application |
+| Pre-Condition | 플랫폼이 실행 중이고 신규 보안 Workload 이미지가 서명되어 있다 |
+| Post-Condition | 서명이 검증된 신규 보안 Workload가 pVM에 탑재되어 격리 환경에서 실행 중이다 |
+| Main Flow | 1. Host Application이 신규 보안 Workload 이미지를 pVM 관리 API에 전달한다<br>2. 시스템은 Workload 이미지의 서명을 검증한다<br>3. 시스템은 대상 pVM에 Workload를 동적으로 탑재한다<br>4. 시스템은 새 Workload를 다른 Workload 및 pVM과 격리하여 실행한다 |
+| Alternative Flow | 1. 시스템은 서명 검증 실패 시 탑재를 중단하고 Host Application에 오류를 반환한다<br>2. 시스템은 Workload 이미지 형식이 지원되지 않으면 탑재를 수행하지 않고 Host Application에 오류를 반환한다<br>3. 시스템은 신규 Workload에 필요한 자원이 부족하면 기존 pVM 상태를 유지하고 탑재 요청을 실패 처리한다 |
+
+---
+
+| UC-04 | Camera/AI HW 공유 사용 |
 |---|---|
 | Actor | Workload(Camera/AI), Normal Camera Application |
 | Pre-Condition | Workload(Camera/AI)가 실행 중이고 Normal Camera Application이 Camera HW 사용을 요청할 수 있다 |
-| Post-Condition | Workload(Camera/AI)와 Normal Camera Application이 Camera/AI HW를 서로 배타적으로(동시 점유 없이) 사용했고, 주체 전환 시 잔류 데이터 유출이 없었다 |
-| Main Flow | 1. Workload(Camera/AI)가 Camera/AI HW 사용을 요청한다<br>2. 시스템은 현재 HW를 점유한 다른 주체가 없음을 확인하고, S2MPU를 통해 HW 접근 권한을 Workload(Camera/AI)에 배타적으로 전용 할당한다 (점유 중 다른 주체의 접근은 차단)<br>3. Workload(Camera/AI)는 배타적으로 확보한 Camera/AI HW로 보안 데이터를 처리한다<br>4. 시스템은 처리 완료 후 HW 버퍼의 잔류 데이터를 보안 격리하고 접근 권한을 회수하여 HW를 유휴 상태로 전환한다<br>5. Normal Camera Application이 Camera HW 사용을 요청한다<br>6. 시스템은 HW가 유휴 상태(어떤 주체도 점유하지 않음)임을 확인하고 Camera HW 접근 권한을 Normal Camera Application에 배타적으로 할당한다 |
-| Alternative Flow | 1. 시스템은 한 주체가 HW를 점유 중일 때 다른 주체의 사용 요청이 들어오면 동시 접근을 허용하지 않고 요청을 큐에 대기시켜, 현재 사용 완료 및 권한 회수 후 순차 처리한다<br>2. 시스템은 Camera/AI HW 사용 주체 전환 전 잔류 데이터 보안 격리가 실패하면 접근 권한 회수/재할당을 중단하고 오류를 기록한다<br>3. 시스템은 허가되지 않은 pVM 또는 애플리케이션이 Camera/AI HW 접근을 요청하면 S2MPU 정책으로 접근을 차단한다 |
+| Post-Condition | Host와 pVM이 Camera/AI HW를 서로 배타적으로 사용했고, 사용 주체 전환 시 잔류 데이터 유출이 없었다 |
+| Main Flow | 1. Workload(Camera/AI)가 Camera/AI HW 사용을 요청한다<br>2. 시스템은 현재 HW를 점유한 다른 주체가 없음을 확인하고, S2MPU를 통해 HW 접근 권한을 pVM의 Workload(Camera/AI)에 배타적으로 할당한다<br>3. Workload(Camera/AI)는 확보한 Camera/AI HW로 보안 데이터를 처리한다<br>4. 시스템은 처리 완료 후 HW 버퍼의 잔류 데이터를 격리하고 접근 권한을 회수하여 HW를 유휴 상태로 전환한다<br>5. Normal Camera Application이 Host에서 Camera HW 사용을 요청한다<br>6. 시스템은 HW가 유휴 상태임을 확인하고 Camera HW 접근 권한을 Host의 Normal Camera Application에 배타적으로 할당한다 |
+| Alternative Flow | 1. 시스템은 한 주체가 HW를 점유 중일 때 다른 주체의 사용 요청이 들어오면 요청을 대기시키고, 현재 사용 완료 및 권한 회수 후 순차 처리한다<br>2. 시스템은 사용 주체 전환 전 잔류 데이터 격리에 실패하면 접근 권한 재할당을 중단하고 오류를 기록한다<br>3. 시스템은 허가되지 않은 pVM 또는 Host 애플리케이션의 Camera/AI HW 접근을 S2MPU 정책으로 차단한다 |
 
 ---
 
-| UC-04 | 도메인 간 보안 데이터 전송 |
+| UC-05 | 도메인 간 DMABUF 전송 |
 |---|---|
 | Actor | Host Application, Workload(Camera/AI) |
-| Pre-Condition | Host Application이 데이터 전송을 요청할 수 있고 Workload(Camera/AI)가 실행 중이다 |
-| Post-Condition | 데이터가 Host에 노출되지 않고 대상 도메인에 전달되었다 |
-| Main Flow | 1. Host Application이 도메인 간 보안 데이터 전송을 요청한다<br>2. 시스템은 송신/수신 도메인에만 접근 가능한 보안 공유 버퍼를 생성한다<br>3. Workload(Camera/AI)는 데이터를 보안 공유 버퍼에 기록한다<br>4. Workload(Camera/AI)는 대상 도메인에서 공유 버퍼의 데이터를 읽어 처리한다<br>5. 시스템은 전송 완료 후 공유 버퍼를 초기화한다 |
-| Alternative Flow | 1. 시스템은 수신 Workload가 응답 없는 경우 전송을 중단하고 공유 버퍼를 초기화한다<br>2. 시스템은 공유 버퍼 권한 설정에 실패하면 버퍼를 해제하고 Host Application에 오류를 반환한다<br>3. Workload(Camera/AI)는 전송 중 데이터 무결성 검증이 실패하면 데이터를 폐기하고 재전송을 요청한다 |
-
----
-
-| UC-05 | 보안 Workload 동적 탑재 |
-|---|---|
-| Actor | Host Application |
-| Pre-Condition | 플랫폼이 실행 중이고 신규 Workload 이미지가 서명되어 있다 |
-| Post-Condition | 신규 보안 Workload가 펌웨어 재배포 없이 격리 환경에서 실행 중이다 |
-| Main Flow | 1. Host Application이 신규 보안 Workload 이미지를 pVM 관리 API에 전달한다<br>2. 시스템은 이미지 서명을 검증한다<br>3. 시스템은 새 pVM 인스턴스를 생성하고 Workload를 탑재한다<br>4. 시스템은 새 Workload를 기존 pVM들과 독립적으로 실행한다 |
-| Alternative Flow | 1. 시스템은 서명 검증 실패 시 탑재를 중단하고 Host Application에 오류를 반환한다<br>2. 시스템은 Workload 이미지 형식이 지원되지 않으면 pVM 생성을 수행하지 않고 Host Application에 오류를 반환한다<br>3. 시스템은 신규 Workload에 필요한 자원이 부족하면 기존 pVM 상태를 유지하고 탑재 요청을 실패 처리한다 |
+| Pre-Condition | 송신 및 수신 도메인이 실행 중이고 DMABUF 전송 채널과 접근 제어 정책이 준비되어 있다 |
+| Post-Condition | DMABUF가 비신뢰 주체에 노출되지 않고 대상 pVM 또는 Host에 전달되었다 |
+| Main Flow | 1. Host Application 또는 Workload(Camera/AI)가 pVM↔pVM 또는 pVM↔Host 간 DMABUF 전송을 요청한다<br>2. 시스템은 송신 및 수신 도메인의 권한을 검증한다<br>3. 시스템은 DMABUF 접근 권한을 송신/수신 도메인으로 제한하고 대상 도메인에 전달한다<br>4. 대상 도메인의 Workload 또는 Host Application이 DMABUF를 처리한다<br>5. 시스템은 전송 완료 후 불필요한 매핑과 접근 권한을 회수한다 |
+| Alternative Flow | 1. 시스템은 수신 도메인이 응답하지 않으면 전송을 중단하고 DMABUF 매핑 및 권한을 회수한다<br>2. 시스템은 DMABUF 권한 설정 또는 전달에 실패하면 비신뢰 주체의 접근을 차단한 상태로 자원을 정리하고 오류를 반환한다<br>3. 시스템은 권한이 없는 도메인의 DMABUF 접근 요청을 거부하고 보안 이벤트를 기록한다 |
 
 ---
 

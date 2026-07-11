@@ -20,9 +20,9 @@
 |---|---|---|
 | UC-01 | pVM 생성/시작/정지/종료 | pVM의 전체 생명주기를 관리하고 자원을 할당/회수한다 |
 | UC-02 | 다중 pVM 동시 운용 | Secure Camera, Secure AI 등 복수 pVM을 독립적으로 동시에 운용한다 |
-| UC-03 | Camera/AI HW 공유 사용 | Camera/AI HW 하드웨어 가속을 Host와 pVM에서 사용한다 |
-| UC-04 | 도메인 간 보안 데이터 전송 | pVM↔pVM, pVM↔Host 간 데이터를 비신뢰 주체에 노출 없이 전달한다 |
-| UC-05 | 보안 Workload 동적 탑재 | 펌웨어 재배포 없이 신규 보안 Workload를 pVM에 동적으로 탑재한다 |
+| UC-03 | 보안 Workload 동적 탑재 | 보안 Workload를 서명 검증 후, pVM에 동적으로 탑재한다 |
+| UC-04 | Camera/AI HW 공유 사용 | Camera/AI HW를 Host/pVM이 공유하고, 사용 주체 전환 시 격리를 보장한다 |
+| UC-05 | 도메인 간 DMABUF 전송 | pVM↔pVM, pVM↔Host 간 DMABUF를 비신뢰 주체에 노출 없이 전달한다 |
 | UC-06 | Secure OS ENC/DEC 명령 전송 | pVM에서 Secure OS에 암호화/복호화 명령을 전송한다 |
 
 ---
@@ -44,9 +44,9 @@ actor "Workload(Camera/AI)" as Workload
 
 rectangle "System" {
   usecase "UC-06. Secure OS\nENC/DEC 명령 전송" as UC06
-  usecase "UC-05. 보안 Workload 동적 탑재" as UC05
-  usecase "UC-04. 가상화 도메인 간\n보안 데이터 전송" as UC04
-  usecase "UC-03. Camera/AI HW 공유 사용" as UC03
+  usecase "UC-05. 도메인 간\nDMABUF 전송" as UC05
+  usecase "UC-04. Camera/AI HW 공유 사용" as UC04
+  usecase "UC-03. 보안 Workload 동적 탑재" as UC03
   usecase "UC-02. 다중 pVM 동시 운용" as UC02
   usecase "UC-01. pVM 생성/시작/정지/종료" as UC01
 }
@@ -55,14 +55,14 @@ actor "Normal Camera\nApplication" as NormalCameraApp
 
 HostApp --> UC01
 HostApp --> UC02
-HostApp --> UC04
+HostApp --> UC03
 HostApp --> UC05
 
-Workload --> UC03
 Workload --> UC04
+Workload --> UC05
 Workload --> UC06
 
-UC03 <-- NormalCameraApp
+UC04 <-- NormalCameraApp
 
 @enduml
 ```
