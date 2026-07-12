@@ -86,7 +86,7 @@ flowchart TB
 | VOS-07 | 내부 Security 개발자 | Secure Camera와 Secure AI 도메인은 독립적으로 동시 운용되어야 한다. |
 | VOS-08 | SOC 설계 부서 | Camera/AI HW 사용 중 DMA 격리와 잔류 데이터 소거가 필요하다. |
 | VOS-09 | 내부 Security 개발자 | 도메인 간 데이터 전달은 노출 없이 빠르게 이뤄져야 한다. |
-| VOS-10 | 내부 Hypervisor 개발자 | 기 포팅된 pKVM과 제공 hypercall 범위 안에서 설계해야 한다. |
+| VOS-10 | 내부 Hypervisor 개발자 | 기 포팅된 pKVM(EL2)의 TCB는 작게 유지 되어야 한다. |
 | VOS-11 | 내부 Security 개발자 (SRCX, Secure OS 이식) | Secure OS 이식 인터페이스가 안정적으로 정의되어야 한다. |
 | VOS-12 | 내부 Security 개발자 (기존 TrustZone 공존) | 기존 TrustZone TEE 기능과 SMC 경로가 유지되어야 한다. |
 | VOS-13 | 검증 부서 | Host 침해 시 격리 유지 여부를 객관적으로 검증할 수 있어야 한다. |

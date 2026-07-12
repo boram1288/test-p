@@ -59,10 +59,10 @@ HostApp --> UC03
 HostApp --> UC05
 
 Workload --> UC04
+UC04 <-- NormalCameraApp
+
 Workload --> UC05
 Workload --> UC06
-
-UC04 <-- NormalCameraApp
 
 @enduml
 ```

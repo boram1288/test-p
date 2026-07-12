@@ -38,7 +38,6 @@
 | Host Application | System에 보안 서비스 생명주기를 요청하는 주체 | pVM 생성/운용 요청, Workload 탑재 요청 |
 | Normal Camera Application | System의 HW 중재와 충돌할 수 있는 일반 Camera 사용 주체 | Camera HW 사용 요청 |
 | Workload(Camera/AI) | System이 pVM에 탑재하고 HW/보안 기능 사용을 중재하는 실행 단위 | Camera/AI HW 사용 요청, ENC/DEC 요청 |
-| pKVM(EL2 Hypervisor) | System이 pVM 생성과 자원 제어를 위임하는 실행 기반 | pVM 생성/삭제, CPU/Memory 할당 |
 | Camera HW Driver | System이 Camera HW 접근을 요청하는 외부 제어 경로 | Camera HW 사용 |
 | AI HW Driver | System이 AI HW 접근을 요청하는 외부 제어 경로 | AI HW 사용 |
 | S2MPU/DMA HW Driver | System이 HW 사용 주체 전환 시 접근 격리를 요청하는 제어 경로 | HW 접근 격리, DMA 격리 |
@@ -55,6 +54,7 @@ skinparam componentStyle rectangle
 
 rectangle "Linux pKVM 기반\n가상화 보안 Framework" as System {
   component "pVM Lifecycle\nManager" as PVM
+  component "pKVM\n(EL2 Hypervisor)" as PKVM
   component "Multi-pVM\nOrchestrator" as ORCH
   component "Workload Loader /\nVerifier" as LOADER
   component "HW IP Mediation\nLayer" as HWMD
@@ -67,7 +67,6 @@ rectangle "Linux pKVM 기반\n가상화 보안 Framework" as System {
 actor "Host Application" as HostApp
 actor "Normal Camera\nApplication" as CamApp
 component "Workload\n(Camera/AI)" as Workload
-node "pKVM\n(EL2 Hypervisor)" as PKVM
 node "Host OS\n(Linux)" as HostOS
 node "Camera HW" as CameraHW
 node "AI HW" as AIHW
@@ -80,7 +79,6 @@ CamApp --> System : Camera HW 사용 요청
 System --> Workload : 서명 검증\n탑재/실행
 Workload --> System : HW 접근 요청\n보안 채널 사용\nSecure OS 연동 요청
 
-System --> PKVM : hypercall 인터페이스 사용\nEL2 수정 없이 연동
 System --> HostOS : Linux 네이티브 실행\nAndroid 비의존
 System --> CameraHW : HW 접근 중재
 System --> AIHW : HW 접근 중재
@@ -93,6 +91,7 @@ System --> SecureOS : ENC/DEC 명령 전달\nTEE 기능 연동
 
 System 경계 안쪽은 다음 책임을 가진다.
 
+- pKVM(EL2 Hypervisor)와 hypercall 인터페이스 (TCB 최소 범위)
 - pVM 생명주기와 다중 pVM 운용 관리
 - 보안 Workload 동적 탑재와 서명 검증
 - Host/pVM 간 Camera/AI HW 공유 중재
@@ -104,7 +103,6 @@ System 경계 바깥쪽은 다음 요소로 본다.
 
 - Host Application, Normal Camera Application
 - pVM 내부 Workload(Camera/AI)
-- pKVM(EL2 Hypervisor)와 hypercall 인터페이스
 - Host OS(Linux) 실행 환경
 - Camera/AI HW, S2MPU/DMA 보호 메커니즘
 - Secure OS(TEE)

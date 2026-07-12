@@ -4,3 +4,4 @@
 *.tmp:RVContext
 .claude/
 *.bkp
+*Zone.Identifier
