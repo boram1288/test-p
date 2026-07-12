@@ -1,4 +1,7 @@
 {
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:8787"
+  },
   "permissions": {
     "allow": [
       "Bash(rtk ls *)",
@@ -7,7 +10,17 @@
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
       "Bash(rtk grep *)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(rtk find *)",
+      "Bash(rtk wc *)",
+      "Bash(rtk read *)",
+      "Bash(git add *)",
+      "WebSearch",
+      "WebFetch(domain:lwn.net)",
+      "WebFetch(domain:www.kernel.org)",
+      "Bash(rtk curl *)",
+      "WebFetch(domain:www.qemu.org)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

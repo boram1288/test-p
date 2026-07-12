@@ -1,11 +1,11 @@
 <mxfile host="Electron" agent="Claude">
   <diagram id="a1-2-per-instance-monitor" name="A1-2">
-    <mxGraphModel dx="1207" dy="659" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1320" pageHeight="720" math="0" shadow="0">
+    <mxGraphModel dx="1274" dy="696" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1320" pageHeight="720" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="ZEIo1c_CHVTAHK3E7dbV-1" parent="1" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;fontSize=22;fontStyle=1;verticalAlign=top;align=left;spacingLeft=6;size=15;" value="Host (비신뢰)" vertex="1">
-          <mxGeometry height="470" width="560" x="372" y="90" as="geometry" />
+        <mxCell id="ZEIo1c_CHVTAHK3E7dbV-1" parent="1" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;fontSize=22;fontStyle=1;verticalAlign=top;align=right;spacingLeft=6;size=15;spacingRight=10;" value="Host (비신뢰)" vertex="1">
+          <mxGeometry height="450" width="618" x="372" y="110" as="geometry" />
         </mxCell>
         <mxCell id="ZEIo1c_CHVTAHK3E7dbV-2" parent="1" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;fontSize=22;fontStyle=1;verticalAlign=middle;align=center;spacingLeft=6;size=10;fillColor=#d5e8d4;strokeColor=#000000;" value="pKVM (EL2)" vertex="1">
           <mxGeometry height="70" width="192" x="545" y="616" as="geometry" />
@@ -65,15 +65,6 @@
         </mxCell>
         <mxCell id="ZEIo1c_CHVTAHK3E7dbV-11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;fontColor=#0000FF;fontSize=22;" value="&lt;span&gt;&lt;b&gt;정책/권한 확인&lt;/b&gt;&lt;/span&gt;&lt;div&gt;&lt;span&gt;&lt;b&gt;Monitor 구동&lt;/b&gt;&lt;/span&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="80" width="190" x="757" y="248" as="geometry" />
-        </mxCell>
-        <mxCell id="ZEIo1c_CHVTAHK3E7dbV-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#0000FF;fontSize=19;" value="&lt;div&gt;&lt;b&gt;분리&lt;/b&gt;&lt;span&gt;&lt;b&gt;&lt;/b&gt;&lt;/span&gt;&lt;/div&gt;&lt;span&gt;&lt;b&gt;침해되도 다른 pVM monitor 안전&lt;/b&gt;&lt;/span&gt;" vertex="1">
-          <mxGeometry height="80" width="200" x="580" y="390" as="geometry" />
-        </mxCell>
-        <mxCell id="ZEIo1c_CHVTAHK3E7dbV-13" edge="1" parent="1" style="shape=flexArrow;endArrow=classic;startArrow=classic;html=1;rounded=0;fontSize=22;fillColor=#f8cecc;strokeColor=#b85450;" value="">
-          <mxGeometry height="100" relative="1" width="100" as="geometry">
-            <mxPoint x="624" y="380" as="sourcePoint" />
-            <mxPoint x="704" y="380" as="targetPoint" />
-          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
