@@ -19,6 +19,7 @@
    - [S6-6. 도메인별 tzdaemon 복제형 — pVM 내장 GP 스택](#s6-6-도메인별-tzdaemon-복제형--pvm-내장-gp-스택)
 3. [후보 비교 요약](#3-후보-비교-요약)
 4. [설계질문별 후보 대응](#4-설계질문별-후보-대응)
+5. [2-트랙 조합 후보 구조](#5-2-트랙-조합-후보-구조)
 
 ---
 
@@ -405,6 +406,174 @@ SRPMB --> RPMB : SECURITY_PROTOCOL_OUT/IN
 
 후보들은 자산 유형별로 상호 배타적이지 않다. 실무적으로 유력한 조합은 다음과 같으며, 조합 선택은 후속 비교평가에서 다룬다.
 
-- **소용량·고민감 데이터**(키 자료, 설정, rollback 카운터)는 S6-1(GP Trusted Storage + RPMB)로, **대용량 스트림/모델**은 S6-4 또는 S6-5로 나누는 2-트랙 구성
+- **소용량·고민감 데이터**(키 자료, 설정, rollback 카운터)는 S6-1(GP Trusted Storage + RPMB)로, **대용량 스트림/모델**은 S6-4 또는 S6-5로 나누는 2-트랙 구성 — **구체화한 조합 후보 2개(T-1, T-2)를 5절에 정리한다**
 - S6-5(블록 투명 암호화)를 기본 방어선으로 깔고, 자산별 폐기가 필요한 데이터만 S6-4(봉투 암호화)를 중첩하는 심층 방어 구성
-- S6-6은 S6-1의 servant 배치 변형이므로 위 2-트랙 구성의 소용량 트랙에 그대로 대입 가능하다 — DP5가 pVM 직접 호출 경로로 확정되면 소용량 트랙을 S6-1 대신 S6-6으로 두어 Host 관측면을 함께 제거하는 조합이 성립한다
+- S6-6은 S6-1의 servant 배치 변형이므로 위 2-트랙 구성의 소용량 트랙에 그대로 대입 가능하다 — DP5가 pVM 직접 호출 경로로 확정되면 소용량 트랙을 S6-1 대신 S6-6으로 두어 Host 관측면을 함께 제거하는 조합이 성립한다 (5절 T-2)
+
+---
+
+## 5. 2-트랙 조합 후보 구조
+
+단일 후보로는 대용량 자산의 성능(P-S6-2)과 소용량 자산의 무결성·rollback·자산 재사용(P-S6-1/3/4)을 동시에 최적화할 수 없다. 자산을 두 트랙으로 나누고 트랙별로 최적 후보를 배치하는 조합 구조를 후보로 승격하여 정리한다.
+
+### 5.1 2-트랙 전략 정의
+
+| 트랙 | 대상 자산 | 요구 우선순위 | 배치 후보 |
+|------|----------|-------------|----------|
+| 트랙 A (대용량) | 캡처 영상, AI 모델 가중치, 추론 기록 | 처리량(QA-02) 우선, 기밀성 필수, 무결성·rollback은 tactic으로 보강 | 보강된 S6-5 (아래 5.2) |
+| 트랙 B (소용량) | 디스크 키·무결성 앵커, 인증서, 설정, rollback 카운터 | 무결성·rollback·객체 단위 폐기(P-S6-4) 우선, 처리량 무관 | S6-1 또는 S6-6 (GP Trusted Storage + RPMB) |
+
+두 트랙은 독립적이지 않다 — **트랙 B가 트랙 A의 신뢰 뿌리 역할**을 한다. 트랙 A의 디스크 키는 TEE가 보관·주입하고, 트랙 A의 무결성 앵커(root hash, epoch 카운터)는 트랙 B의 RPMB 경로로 봉인된다. 즉 트랙 A는 "빠른 몸통", 트랙 B는 "작은 심장"이다.
+
+### 5.2 공통 요소 — 보강된 트랙 A (S6-5 + 무결성/rollback tactic)
+
+S6-5의 단점(무결성·rollback 부재)을 자산 성격별 tactic으로 보강한다.
+
+| 자산 성격 | 블록 계층 구성 | 무결성 | rollback 방지 |
+|----------|--------------|--------|--------------|
+| 읽기 전용 (AI 모델 이미지) | virtio-blk + dm-verity | Merkle 해시 트리로 블록 단위 검증 | root hash를 TEE 경유 RPMB에 봉인, pVM 기동 시 검증 |
+| 쓰기형 (영상/추론 기록) | virtio-blk + dm-crypt AEAD(+dm-integrity) | 섹터별 인증 태그로 변조 즉시 탐지 | 체크포인트마다 볼륨 요약을 RPMB에 봉인(epoch sealing) — 봉인 주기 내 윈도우 존재 |
+
+보강 비용(수용해야 할 제약):
+
+- AEAD는 통상 ICE(HW Inline Crypto)와 양립하지 않으므로 쓰기형 볼륨은 CPU 암호화(dm-crypt)로 수행될 수 있다 — 프레임 기록 경로의 QA-02 예산 재검증 필요. ICE의 태그 지원 여부는 SoC 스펙 확인 사항(HW 설계 변경은 과제 범위 외)
+- dm-integrity 저널로 쓰기형 볼륨의 쓰기 증폭(최대 2배) 발생
+- 쓰기형 볼륨의 rollback 탐지는 epoch 봉인 주기 내 윈도우가 남음 — 트랙 B(GP 객체 단위 카운터)보다 약한 보장이며, 이 한계 때문에 고민감 소용량 데이터는 트랙 A에 두지 않는다
+
+### 5.3 T-1. 2-트랙 + Host 집중 servant (보강 S6-5 + S6-1)
+
+- **개요**: 트랙 A는 보강된 블록 투명 암호화, 트랙 B는 기존 구조 그대로의 GP Trusted Storage(Host tzdaemon이 blob 대행)로 구성한다. TEE 측 수정을 최소화하는 보수적 조합이다.
+- **구성과 책임**:
+  - pVM 블록 계층: 트랙 A ENC/DEC(dm-verity/dm-crypt AEAD), 암호문 블록만 virtio로 방출
+  - pVM Workload: 트랙 B 데이터만 GP Client API로 저장/복구 (DP5 경로)
+  - TEE Storage Server + Key/앵커 TA: 트랙 B 객체 ENC/DEC, 트랙 A 디스크 키 보관·주입, root hash/epoch 카운터의 RPMB 봉인
+  - Host: virtio-blk 백엔드(트랙 A 암호문 대행) + tzdaemon(트랙 B blob 대행) + srpmb(RPMB 전달) — 세 역할 모두 untrusted servant
+- **동작 방식**: pVM 기동 시 TEE가 pVM 무결성 검증 후 디스크 키를 주입하고 RPMB의 root hash/epoch와 대조한다(트랙 B가 트랙 A를 개봉). 이후 반복 구간의 대용량 입출력은 블록 계층에서 완결되고, GP 경로에는 소용량 데이터와 봉인 갱신만 흐른다.
+
+**구조 다이어그램**
+
+```plantuml
+@startuml
+title T-1. 2-트랙 + Host 집중 servant (보강 S6-5 + S6-1)
+node "Host (비신뢰, EL0/EL1)" {
+  rectangle "virtio-blk 백엔드\n(트랙 A 암호문 대행)" as VB
+  rectangle "tzdaemon/tzdev\n(트랙 B blob 대행)" as TZD
+  database "REE FS\n(트랙 B blob)" as FS
+  rectangle "srpmb" as SRPMB
+}
+node "Secure AI pVM" {
+  rectangle "Workload" as WL
+  rectangle "블록 계층\n(dm-verity 모델 /\ndm-crypt AEAD 기록)" as BLK
+  rectangle "GP Client API" as GP
+}
+rectangle "pKVM (EL2)" as HV
+node "TrustZone TEE (S-EL1)" {
+  rectangle "Storage Server +\nKey/앵커 TA" as SS
+}
+node "UFS" {
+  rectangle "RPMB\n(root hash, epoch,\nGP 카운터)" as RPMB
+  database "물리 저장 영역" as DISK
+}
+
+WL --> BLK : 트랙 A: 파일 I/O (암호화 비인지)
+BLK --> VB : 암호문 블록 (virtio)
+VB --> DISK : 블록 I/O
+WL --> GP : 트랙 B: GP API
+GP --> SS : DP5 경로 (소용량)
+SS --> TZD : 트랙 B blob (RPC)
+TZD --> FS : blob read/write
+SS --> BLK : 디스크 키 주입\n(기동 시, 검증 후)
+SS --> SRPMB : RPMB 경로 (LDFW 경유)
+SRPMB --> RPMB
+HV ..> WL : Stage-2 격리
+@enduml
+```
+
+**장점 / 단점 / 트레이드오프**
+
+- **장점**
+  - 대용량 경로에 TEE 왕복이 없어 QA-02를 지키면서, 무결성·rollback은 RPMB 앵커로 확보된다 — P-S6-1/2/4를 트랙 분리로 동시 대응.
+  - 트랙 B가 기존 GP Trusted Storage 구조 그대로여서 TEE·tzdaemon 수정이 최소이고(P-S6-3), Workload의 GP API 자산이 소용량 용도로 재사용된다.
+  - Host의 세 servant 역할이 모두 암호문/서명 데이터만 취급하므로 신뢰 경계가 기존 원칙과 동일하다.
+- **단점**
+  - 트랙 B의 GP 세션 제어·RPC가 Host tzdaemon을 경유하므로 Host가 세션 메타데이터·접근 패턴을 관측할 수 있고, Host tzdaemon 장애가 트랙 B 가용성에 전파된다.
+  - DP5 경로가 GP invoke 파라미터(소용량 평문)의 Host 비가시성을 보장해야 한다 — pKVM이 보호하는 공유 메모리 등 DP5 설계에 조건을 부과한다.
+  - 두 저장 경로(블록/GP)의 키·앵커 수명주기를 하나의 정책으로 묶는 운용 설계가 추가로 필요하다.
+- **트레이드오프**: 수정 범위 최소화를 우선하여 Host 관측면(트랙 B 메타데이터)을 허용한다. 조기 통합·검증에 유리한 실용 조합이다.
+
+### 5.4 T-2. 2-트랙 + 도메인별 servant 복제 (보강 S6-5 + S6-6)
+
+- **개요**: 트랙 A는 T-1과 동일하고, 트랙 B의 servant를 도메인별 tzdaemon 복제(S6-6)로 바꾼다. 트랙 B의 blob이 pVM 자체 파일시스템에 착지하는데, 그 파일시스템이 **트랙 A의 암호화 가상 디스크 위**이므로 blob이 TEE 암호화+블록 암호화의 이중 보호를 받는다.
+- **성립 조건**: S6-6의 조건을 그대로 상속한다 — DP5가 pVM→TEE 직접 호출 경로(pKVM 중계 또는 FF-A)를 선택해야 하며, TEE의 멀티클라이언트 확장(도메인별 세션/WSM/RPC 회신)이 필요하다. **DP5가 Host 프록시형이면 T-2는 불성립하고 T-1만 남는다.**
+- **구성과 책임**:
+  - pVM: 블록 계층(트랙 A) + 내장 GP 스택(libteec/tzdaemon/tzdev, 트랙 B) + pVM FS(트랙 B blob 착지, 암호화 디스크 위)
+  - TEE: 도메인별 세션으로 트랙 B 서비스, 트랙 A 디스크 키·앵커 관리 (T-1과 동일)
+  - Host: virtio-blk 백엔드와 srpmb만 남음 — 유저스페이스 tzdaemon이 pVM 저장 경로에서 완전히 배제
+- **동작 방식**: 기동 시퀀스는 T-1과 같되, 트랙 B의 저장 RPC가 pVM 내부에서 완결된다(TEE→pVM tzdaemon→pVM FS). Host에는 암호문 블록과 MAC 보호된 RPMB packet만 노출된다.
+
+**구조 다이어그램**
+
+```plantuml
+@startuml
+title T-2. 2-트랙 + 도메인별 servant 복제 (보강 S6-5 + S6-6)
+node "Host (비신뢰, EL0/EL1)" {
+  rectangle "virtio-blk 백엔드\n(트랙 A+B 암호문 대행)" as VB
+  rectangle "srpmb" as SRPMB
+}
+node "Secure AI pVM" {
+  rectangle "Workload" as WL
+  rectangle "내장 GP 스택\n(libteec/tzdaemon/tzdev)" as PTZ
+  database "pVM FS\n(트랙 B blob 착지)" as PFS
+  rectangle "블록 계층\n(dm-verity / dm-crypt AEAD)" as BLK
+}
+rectangle "pKVM (EL2)\n(pVM→TEE 중계, VM_ID)" as HV
+node "TrustZone TEE (S-EL1)" {
+  rectangle "Storage Server +\nKey/앵커 TA\n(도메인별 세션)" as SS
+}
+node "UFS" {
+  rectangle "RPMB" as RPMB
+  database "물리 저장 영역" as DISK
+}
+
+WL --> BLK : 트랙 A: 파일 I/O
+WL --> PTZ : 트랙 B: GP API (pVM 내부)
+PTZ --> HV : SMC (트랩)
+HV --> SS : 직접 호출 경로 (DP5)
+SS --> PTZ : 트랙 B blob 회신 (RPC)
+PTZ --> PFS : blob 저장
+PFS ..> BLK : 암호화 디스크 위 (이중 보호)
+BLK --> VB : 암호문 블록 (virtio)
+VB --> DISK
+SS --> BLK : 디스크 키 주입 (기동 시)
+SS --> SRPMB : RPMB 경로 (LDFW 경유)
+SRPMB --> RPMB
+@enduml
+```
+
+**장점 / 단점 / 트레이드오프**
+
+- **장점**
+  - pVM 저장 경로에서 Host 유저스페이스가 완전히 배제된다 — Host에 노출되는 것은 암호문 블록과 MAC 보호 RPMB packet뿐이며, GP 세션 메타데이터·접근 패턴 관측면이 사라진다(P-S6-1 최강 조합).
+  - 트랙 B blob이 이중 보호(TEE 암호화+서명 위에 블록 암호화)를 받고, CA 신원이 검증된 pVM 내부에서 생성되어 신원 신뢰도가 높다.
+  - 도메인별 장애 격벽·세션 격리로 확장(R-4)에 유리하다 — 신규 도메인 추가가 "가상 디스크 1개 + GP 스택 이식"으로 흡수된다.
+- **단점**
+  - S6-6의 비용을 그대로 상속한다: TEE 멀티클라이언트 확장(CC 재평가 가능성), pVM 이미지 증가, 도메인 수 비례 TEE 세션/WSM 자원.
+  - DP5 결정에 강하게 종속되어 단독으로 확정할 수 없다 — DP5보다 먼저 착수할 수 없는 순서 제약이 생긴다.
+  - T-1 대비 신규 개발 규모가 크고 통합 검증 항목(도메인별 세션 격리 시험)이 늘어난다.
+- **트레이드오프**: TEE 수정과 DP5 종속을 지불하고 Host 배제와 도메인 격리를 산다. DP5가 어차피 직접 호출 경로로 결정된다면 T-1 대비 추가 비용이 작아 우월해진다.
+
+### 5.5 T-1 / T-2 비교 요약
+
+| 구분 | T-1 (보강 S6-5 + S6-1) | T-2 (보강 S6-5 + S6-6) |
+|------|----------------------|----------------------|
+| 트랙 A (대용량) | 동일 — virtio-blk + dm-verity/AEAD + RPMB 앵커 | 동일 |
+| 트랙 B servant | Host tzdaemon 집중 | 도메인별 tzdaemon 복제 |
+| 트랙 B blob 위치 | Host REE FS | pVM FS (암호화 디스크 위, 이중 보호) |
+| Host 관측면 | 트랙 B 세션 메타데이터 노출 | 암호문 블록·RPMB packet만 |
+| TEE 수정 | 소 (키/앵커 TA 추가) | 중대 (멀티클라이언트 확장) |
+| DP5 종속성 | 경로의 파라미터 비가시성 요구 | **직접 호출 경로 필수 (프록시형이면 불성립)** |
+| 신규 개발 규모 | 중 | 대 |
+| 도메인 확장 | 트랙 B가 Host tzdaemon에 수렴 | 도메인 단위로 독립 확장 |
+| 잔여 한계 (공통) | 자산 단위 개별 폐기는 미지원(필요 시 S6-4 중첩), 쓰기형 볼륨 epoch 봉인 윈도우, ICE-AEAD 양립성 확인 필요 | 좌동 |
+
+**적용 지침**: T-1은 DP5 결정과 무관하게 착수 가능한 기본선(baseline)으로, T-2는 DP5가 직접 호출 경로로 확정될 때의 상향 조합으로 두는 단계적 채택이 가능하다 — 트랙 A와 TEE의 키/앵커 TA는 두 조합에서 동일하므로 T-1에서 T-2로의 이행 시 트랙 B의 servant 배치만 바뀐다.
