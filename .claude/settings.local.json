@@ -20,7 +20,11 @@
       "WebFetch(domain:www.kernel.org)",
       "Bash(rtk curl *)",
       "WebFetch(domain:www.qemu.org)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:stefano-garzarella.github.io)",
+      "WebFetch(domain:android-developers.googleblog.com)",
+      "WebFetch(domain:source.android.com)",
+      "WebFetch(domain:liswei.sh)"
     ]
   }
 }
