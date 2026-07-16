@@ -2,6 +2,6 @@
 .tokensave/
 ~*
 *.tmp:RVContext
-.claude/
+.claude/settings.local.json
 *.bkp
 *Zone.Identifier
