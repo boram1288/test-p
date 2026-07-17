@@ -199,129 +199,129 @@ ISO/IEC 25010:2023에서 유연성(Flexibility) 특성의 부특성으로 신설
 
 #### 3.2.1 기능 적합성 측정 (8.2)
 
-| ID | 지표명 | 측정 함수 및 방법 |
-|---|---|---|
-| FCp-1-G | 기능 커버리지 (Functional coverage) | X = 1 − A/B. A: 누락된 기능 수, B: 명세된 기능 수. 명세 대비 구현된 기능의 비율 |
-| FCr-1-G | 기능 정확성 (Functional correctness) | X = 1 − A/B. A: 부정확한 기능 수, B: 검토 대상 기능 수. 올바른 결과를 제공하는 기능의 비율 |
-| FAp-1-G | 사용 목표에 대한 기능 적절성 (Functional appropriateness of usage objective) | X = 1 − A/B. A: 특정 사용 목표 달성에 필요한 기능 중 누락되었거나 부정확한 기능 수, B: 해당 목표에 필요한 기능 수 |
-| FAp-2-S | 시스템의 기능 적절성 (Functional appropriateness of the system) | X = Σ(사용 목표별 FAp-1 값)/n. n: 사용 목표 수. 전체 사용 목표에 대한 기능 적절성의 평균 |
+| 부특성 | ID | 지표명 | 측정 함수 및 방법 |
+|---|---|---|---|
+| 기능 완전성 | FCp-1-G | 기능 커버리지 (Functional coverage) | X = 1 − A/B. A: 누락된 기능 수, B: 명세된 기능 수. 명세 대비 구현된 기능의 비율 |
+| 기능 정확성 | FCr-1-G | 기능 정확성 (Functional correctness) | X = 1 − A/B. A: 부정확한 기능 수, B: 검토 대상 기능 수. 올바른 결과를 제공하는 기능의 비율 |
+| 기능 적절성 | FAp-1-G | 사용 목표에 대한 기능 적절성 (Functional appropriateness of usage objective) | X = 1 − A/B. A: 특정 사용 목표 달성에 필요한 기능 중 누락되었거나 부정확한 기능 수, B: 해당 목표에 필요한 기능 수 |
+| 기능 적절성 | FAp-2-S | 시스템의 기능 적절성 (Functional appropriateness of the system) | X = Σ(사용 목표별 FAp-1 값)/n. n: 사용 목표 수. 전체 사용 목표에 대한 기능 적절성의 평균 |
 
 #### 3.2.2 성능 효율성 측정 (8.3)
 
-| ID | 지표명 | 측정 함수 및 방법 |
-|---|---|---|
-| PTb-1-G | 평균 응답 시간 (Mean response time) | X = Σ(Bi − Ai)/n. Ai: i번째 과업 요청 시각, Bi: 응답 시작 시각, n: 측정 횟수 |
-| PTb-2-S | 응답 시간 적정성 (Response time adequacy) | X = A/B. A: 실측 평균 응답 시간, B: 명세된 목표 응답 시간. 1 이하일수록 적정 |
-| PTb-3-G | 평균 반환 시간 (Mean turnaround time) | X = Σ(작업 요청부터 작업 완료까지의 시간)/n. 작업(job) 완료 기준의 평균 소요 시간 |
-| PTb-4-S | 반환 시간 적정성 (Turnaround time adequacy) | X = A/B. A: 실측 평균 반환 시간, B: 명세된 목표 반환 시간 |
-| PTb-5-G | 평균 처리율 (Mean throughput) | X = Σ(단위 시간당 완료 작업 수)/n. 관측 구간별 처리율의 평균 |
-| PRu-1-G | 평균 프로세서 사용률 (Mean processor utilization) | X = Σ(Ai/Bi)/n. Ai: 실제 사용한 프로세서 시간, Bi: 운영 시간. 낮을수록 좋음 |
-| PRu-2-G | 평균 메모리 사용률 (Mean memory utilization) | X = Σ(Ai/Bi)/n. Ai: 실제 사용한 메모리 크기, Bi: 가용 메모리 크기. 낮을수록 좋음 |
-| PRu-3-G | 평균 I/O 장치 사용률 (Mean I/O devices utilization) | X = Σ(Ai/Bi)/n. Ai: I/O 장치 점유(busy) 시간, Bi: I/O 작업에 요구되는 시간. 낮을수록 좋음 |
-| PRu-4-S | 대역폭 사용률 (Bandwidth utilization) | X = A/B. A: 사용한 전송 대역폭, B: 가용(용량) 대역폭 |
-| PCa-1-G | 트랜잭션 처리 용량 (Transaction processing capacity) | X = A/T. A: 완료된 트랜잭션 수, T: 관측 시간. 단위 시간당 처리 가능한 트랜잭션 수 |
-| PCa-2-S | 사용자 접속 용량 (User access capacity) | X = 단위 시간 내 시스템이 정상 처리 가능한 최대 동시 사용자 수 |
-| PCa-3-S | 사용자 접속 증가 적정성 (User access increase adequacy) | X = A/B. A: 수용 가능한 추가 동시 사용자 수, B: 요구되는 추가 동시 사용자 수 |
+| 부특성 | ID | 지표명 | 측정 함수 및 방법 |
+|---|---|---|---|
+| 시간 반응성 | PTb-1-G | 평균 응답 시간 (Mean response time) | X = Σ(Bi − Ai)/n. Ai: i번째 과업 요청 시각, Bi: 응답 시작 시각, n: 측정 횟수 |
+| 시간 반응성 | PTb-2-S | 응답 시간 적정성 (Response time adequacy) | X = A/B. A: 실측 평균 응답 시간, B: 명세된 목표 응답 시간. 1 이하일수록 적정 |
+| 시간 반응성 | PTb-3-G | 평균 반환 시간 (Mean turnaround time) | X = Σ(작업 요청부터 작업 완료까지의 시간)/n. 작업(job) 완료 기준의 평균 소요 시간 |
+| 시간 반응성 | PTb-4-S | 반환 시간 적정성 (Turnaround time adequacy) | X = A/B. A: 실측 평균 반환 시간, B: 명세된 목표 반환 시간 |
+| 시간 반응성 | PTb-5-G | 평균 처리율 (Mean throughput) | X = Σ(단위 시간당 완료 작업 수)/n. 관측 구간별 처리율의 평균 |
+| 자원 활용성 | PRu-1-G | 평균 프로세서 사용률 (Mean processor utilization) | X = Σ(Ai/Bi)/n. Ai: 실제 사용한 프로세서 시간, Bi: 운영 시간. 낮을수록 좋음 |
+| 자원 활용성 | PRu-2-G | 평균 메모리 사용률 (Mean memory utilization) | X = Σ(Ai/Bi)/n. Ai: 실제 사용한 메모리 크기, Bi: 가용 메모리 크기. 낮을수록 좋음 |
+| 자원 활용성 | PRu-3-G | 평균 I/O 장치 사용률 (Mean I/O devices utilization) | X = Σ(Ai/Bi)/n. Ai: I/O 장치 점유(busy) 시간, Bi: I/O 작업에 요구되는 시간. 낮을수록 좋음 |
+| 자원 활용성 | PRu-4-S | 대역폭 사용률 (Bandwidth utilization) | X = A/B. A: 사용한 전송 대역폭, B: 가용(용량) 대역폭 |
+| 용량 | PCa-1-G | 트랜잭션 처리 용량 (Transaction processing capacity) | X = A/T. A: 완료된 트랜잭션 수, T: 관측 시간. 단위 시간당 처리 가능한 트랜잭션 수 |
+| 용량 | PCa-2-S | 사용자 접속 용량 (User access capacity) | X = 단위 시간 내 시스템이 정상 처리 가능한 최대 동시 사용자 수 |
+| 용량 | PCa-3-S | 사용자 접속 증가 적정성 (User access increase adequacy) | X = A/B. A: 수용 가능한 추가 동시 사용자 수, B: 요구되는 추가 동시 사용자 수 |
 
 #### 3.2.3 호환성 측정 (8.4)
 
-| ID | 지표명 | 측정 함수 및 방법 |
-|---|---|---|
-| CCo-1-G | 타 제품과의 공존성 (Co-existence with other products) | X = A/B. A: 환경 공유 중에도 품질 요구를 계속 충족하는 타 제품 수, B: 환경을 공유하는 타 제품 총수 |
-| CIn-1-G | 데이터 형식 교환성 (Data formats exchangeability) | X = A/B. A: 타 시스템과 교환 가능한 데이터 형식 수, B: 교환이 요구되는 데이터 형식 수 |
-| CIn-2-S | 데이터 교환 프로토콜 충분성 (Data exchange protocol sufficiency) | X = A/B. A: 지원되는 데이터 교환 프로토콜 수, B: 요구되는 데이터 교환 프로토콜 수 |
-| CIn-3-S | 외부 인터페이스 적정성 (External interface adequacy) | X = A/B. A: 명세대로 구현된 외부 인터페이스 수, B: 명세된 외부 인터페이스 수 |
+| 부특성 | ID | 지표명 | 측정 함수 및 방법 |
+|---|---|---|---|
+| 공존성 | CCo-1-G | 타 제품과의 공존성 (Co-existence with other products) | X = A/B. A: 환경 공유 중에도 품질 요구를 계속 충족하는 타 제품 수, B: 환경을 공유하는 타 제품 총수 |
+| 상호운용성 | CIn-1-G | 데이터 형식 교환성 (Data formats exchangeability) | X = A/B. A: 타 시스템과 교환 가능한 데이터 형식 수, B: 교환이 요구되는 데이터 형식 수 |
+| 상호운용성 | CIn-2-S | 데이터 교환 프로토콜 충분성 (Data exchange protocol sufficiency) | X = A/B. A: 지원되는 데이터 교환 프로토콜 수, B: 요구되는 데이터 교환 프로토콜 수 |
+| 상호운용성 | CIn-3-S | 외부 인터페이스 적정성 (External interface adequacy) | X = A/B. A: 명세대로 구현된 외부 인터페이스 수, B: 명세된 외부 인터페이스 수 |
 
 #### 3.2.4 사용성 측정 (8.5)
 
-| ID | 지표명 | 측정 함수 및 방법 |
-|---|---|---|
-| UAp-1-G | 설명 완전성 (Description completeness) | X = A/B. A: 제품 설명(문서)에 기술된 사용 시나리오 수, B: 제품이 수행 가능한 사용 시나리오 수 |
-| UAp-2-S | 데모 커버리지 (Demonstration coverage) | X = A/B. A: 데모/튜토리얼이 제공되는 과업 수, B: 데모가 필요한 과업 수 |
-| UAp-3-S | 진입점 자기 서술성 (Entry point self-descriptiveness) | X = A/B. A: 목적과 내용을 스스로 설명하는 진입점(예: 웹사이트 랜딩) 수, B: 전체 진입점 수 |
-| ULe-1-G | 사용자 안내 완전성 (User guidance completeness) | X = A/B. A: 사용자 문서/도움말이 제공되는 기능 수, B: 전체 기능 수 |
-| ULe-2-S | 입력 필드 기본값 (Entry fields defaults) | X = A/B. A: 기본값이 제공되는 입력 필드 수, B: 기본값 제공이 가능한 입력 필드 수 |
-| ULe-3-S | 오류 메시지 이해성 (Error messages understandability) | X = A/B. A: 원인과 해결 방법을 알려주는 오류 메시지 수, B: 전체 오류 메시지 수 |
-| ULe-4-S | 자기 설명적 사용자 인터페이스 (Self-explanatory user interface) | X = A/B. A: 별도 설명 없이 이해 가능한 UI 요소 수, B: 전체 UI 요소 수 |
-| UOp-1-G | 운용 일관성 (Operational consistency) | X = 1 − A/B. A: 유사 과업 간 조작이 일관되지 않은 상호작용 과업 수, B: 유사 조작을 갖는 상호작용 과업 수 |
-| UOp-2-G | 메시지 명확성 (Message clarity) | X = A/B. A: 올바른 의미를 전달하는 메시지 수, B: 전체 메시지 수 |
-| UOp-3-S | 기능 커스터마이즈 가능성 (Functional customizability) | X = A/B. A: 커스터마이즈 가능한 기능 수, B: 커스터마이즈가 요구되는 기능 수 |
-| UOp-4-S | UI 커스터마이즈 가능성 (User interface customizability) | X = A/B. A: 커스터마이즈 가능한 UI 요소 수, B: 커스터마이즈가 요구되는 UI 요소 수 |
-| UOp-5-S | 모니터링 능력 (Monitoring capability) | X = A/B. A: 구현된 상태 모니터링 기능 수, B: 요구되는 상태 모니터링 기능 수 |
-| UOp-6-S | 실행 취소 능력 (Undo capability) | X = A/B. A: 실행 취소(undo)가 가능한 과업 수, B: 실행 취소가 필요한 과업 수 |
-| UOp-7-S | 정보 분류 이해성 (Understandable categorization of information) | X = A/B. A: 사용자가 이해하기 쉽게 분류된 정보 카테고리 수, B: 전체 정보 카테고리 수 |
-| UOp-8-S | 외관 일관성 (Appearance consistency) | X = 1 − A/B. A: 유사 UI 요소 중 외관이 일관되지 않은 요소 수, B: 유사 외관이 요구되는 UI 요소 수 |
-| UOp-9-S | 입력 장치 지원 (Input device support) | X = A/B. A: 적합한 모든 입력 방식으로 시작 가능한 과업 수, B: 전체 과업 수 |
-| UEp-1-G | 사용자 조작 오류 회피 (Avoidance of user operation error) | X = A/B. A: 시스템 오동작을 유발하지 않도록 보호된 사용자 행위/입력 수, B: 오동작을 유발할 수 있는 사용자 행위/입력 수 |
-| UEp-2-S | 사용자 입력 오류 수정 (User entry error correction) | X = A/B. A: 수정값이 제안되는 입력 오류 수, B: 전체 입력 오류 수 |
-| UEp-3-S | 사용자 오류 복구성 (User error recoverability) | X = A/B. A: 사용자 오류 후 복구(취소/되돌리기) 가능한 오류 수, B: 전체 사용자 오류 수 |
-| UIn-1-S | UI 외관 심미성 (Appearance aesthetics of user interfaces) | X = A/B. A: 사용자에게 심미적으로 만족스러운 화면 수, B: 전체 화면 수. 설문 등 주관 평가 기반 |
-| UAc-1-S | 장애 사용자 접근성 (Accessibility for users with disabilities) | X = A/B. A: 특정 장애를 가진 사용자가 사용 가능한 기능 수, B: 구현된 기능 수 |
-| UAc-2-S | 지원 언어 적정성 (Supported languages adequacy) | X = A/B. A: 지원되는 언어 수, B: 요구되는 언어 수 |
+| 부특성 | ID | 지표명 | 측정 함수 및 방법 |
+|---|---|---|---|
+| 적절성 인식성 | UAp-1-G | 설명 완전성 (Description completeness) | X = A/B. A: 제품 설명(문서)에 기술된 사용 시나리오 수, B: 제품이 수행 가능한 사용 시나리오 수 |
+| 적절성 인식성 | UAp-2-S | 데모 커버리지 (Demonstration coverage) | X = A/B. A: 데모/튜토리얼이 제공되는 과업 수, B: 데모가 필요한 과업 수 |
+| 적절성 인식성 | UAp-3-S | 진입점 자기 서술성 (Entry point self-descriptiveness) | X = A/B. A: 목적과 내용을 스스로 설명하는 진입점(예: 웹사이트 랜딩) 수, B: 전체 진입점 수 |
+| 학습성 | ULe-1-G | 사용자 안내 완전성 (User guidance completeness) | X = A/B. A: 사용자 문서/도움말이 제공되는 기능 수, B: 전체 기능 수 |
+| 학습성 | ULe-2-S | 입력 필드 기본값 (Entry fields defaults) | X = A/B. A: 기본값이 제공되는 입력 필드 수, B: 기본값 제공이 가능한 입력 필드 수 |
+| 학습성 | ULe-3-S | 오류 메시지 이해성 (Error messages understandability) | X = A/B. A: 원인과 해결 방법을 알려주는 오류 메시지 수, B: 전체 오류 메시지 수 |
+| 학습성 | ULe-4-S | 자기 설명적 사용자 인터페이스 (Self-explanatory user interface) | X = A/B. A: 별도 설명 없이 이해 가능한 UI 요소 수, B: 전체 UI 요소 수 |
+| 운용성 | UOp-1-G | 운용 일관성 (Operational consistency) | X = 1 − A/B. A: 유사 과업 간 조작이 일관되지 않은 상호작용 과업 수, B: 유사 조작을 갖는 상호작용 과업 수 |
+| 운용성 | UOp-2-G | 메시지 명확성 (Message clarity) | X = A/B. A: 올바른 의미를 전달하는 메시지 수, B: 전체 메시지 수 |
+| 운용성 | UOp-3-S | 기능 커스터마이즈 가능성 (Functional customizability) | X = A/B. A: 커스터마이즈 가능한 기능 수, B: 커스터마이즈가 요구되는 기능 수 |
+| 운용성 | UOp-4-S | UI 커스터마이즈 가능성 (User interface customizability) | X = A/B. A: 커스터마이즈 가능한 UI 요소 수, B: 커스터마이즈가 요구되는 UI 요소 수 |
+| 운용성 | UOp-5-S | 모니터링 능력 (Monitoring capability) | X = A/B. A: 구현된 상태 모니터링 기능 수, B: 요구되는 상태 모니터링 기능 수 |
+| 운용성 | UOp-6-S | 실행 취소 능력 (Undo capability) | X = A/B. A: 실행 취소(undo)가 가능한 과업 수, B: 실행 취소가 필요한 과업 수 |
+| 운용성 | UOp-7-S | 정보 분류 이해성 (Understandable categorization of information) | X = A/B. A: 사용자가 이해하기 쉽게 분류된 정보 카테고리 수, B: 전체 정보 카테고리 수 |
+| 운용성 | UOp-8-S | 외관 일관성 (Appearance consistency) | X = 1 − A/B. A: 유사 UI 요소 중 외관이 일관되지 않은 요소 수, B: 유사 외관이 요구되는 UI 요소 수 |
+| 운용성 | UOp-9-S | 입력 장치 지원 (Input device support) | X = A/B. A: 적합한 모든 입력 방식으로 시작 가능한 과업 수, B: 전체 과업 수 |
+| 사용자 오류 방지 | UEp-1-G | 사용자 조작 오류 회피 (Avoidance of user operation error) | X = A/B. A: 시스템 오동작을 유발하지 않도록 보호된 사용자 행위/입력 수, B: 오동작을 유발할 수 있는 사용자 행위/입력 수 |
+| 사용자 오류 방지 | UEp-2-S | 사용자 입력 오류 수정 (User entry error correction) | X = A/B. A: 수정값이 제안되는 입력 오류 수, B: 전체 입력 오류 수 |
+| 사용자 오류 방지 | UEp-3-S | 사용자 오류 복구성 (User error recoverability) | X = A/B. A: 사용자 오류 후 복구(취소/되돌리기) 가능한 오류 수, B: 전체 사용자 오류 수 |
+| UI 심미성 | UIn-1-S | UI 외관 심미성 (Appearance aesthetics of user interfaces) | X = A/B. A: 사용자에게 심미적으로 만족스러운 화면 수, B: 전체 화면 수. 설문 등 주관 평가 기반 |
+| 접근성 | UAc-1-S | 장애 사용자 접근성 (Accessibility for users with disabilities) | X = A/B. A: 특정 장애를 가진 사용자가 사용 가능한 기능 수, B: 구현된 기능 수 |
+| 접근성 | UAc-2-S | 지원 언어 적정성 (Supported languages adequacy) | X = A/B. A: 지원되는 언어 수, B: 요구되는 언어 수 |
 
 #### 3.2.5 신뢰성 측정 (8.6)
 
-| ID | 지표명 | 측정 함수 및 방법 |
-|---|---|---|
-| RMa-1-G | 결함 수정률 (Fault correction) | X = A/B. A: 설계/코딩/시험 단계에서 수정된 결함 수, B: 탐지된 결함 수 |
-| RMa-2-G | 평균 고장 간격 (Mean time between failure, MTBF) | X = T/A. T: 운영 시간, A: 발생한 고장 수. 높을수록 좋음(0~1 정규화 아님) |
-| RMa-3-G | 고장률 (Failure rate) | X = A/T. A: 관측 기간 내 고장 수, T: 관측 시간. 낮을수록 좋음 |
-| RMa-4-S | 시험 커버리지 (Test coverage) | X = A/B. A: 실제 수행된 시험 케이스 수, B: 요구사항 커버에 필요한 시험 케이스 수 |
-| RAv-1-G | 시스템 가용성 (System availability) | X = A/B. A: 실제 시스템이 운영 가능했던 시간, B: 운영이 계획된 시간 |
-| RAv-2-S | 평균 다운 시간 (Mean down time) | X = T/N. T: 총 다운 시간(수리, 시정/예방 정비, 물류 지연 포함), N: 고장(중단) 횟수. 낮을수록 좋음 |
-| RFt-1-G | 고장 회피 (Failure avoidance) | X = A/B. A: 치명적/중대한 고장으로 이어지지 않도록 통제된 결함 패턴 수, B: 고려한 결함 패턴 수. 결함 주입 시험 등으로 측정 |
-| RFt-2-S | 컴포넌트 이중화 (Redundancy of components) | X = A/B. A: 이중화 설치된 컴포넌트 수, B: 시스템 고장 회피를 위해 이중화가 필요한 컴포넌트 수 |
-| RFt-3-S | 평균 결함 통지 시간 (Mean fault notification time) | X = Σ(결함 발생 시각부터 시스템이 통지한 시각까지의 시간)/N. 낮을수록 좋음 |
-| RRe-1-G | 평균 복구 시간 (Mean recovery time) | X = Σ(고장 후 복구 완료까지의 시간)/N. 낮을수록 좋음 |
-| RRe-2-S | 백업 데이터 완전성 (Backup data completeness) | X = A/B. A: 정기적으로 백업되는 데이터 항목 수, B: 백업이 요구되는 데이터 항목 수 |
+| 부특성 | ID | 지표명 | 측정 함수 및 방법 |
+|---|---|---|---|
+| 성숙성 | RMa-1-G | 결함 수정률 (Fault correction) | X = A/B. A: 설계/코딩/시험 단계에서 수정된 결함 수, B: 탐지된 결함 수 |
+| 성숙성 | RMa-2-G | 평균 고장 간격 (Mean time between failure, MTBF) | X = T/A. T: 운영 시간, A: 발생한 고장 수. 높을수록 좋음(0~1 정규화 아님) |
+| 성숙성 | RMa-3-G | 고장률 (Failure rate) | X = A/T. A: 관측 기간 내 고장 수, T: 관측 시간. 낮을수록 좋음 |
+| 성숙성 | RMa-4-S | 시험 커버리지 (Test coverage) | X = A/B. A: 실제 수행된 시험 케이스 수, B: 요구사항 커버에 필요한 시험 케이스 수 |
+| 가용성 | RAv-1-G | 시스템 가용성 (System availability) | X = A/B. A: 실제 시스템이 운영 가능했던 시간, B: 운영이 계획된 시간 |
+| 가용성 | RAv-2-S | 평균 다운 시간 (Mean down time) | X = T/N. T: 총 다운 시간(수리, 시정/예방 정비, 물류 지연 포함), N: 고장(중단) 횟수. 낮을수록 좋음 |
+| 결함 허용성 | RFt-1-G | 고장 회피 (Failure avoidance) | X = A/B. A: 치명적/중대한 고장으로 이어지지 않도록 통제된 결함 패턴 수, B: 고려한 결함 패턴 수. 결함 주입 시험 등으로 측정 |
+| 결함 허용성 | RFt-2-S | 컴포넌트 이중화 (Redundancy of components) | X = A/B. A: 이중화 설치된 컴포넌트 수, B: 시스템 고장 회피를 위해 이중화가 필요한 컴포넌트 수 |
+| 결함 허용성 | RFt-3-S | 평균 결함 통지 시간 (Mean fault notification time) | X = Σ(결함 발생 시각부터 시스템이 통지한 시각까지의 시간)/N. 낮을수록 좋음 |
+| 복구성 | RRe-1-G | 평균 복구 시간 (Mean recovery time) | X = Σ(고장 후 복구 완료까지의 시간)/N. 낮을수록 좋음 |
+| 복구성 | RRe-2-S | 백업 데이터 완전성 (Backup data completeness) | X = A/B. A: 정기적으로 백업되는 데이터 항목 수, B: 백업이 요구되는 데이터 항목 수 |
 
 #### 3.2.6 보안성 측정 (8.7)
 
-| ID | 지표명 | 측정 함수 및 방법 |
-|---|---|---|
-| SCo-1-G | 접근 통제성 (Access controllability) | X = A/B. A: 적절한 인가 절차를 통해서만 접근 가능하도록 통제된 기밀 데이터 항목 수, B: 접근 통제가 요구되는 기밀 데이터 항목 수 |
-| SCo-2-S | 데이터 암호화 정확성 (Data encryption correctness) | X = A/B. A: 올바르게 암·복호화되는 데이터 항목 수, B: 암·복호화가 요구되는 데이터 항목 수 |
-| SCo-3-S | 암호 알고리즘 강도 (Strength of cryptographic algorithms) | X = A/B. A: 충분히 강한(파훼되지 않은) 암호 알고리즘이 적용된 데이터 항목 수, B: 암호 알고리즘이 적용된 데이터 항목 수 |
-| SIn-1-G | 데이터 무결성 (Data integrity) | X = A/B. A: 손상(corruption)이 방지된 데이터 항목 수, B: 손상 방지가 요구되는 데이터 항목 수 |
-| SIn-2-S | 내부 데이터 손상 방지 (Internal data corruption prevention) | X = A/B. A: 구현된 데이터 손상 방지 방법 수, B: 가용/권고되는 데이터 손상 방지 방법 수 |
-| SIn-3-S | 버퍼 오버플로 방지 (Buffer overflow prevention) | X = A/B. A: 경계 검사가 수행되는 사용자 입력 기반 메모리 접근 수, B: 사용자 입력 기반 메모리 접근 총수 |
-| SNo-1-G | 전자 서명 사용률 (Digital signature usage) | X = A/B. A: 전자 서명 등으로 캡처되는 이벤트 수, B: 부인 방지가 요구되는 이벤트 수 |
-| SAc-1-G | 사용자 감사 추적 완전성 (User audit trail completeness) | X = A/B. A: 로그에 기록되는 사용자 접근 수, B: 전체 사용자 접근 수 |
-| SAc-2-S | 시스템 로그 보존성 (System log retention) | X = A/B. A: 안정적 저장소에 로그가 실제 보존되는 기간, B: 요구되는 로그 보존 기간 |
-| SAu-1-G | 인증 메커니즘 충분성 (Authentication mechanism sufficiency) | X = A/B. A: 구현된 인증 메커니즘 수, B: 명세된 인증 메커니즘 수 |
-| SAu-2-S | 인증 규칙 준수성 (Authentication rules conformity) | X = A/B. A: 구현된 인증 규칙 수, B: 명세된 인증 규칙 수 |
+| 부특성 | ID | 지표명 | 측정 함수 및 방법 |
+|---|---|---|---|
+| 기밀성 | SCo-1-G | 접근 통제성 (Access controllability) | X = A/B. A: 적절한 인가 절차를 통해서만 접근 가능하도록 통제된 기밀 데이터 항목 수, B: 접근 통제가 요구되는 기밀 데이터 항목 수 |
+| 기밀성 | SCo-2-S | 데이터 암호화 정확성 (Data encryption correctness) | X = A/B. A: 올바르게 암·복호화되는 데이터 항목 수, B: 암·복호화가 요구되는 데이터 항목 수 |
+| 기밀성 | SCo-3-S | 암호 알고리즘 강도 (Strength of cryptographic algorithms) | X = A/B. A: 충분히 강한(파훼되지 않은) 암호 알고리즘이 적용된 데이터 항목 수, B: 암호 알고리즘이 적용된 데이터 항목 수 |
+| 무결성 | SIn-1-G | 데이터 무결성 (Data integrity) | X = A/B. A: 손상(corruption)이 방지된 데이터 항목 수, B: 손상 방지가 요구되는 데이터 항목 수 |
+| 무결성 | SIn-2-S | 내부 데이터 손상 방지 (Internal data corruption prevention) | X = A/B. A: 구현된 데이터 손상 방지 방법 수, B: 가용/권고되는 데이터 손상 방지 방법 수 |
+| 무결성 | SIn-3-S | 버퍼 오버플로 방지 (Buffer overflow prevention) | X = A/B. A: 경계 검사가 수행되는 사용자 입력 기반 메모리 접근 수, B: 사용자 입력 기반 메모리 접근 총수 |
+| 부인 방지 | SNo-1-G | 전자 서명 사용률 (Digital signature usage) | X = A/B. A: 전자 서명 등으로 캡처되는 이벤트 수, B: 부인 방지가 요구되는 이벤트 수 |
+| 책임 추적성 | SAc-1-G | 사용자 감사 추적 완전성 (User audit trail completeness) | X = A/B. A: 로그에 기록되는 사용자 접근 수, B: 전체 사용자 접근 수 |
+| 책임 추적성 | SAc-2-S | 시스템 로그 보존성 (System log retention) | X = A/B. A: 안정적 저장소에 로그가 실제 보존되는 기간, B: 요구되는 로그 보존 기간 |
+| 인증성 | SAu-1-G | 인증 메커니즘 충분성 (Authentication mechanism sufficiency) | X = A/B. A: 구현된 인증 메커니즘 수, B: 명세된 인증 메커니즘 수 |
+| 인증성 | SAu-2-S | 인증 규칙 준수성 (Authentication rules conformity) | X = A/B. A: 구현된 인증 규칙 수, B: 명세된 인증 규칙 수 |
 
 #### 3.2.7 유지보수성 측정 (8.8)
 
-| ID | 지표명 | 측정 함수 및 방법 |
-|---|---|---|
-| MMo-1-G | 컴포넌트 결합도 (Coupling of components) | X = A/B. A: 다른 컴포넌트에 영향을 주지 않는(독립적인) 컴포넌트 수, B: 독립적이어야 하는 컴포넌트 수 |
-| MMo-2-S | 순환 복잡도 적정성 (Cyclomatic complexity adequacy) | X = 1 − A/B. A: 허용 임계값을 초과하는 순환 복잡도를 갖는 모듈 수, B: 전체 모듈 수 |
-| MRe-1-G | 자산 재사용성 (Reusability of assets) | X = A/B. A: 재사용 가능하도록 설계/구축된 자산 수, B: 전체 자산 수 |
-| MRe-2-S | 코딩 규칙 준수성 (Coding rules conformity) | X = A/B. A: 코딩 규칙을 준수하는 모듈 수, B: 전체 모듈 수 |
-| MAn-1-G | 시스템 로그 완전성 (System log completeness) | X = A/B. A: 실제 기록되는 로그 수, B: 감사(audit)에 필요한 것으로 요구되는 로그 수 |
-| MAn-2-S | 진단 기능 유효성 (Diagnosis function effectiveness) | X = A/B. A: 원인 분석에 유용한 진단 기능 수, B: 구현된 진단 기능 수 |
-| MAn-3-S | 진단 기능 충분성 (Diagnosis function sufficiency) | X = A/B. A: 구현된 진단 기능 수, B: 요구되는 진단 기능 수 |
-| MMd-1-G | 수정 효율성 (Modification efficiency) | X = Σ(Ai/Bi)/n. Ai: i번째 수정의 예상(기대) 소요 시간, Bi: 실제 소요 시간. 수정별 기대 대비 실적의 평균 |
-| MMd-2-S | 수정 정확성 (Modification correctness) | X = 1 − A/B. A: 수정 후 일정 기간 내 장애/품질 저하를 유발한 수정 수, B: 수행된 수정 수 |
-| MMd-3-S | 수정 능력 (Modification capability) | X = A/B. A: 요구된 기간(time-box) 내 실제 구현된 수정 수, B: 요구된 수정 수 |
-| MTe-1-G | 시험 기능 완전성 (Test function completeness) | X = A/B. A: 요구대로 구현된 시험 기능(테스트 지원 기능) 수, B: 요구되는 시험 기능 수 |
-| MTe-2-S | 자율 시험성 (Autonomous testability) | X = A/B. A: 다른 (하위)시스템에 의존하지 않고 단독 수행 가능한 시험 수, B: 시뮬레이션으로 단독 시험이 가능해야 하는 시험 수 |
-| MTe-3-S | 시험 재시작성 (Test restartability) | X = A/B. A: 중단 후 체크포인트에서 재개 가능한 시험 수, B: 일시 중지가 필요한 시험 수 |
+| 부특성 | ID | 지표명 | 측정 함수 및 방법 |
+|---|---|---|---|
+| 모듈성 | MMo-1-G | 컴포넌트 결합도 (Coupling of components) | X = A/B. A: 다른 컴포넌트에 영향을 주지 않는(독립적인) 컴포넌트 수, B: 독립적이어야 하는 컴포넌트 수 |
+| 모듈성 | MMo-2-S | 순환 복잡도 적정성 (Cyclomatic complexity adequacy) | X = 1 − A/B. A: 허용 임계값을 초과하는 순환 복잡도를 갖는 모듈 수, B: 전체 모듈 수 |
+| 재사용성 | MRe-1-G | 자산 재사용성 (Reusability of assets) | X = A/B. A: 재사용 가능하도록 설계/구축된 자산 수, B: 전체 자산 수 |
+| 재사용성 | MRe-2-S | 코딩 규칙 준수성 (Coding rules conformity) | X = A/B. A: 코딩 규칙을 준수하는 모듈 수, B: 전체 모듈 수 |
+| 분석성 | MAn-1-G | 시스템 로그 완전성 (System log completeness) | X = A/B. A: 실제 기록되는 로그 수, B: 감사(audit)에 필요한 것으로 요구되는 로그 수 |
+| 분석성 | MAn-2-S | 진단 기능 유효성 (Diagnosis function effectiveness) | X = A/B. A: 원인 분석에 유용한 진단 기능 수, B: 구현된 진단 기능 수 |
+| 분석성 | MAn-3-S | 진단 기능 충분성 (Diagnosis function sufficiency) | X = A/B. A: 구현된 진단 기능 수, B: 요구되는 진단 기능 수 |
+| 수정성 | MMd-1-G | 수정 효율성 (Modification efficiency) | X = Σ(Ai/Bi)/n. Ai: i번째 수정의 예상(기대) 소요 시간, Bi: 실제 소요 시간. 수정별 기대 대비 실적의 평균 |
+| 수정성 | MMd-2-S | 수정 정확성 (Modification correctness) | X = 1 − A/B. A: 수정 후 일정 기간 내 장애/품질 저하를 유발한 수정 수, B: 수행된 수정 수 |
+| 수정성 | MMd-3-S | 수정 능력 (Modification capability) | X = A/B. A: 요구된 기간(time-box) 내 실제 구현된 수정 수, B: 요구된 수정 수 |
+| 시험성 | MTe-1-G | 시험 기능 완전성 (Test function completeness) | X = A/B. A: 요구대로 구현된 시험 기능(테스트 지원 기능) 수, B: 요구되는 시험 기능 수 |
+| 시험성 | MTe-2-S | 자율 시험성 (Autonomous testability) | X = A/B. A: 다른 (하위)시스템에 의존하지 않고 단독 수행 가능한 시험 수, B: 시뮬레이션으로 단독 시험이 가능해야 하는 시험 수 |
+| 시험성 | MTe-3-S | 시험 재시작성 (Test restartability) | X = A/B. A: 중단 후 체크포인트에서 재개 가능한 시험 수, B: 일시 중지가 필요한 시험 수 |
 
 #### 3.2.8 이식성 측정 (8.9)
 
-| ID | 지표명 | 측정 함수 및 방법 |
-|---|---|---|
-| PAd-1-G | 하드웨어 환경 적응성 (Hardware environmental adaptability) | X = 1 − A/B. A: 새 하드웨어 환경에서 과업을 완료하지 못했거나 요구 수준에 미달한 기능 수, B: 새 하드웨어 환경에서 시험한 기능 수 |
-| PAd-2-S | 시스템 소프트웨어 환경 적응성 (System software environmental adaptability) | X = 1 − A/B. A: 새 OS/미들웨어 등 시스템 소프트웨어 환경에서 과업을 완료하지 못한 기능 수, B: 시험한 기능 수 |
-| PAd-3-S | 운영 환경 적응성 (Operational environment adaptability) | X = 1 − A/B. A: 기타 새로운 운영 환경에서 과업을 완료하지 못한 기능 수, B: 시험한 기능 수 |
-| PIn-1-G | 설치 시간 효율성 (Installation time efficiency) | X = Σ(Ai/Bi)/n. Ai: 예상 설치 시간, Bi: 실제 설치 시간. 설치 작업별 기대 대비 실적의 평균 |
-| PIn-2-S | 설치 용이성 (Ease of installation) | X = A/B. A: 사용자 편의에 맞게 커스터마이즈 가능한 설치 절차 수, B: 커스터마이즈가 요구되는 설치 절차 수 |
-| PRe-1-G | 사용 유사성 (Usage similarity) | X = A/B. A: 추가 학습이나 우회 없이 기존 제품과 유사하게 수행 가능한 기능 수, B: 기존 제품의 대응 기능 수 |
-| PRe-2-S | 제품 품질 동등성 (Product quality equivalence) | X = A/B. A: 기존 제품과 동등 이상인 품질 측정 지표 수, B: 비교한 품질 측정 지표 수 |
-| PRe-3-S | 기능 포괄성 (Functional inclusiveness) | X = A/B. A: 기존 제품과 유사한 결과를 산출하는 기능 수, B: 대체 대상 기존 제품의 기능 수 |
-| PRe-4-S | 데이터 재사용/가져오기 능력 (Data reusability/import capability) | X = A/B. A: 기존 제품 데이터 중 계속 사용(가져오기) 가능한 데이터 수, B: 재사용이 요구되는 기존 제품 데이터 수 |
+| 부특성 | ID | 지표명 | 측정 함수 및 방법 |
+|---|---|---|---|
+| 적응성 | PAd-1-G | 하드웨어 환경 적응성 (Hardware environmental adaptability) | X = 1 − A/B. A: 새 하드웨어 환경에서 과업을 완료하지 못했거나 요구 수준에 미달한 기능 수, B: 새 하드웨어 환경에서 시험한 기능 수 |
+| 적응성 | PAd-2-S | 시스템 소프트웨어 환경 적응성 (System software environmental adaptability) | X = 1 − A/B. A: 새 OS/미들웨어 등 시스템 소프트웨어 환경에서 과업을 완료하지 못한 기능 수, B: 시험한 기능 수 |
+| 적응성 | PAd-3-S | 운영 환경 적응성 (Operational environment adaptability) | X = 1 − A/B. A: 기타 새로운 운영 환경에서 과업을 완료하지 못한 기능 수, B: 시험한 기능 수 |
+| 설치성 | PIn-1-G | 설치 시간 효율성 (Installation time efficiency) | X = Σ(Ai/Bi)/n. Ai: 예상 설치 시간, Bi: 실제 설치 시간. 설치 작업별 기대 대비 실적의 평균 |
+| 설치성 | PIn-2-S | 설치 용이성 (Ease of installation) | X = A/B. A: 사용자 편의에 맞게 커스터마이즈 가능한 설치 절차 수, B: 커스터마이즈가 요구되는 설치 절차 수 |
+| 대체성 | PRe-1-G | 사용 유사성 (Usage similarity) | X = A/B. A: 추가 학습이나 우회 없이 기존 제품과 유사하게 수행 가능한 기능 수, B: 기존 제품의 대응 기능 수 |
+| 대체성 | PRe-2-S | 제품 품질 동등성 (Product quality equivalence) | X = A/B. A: 기존 제품과 동등 이상인 품질 측정 지표 수, B: 비교한 품질 측정 지표 수 |
+| 대체성 | PRe-3-S | 기능 포괄성 (Functional inclusiveness) | X = A/B. A: 기존 제품과 유사한 결과를 산출하는 기능 수, B: 대체 대상 기존 제품의 기능 수 |
+| 대체성 | PRe-4-S | 데이터 재사용/가져오기 능력 (Data reusability/import capability) | X = A/B. A: 기존 제품 데이터 중 계속 사용(가져오기) 가능한 데이터 수, B: 재사용이 요구되는 기존 제품 데이터 수 |
 
 ### 3.3 측정 지표 요약 통계
 
