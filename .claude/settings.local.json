@@ -24,7 +24,10 @@
       "WebFetch(domain:stefano-garzarella.github.io)",
       "WebFetch(domain:android-developers.googleblog.com)",
       "WebFetch(domain:source.android.com)",
-      "WebFetch(domain:liswei.sh)"
+      "WebFetch(domain:liswei.sh)",
+      "WebFetch(domain:cdn.standards.iteh.ai)",
+      "WebFetch(domain:iso25000.com)",
+      "WebFetch(domain:arxiv.org)"
     ]
   }
 }
