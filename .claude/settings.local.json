@@ -27,7 +27,9 @@
       "WebFetch(domain:liswei.sh)",
       "WebFetch(domain:cdn.standards.iteh.ai)",
       "WebFetch(domain:iso25000.com)",
-      "WebFetch(domain:arxiv.org)"
+      "WebFetch(domain:arxiv.org)",
+      "Bash(awk '/^## 3\\\\./,/^## 4\\\\./' docs/03_utility_tree.md)",
+      "Bash(awk '/@startmindmap/,/@endmindmap/' docs/03_utility_tree.md)"
     ]
   }
 }
