@@ -2,7 +2,7 @@
 
 ## 1. 상태
 
-도출
+평가 중
 
 ## 2. 결정 목적
 
@@ -11,6 +11,10 @@ VM별 장애 경계를 정한다.
 자원 회수 주체를 정한다.
 
 ## 3. 문제 상황
+
+- 선행 DP: 없음
+- 연관 요구: FR-01, FR-02, SEC-01, AVL-01, PERF-07
+- 범위: Linux/KVM의 process/FD 수명주기는 baseline으로 사용한다. `controller + VM별 runner` PoC 결과는 관찰 근거이며 최종 제품 구조의 자동 확정 근거가 아니다.
 
 Camera pVM과 AI pVM은 동시에 실행된다.
 각 pVM은 독립적으로 시작하고 종료해야 한다.
@@ -75,14 +79,28 @@ Host Application
 
 ## 7. 품질속성 비교
 
-### 7.1 KPI와 별점 기준
+### 7.1 필수 gate
+
+| Gate | 합격 기준 | 후보 A | 후보 B |
+|---|---|---|---|
+| SEC-01 Host 침해 기밀성 | Host 전체 덤프에서 pVM canary 노출 0건 | 확인 필요 | 확인 필요 |
+| AVL-01 장애 격리 | Camera 실행기 장애 시 Host/AI pVM 다운타임 0초 | 구조상 위험, PoC 필요 | 구조상 유리, PoC 필요 |
+| 자원 회수 완결성 | stop/crash 후 VM FD, memory FD와 locked memory 누수 0건 | 확인 필요 | 확인 필요 |
+
+Process boundary는 Host userspace backend의 결함/침해 반경을 줄인다.
+Host kernel 권한 공격자에 대한 pVM memory 기밀성은 두 후보 모두 pKVM/EL2 격리에 의존한다.
+SEC-01은 두 후보의 공통 prerequisite이며 후보를 가르는 차등 평가축은 아니다.
+
+### 7.2 KPI와 별점 기준
 
 별점은 구조 예상치다.
 실측 전에는 확정하지 않는다.
+PERF-07은 전체 cold start p95 2초를 요구한다.
+아래 create-to-first-run 임계값은 전체 예산의 세부 배분이 승인되기 전까지 PoC 작업값이다.
 
 | 품질속성 | KPI | 별 1개 | 별 2개 | 별 3개 |
 |---|---|---|---|---|
-| 보안성 | 한 pVM 침해 시 공유되는 privileged process 수 | 2개 이상 | 1개 | 0개 |
+| 보안성 | 단일 VM 실행기 침해 시 접근 가능한 타 pVM 제어 FD 수 | 2개 이상 | 1개 | 0개 |
 | 성능 | create 요청부터 first-run까지 p99 | 3초 초과 | 1초 초과 3초 이하 | 1초 이하 |
 | 확장성 | 신규 pVM role 추가 시 관리 core 변경량 | 100 LoC 초과 | 1~100 LoC | 0 LoC |
 | 변경 용이성 | KVM backend 교체 시 수정 module 수 | 4개 이상 | 2~3개 | 1개 이하 |
@@ -102,11 +120,11 @@ cgroup v2는 process별 자원 제한을 제공한다.
 Runner별 memory와 CPU 측정에 사용할 수 있다.
 [Linux cgroup v2](https://docs.kernel.org/admin-guide/cgroup-v2.html)
 
-### 7.2 후보 평가
+### 7.3 후보 평가
 
 | 품질속성 | 후보 A | 근거 | 후보 B | 근거 |
 |---|---:|---|---:|---|
-| 보안성 | ★ | Manager 침해가 모든 VM 제어권에 닿는다. | ★★★ | VM FD와 backend가 Runner별로 분리된다. |
+| 보안성 | ★★ | 현재 2-pVM 구성에서 Manager 침해가 다른 pVM 제어 FD 1개에도 닿는다. | ★★★ | Runner는 다른 pVM의 VM FD와 backend를 소유하지 않는다. |
 | 성능 | ★★★ | process 생성과 IPC가 없다. | ★★ | Runner 생성과 IPC 비용이 추가된다. |
 | 확장성 | ★★ | role 분기가 Manager에 모일 수 있다. | ★★★ | 동일 Runner 계약을 반복할 수 있다. |
 | 변경 용이성 | ★★ | backend 변경이 Manager와 연결된다. | ★★★ | backend를 Runner 내부에 가둘 수 있다. |
@@ -130,10 +148,15 @@ Runner별 memory와 CPU 측정에 사용할 수 있다.
 - 신규 role을 하나 추가한다.
 - 관리 core의 diff LoC를 측정한다.
 - pVM당 Host RSS 증가량을 측정한다.
+- Host root 권한에서 pVM canary를 전체 덤프해 노출 0건을 확인한다.
+- pidfd와 cgroup v2 지원 여부, 권한과 실패 동작을 baseline 환경에서 확인한다.
+- Manager process 자체와 개별 Runner를 각각 중단해 장애 반경 차이를 측정한다.
 
 ## 10. 검토 결과
 
-검토 전이다.
+사용자 요청에 따라 Claude와 교차 검토했다.
+Process boundary의 효과를 Host kernel 침해 방어가 아니라 userspace 장애/권한 반경으로 한정했다.
+SEC-01, AVL-01과 자원 회수 gate를 별점보다 먼저 검증하도록 보완했다.
+사용자의 gate/KPI 승인과 PoC 결과 확인이 남아 있다.
 
 ## 11. 최종 결정
-

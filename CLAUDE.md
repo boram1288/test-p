@@ -9,6 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 응답은 한글(UTF-8)로 진행한다.
 - 이모지는 사용하지 않는다.
 - 모든 동작 완료후 git commit, push를 진행한다.
+- 문장은 짧게 작성한다.
 
 ## 프로젝트 개요
 
