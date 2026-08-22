@@ -1,5 +1,7 @@
 .omc/
 .tokensave/
+.claude/
+.serena/
 ~*
 *.tmp:RVContext
 .claude/settings.local.json
