@@ -31,7 +31,7 @@ Secure OS 서비스를 pVM마다 이식해 로컬로 실행할 것인가, 기존
 - 데이터 흐름: Workload → pVM 내부 Secure OS 인스턴스로 평문/암호문이 오가며 pVM 경계를 벗어나지 않는다.
 - 제어 흐름: Workload가 pVM 내부 GP Client API 호출로 세션을 열고 명령을 보낸다. 기존 Host 일반 기능은 별도로 TrustZone SMC 경로를 그대로 사용한다.
 - 신뢰/비신뢰 주체: Host는 비신뢰. pVM과 pVM 내부 Secure OS 인스턴스는 신뢰 대상이며 같은 신뢰 경계 안에 있다.
-- 자원 소유·회수 주체: pVM 생명주기가 곧 Secure OS 인스턴스의 수명이다. pVM 종료 시 Framework가 해당 인스턴스의 세션과 키 자원을 회수한다.
+- 자원 소유·회수 주체: pVM 생명주기가 곧 Secure OS 인스턴스의 수명이다. pVM 종료 시 이식 Secure OS가 세션과 키를 지우고 EL2가 pVM 메모리를 최종 회수한다. Framework는 종료만 요청한다.
 
 ### 후보 B: 기존 TrustZone 공용 Secure OS 서비스
 
@@ -74,7 +74,7 @@ HostApp ..> TZ : 기존 GP Client API 호출 (제어 흐름, 점선)
 
 note bottom of LocalTA
   자원 소유: pVM 생명주기에 결합
-  회수 주체: pVM 종료 시 Framework가 세션·키 회수
+  회수 주체: 이식 Secure OS가 세션·키 삭제, EL2가 메모리 회수
 end note
 
 legend right
@@ -140,7 +140,7 @@ endlegend
 | 보안성(SEC-06) | 비인가 주체의 TEE 호출 성립 0건 | 확인 필요 — pVM 경계 자체가 인증 근거가 되는지 미검증 | 통과 가능 — DP-05의 호출자 신원 확인에 의존 |
 | 확장성(EXT-06) | Secure OS 교체 시 인터페이스 외 재이식 파일 0개 | 확인 필요 — 이식 인스턴스 자체가 Secure OS 버전에 결합되어 교체 범위가 늘 수 있음 | 통과 가능 — 기존 GP 표준 인터페이스 경계만 유지하면 됨 |
 
-두 gate 모두 실현 가능성이 `확인 필요` 상태이므로, 이 DP는 조건부 결정 이상으로 진행하지 않는다.
+후보 A의 세 gate가 모두 `확인 필요` 상태이므로, 이 DP는 조건부 결정 이상으로 진행하지 않는다.
 
 ### 별점 비교 (gate 통과를 전제로 한 잠정 평가)
 
@@ -165,8 +165,4 @@ pVM별 이식 서비스는 도메인 간 전달 단계를 없애 PERF-03 지연�
 
 ## 11. 검토 결과
 
-- (아직 없음 — 사용자 검토 전)
-
 ## 12. 최종 결정
-
-- (검토 후 결정)
