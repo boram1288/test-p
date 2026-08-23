@@ -306,80 +306,80 @@ PoC 결과는 기술 실현 가능성을 확인하는 관찰 근거로만 사용
 ### 4.1 관계 다이어그램
 
 실선 화살표(`-->`)는 앞 DP의 결과를 뒤 DP가 입력으로 사용하는 선행 관계다.
-굵은 화살표(`==>`)는 표시된 후보를 선택했을 때만 적용되는 조건부 관계다.
-점선 화살표(`-.->`)는 두 DP가 같은 권한 전환, 성능 예산이나 복구 절차를 함께 맞춰야 하는 연관 관계다.
+주황색 굵은 화살표는 표시된 후보를 선택했을 때만 적용되는 조건부 관계다.
+점선 화살표(`..>`)는 두 DP가 같은 권한 전환, 성능 예산이나 복구 절차를 함께 맞춰야 하는 연관 관계다.
 
-```mermaid
-flowchart LR
-    subgraph BASE["실행·계약 기반"]
-        DP01["DP-01<br/>pVM 실행 격리"]
-        DP02["DP-02<br/>Workload 검증"]
-        DP08["DP-08<br/>CPU 공유 경계"]
-        DP09["DP-09<br/>Workload API 호환"]
-    end
+```plantuml
+@startuml
+left to right direction
 
-    subgraph DATA["버퍼·HW 데이터 경로"]
-        DP03["DP-03<br/>버퍼 요청 경로"]
-        DP03A["DP-03-A<br/>버퍼 소유권"]
-        DP03B["DP-03-B<br/>매핑 수명"]
-        DP03C["DP-03-C<br/>grant 정책·원장"]
-        DP04["DP-04<br/>HW 사용 순서"]
-        DP10["DP-10<br/>실행·역압"]
-    end
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam defaultFontColor #152536
+skinparam ArrowColor #4B5563
 
-    subgraph SECURE["Secure OS·저장"]
-        DP05A["DP-05-A<br/>Secure OS 위치"]
-        DP05["DP-05<br/>pVM-TEE 경로"]
-        DP06["DP-06<br/>암호 파일 보관"]
-    end
+package "실행·계약 기반" #E8F1FB {
+    rectangle "DP-01\npVM 실행 격리" as DP01 #E8F1FB
+    rectangle "DP-02\nWorkload 검증" as DP02 #E8F1FB
+    rectangle "DP-08\nCPU 공유 경계" as DP08 #E8F1FB
+    rectangle "DP-09\nWorkload API 호환" as DP09 #E8F1FB
+}
 
-    subgraph OPS["복구"]
-        DP07["DP-07<br/>복구 책임 범위"]
-    end
+package "버퍼·HW 데이터 경로" #E8F6EF {
+    rectangle "DP-03\n버퍼 요청 경로" as DP03 #E8F6EF
+    rectangle "DP-03-A\n버퍼 소유권" as DP03A #E8F6EF
+    rectangle "DP-03-B\n매핑 수명" as DP03B #E8F6EF
+    rectangle "DP-03-C\ngrant 정책·원장" as DP03C #E8F6EF
+    rectangle "DP-04\nHW 사용 순서" as DP04 #E8F6EF
+    rectangle "DP-10\n실행·역압" as DP10 #E8F6EF
+}
 
-    DP01 -->|pVM 기반| DP03
-    DP01 -->|pVM 기반| DP04
-    DP01 -->|자원 배치| DP08
-    DP01 -->|서비스 배치| DP05A
-    DP01 -->|저장 연결| DP06
-    DP01 -->|생명주기| DP07
+package "Secure OS·저장" #FFF3E0 {
+    rectangle "DP-05-A\nSecure OS 위치" as DP05A #FFF3E0
+    rectangle "DP-05\npVM-TEE 경로" as DP05 #FFF3E0
+    rectangle "DP-06\n암호 파일 보관" as DP06 #FFF3E0
+}
 
-    DP09 -->|패키지 계약| DP02
-    DP09 -->|채널 API| DP03
-    DP09 -->|HW 요청 API| DP04
+package "복구" #F3E8F7 {
+    rectangle "DP-07\n복구 책임 범위" as DP07 #F3E8F7
+}
 
-    DP02 -->|endpoint 신원| DP03C
-    DP02 -->|호출자 신원| DP05
-    DP02 -->|저장 식별자| DP06
+DP01 --> DP03 : pVM 기반
+DP01 --> DP04 : pVM 기반
+DP01 --> DP08 : 자원 배치
+DP01 --> DP05A : 서비스 배치
+DP01 --> DP06 : 저장 연결
+DP01 --> DP07 : 생명주기
 
-    DP03 --> DP03A
-    DP03 --> DP03C
-    DP03A --> DP03B
-    DP03C --> DP03B
-    DP03B -.->|CPU·DMA 원자적 전환| DP04
-    DP03B --> DP10
-    DP04 --> DP10
+DP09 --> DP02 : 패키지 계약
+DP09 --> DP03 : 채널 API
+DP09 --> DP04 : HW 요청 API
 
-    DP05A ==>|후보 B 선택 시| DP05
-    DP05A --> DP06
-    DP05 --> DP06
+DP02 --> DP03C : endpoint 신원
+DP02 --> DP05 : 호출자 신원
+DP02 --> DP06 : 저장 식별자
 
-    DP03B -->|버퍼 회수| DP07
-    DP04 -->|HW 권한 회수| DP07
-    DP05A -->|Secure OS 자원 회수| DP07
-    DP05 -->|TEE 세션 회수| DP07
-    DP06 -->|저장 연결 회수| DP07
-    DP10 -->|미완료 frame 회수| DP07
-    DP08 -.->|복구 중 CPU 간섭| DP07
+DP03 --> DP03A
+DP03 --> DP03C
+DP03A --> DP03B
+DP03C --> DP03B
+DP03B ..> DP04 : CPU·DMA 원자적 전환
+DP03B --> DP10
+DP04 --> DP10
 
-    classDef base fill:#E8F1FB,stroke:#356A9A,color:#152536
-    classDef data fill:#E8F6EF,stroke:#2E7D5B,color:#153127
-    classDef secure fill:#FFF3E0,stroke:#B26A00,color:#3D2700
-    classDef ops fill:#F3E8F7,stroke:#7A4E8A,color:#2F1D36
-    class DP01,DP02,DP08,DP09 base
-    class DP03,DP03A,DP03B,DP03C,DP04,DP10 data
-    class DP05A,DP05,DP06 secure
-    class DP07 ops
+DP05A -[#C56A00,thickness=3]-> DP05 : 후보 B 선택 시
+DP05A --> DP06
+DP05 --> DP06
+
+DP03B --> DP07 : 버퍼 회수
+DP04 --> DP07 : HW 권한 회수
+DP05A --> DP07 : Secure OS 자원 회수
+DP05 --> DP07 : TEE 세션 회수
+DP06 --> DP07 : 저장 연결 회수
+DP10 --> DP07 : 미완료 frame 회수
+DP08 ..> DP07 : 복구 중 CPU 간섭
+@enduml
 ```
 
 DP-01은 모든 pVM 기반 구조의 공통 기반이다. 다이어그램에서는 직접 결과를 사용하는 DP만 연결하고 반복되는 공통 기반 화살표는 생략했다.
