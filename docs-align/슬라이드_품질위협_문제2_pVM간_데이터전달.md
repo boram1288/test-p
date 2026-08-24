@@ -57,7 +57,7 @@ flowchart TB
 FREE → CAMERA_OWNED → IN_TRANSFER → AI_OWNED → RECLAIMING → FREE
 ```
 
-- 실제 프레임 경로와 저빈도 제어 경로를 분리한다.
+- 프레임 payload 경로와 권한 판정용 제어 경로를 분리한다. 제어는 프레임마다 발생할 수 있다.
 - Camera 쓰기 완료와 권한 회수 후 AI 읽기 권한을 부여한다.
 - CPU Stage-2 권한과 Camera/AI HW의 DMA 권한을 같은 상태 전이에 맞춘다.
 - 시간 초과·중복 반환·pVM 장애 시 버퍼를 안전하게 회수하거나 폐기한다.
