@@ -41,16 +41,16 @@
 
 보안 품질속성에서는 다음과 같은 메트릭을 사용하는 것이 더 적절합니다.
 
-| 메트릭 | 정량 기준 |
-|---|---|
-| 공격 차단률 | 탐지된 비인가 접근 차단율 ≥ 99.99% |
-| 인증 정확도 | 정상 사용자 인증 성공률 ≥ 99.999% |
-| 무결성 검증률 | 중요 메시지 및 명령 무결성 검증률 = 100% |
-| 보안 이벤트 탐지 시간 | 공격 발생 후 3초 이내 탐지 |
-| 격리 시간 | 보안 침해 탐지 후 5초 이내 해당 노드 격리 |
-| 복구 시간 | 침해 노드 격리 후 정상 서비스 복구 ≤ 30초 |
-| 취약점 관리 | Critical 취약점 발견 후 24시간 이내 조치 |
-| 보안 로그 완전성 | 중요 보안 이벤트 기록률 = 100% |
+| ISO/IEC 25010:2023 Quality Attribute | 메트릭 | 정량 기준 |
+|---|---|---|
+| Security — Confidentiality, Resistance | 공격 차단률 | 탐지된 비인가 접근 차단율 ≥ 99.99% |
+| Security — Authenticity | 인증 정확도 | 정상 사용자 인증 성공률 ≥ 99.999% |
+| Security — Integrity | 무결성 검증률 | 중요 메시지 및 명령 무결성 검증률 = 100% |
+| Security — Resistance | 보안 이벤트 탐지 시간 | 공격 발생 후 3초 이내 탐지 |
+| Security — Resistance | 격리 시간 | 보안 침해 탐지 후 5초 이내 해당 노드 격리 |
+| Security — Resistance / Reliability — Recoverability | 복구 시간 | 침해 노드 격리 후 정상 서비스 복구 ≤ 30초 |
+| Security — Resistance | 취약점 관리 | Critical 취약점 발견 후 24시간 이내 조치 |
+| Security — Accountability | 보안 로그 완전성 | 중요 보안 이벤트 기록률 = 100% |
 
 ## Availability와 Security의 차이
 
