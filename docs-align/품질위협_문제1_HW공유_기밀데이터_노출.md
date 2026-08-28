@@ -112,61 +112,67 @@ OWNED(PVM, g)  ──전환 요청──> SWITCHING(g+1, owner=NONE)
 submission gate는 닫혀 있어야 한다. `dma_commit`이 성공해도 `grant` 전에는 신규 Driver가 HW를 사용할 수 없으며,
 SMMU/S2MPU 정책 활성화, MMIO·IRQ 권한과 소유자 원장은 하나의 직렬화된 전환으로 외부에 공개한다.
 
-아래 다이어그램은 pVM에서 Host로 HW를 전환하는 추상동작이다. Host에서 pVM으로 전환할 때는 현재·신규 Driver의
-역할과 DMA 범위만 바뀌며, 회수·소거·SMMU 설정 순서는 동일하다.
+아래 C&C view는 pVM에서 Host로 HW를 전환할 때의 참여자와 connector 책임을 보여준다. Host에서 pVM으로 전환할 때는
+현재·신규 Driver의 역할과 DMA 범위만 바뀌며, 회수·소거·SMMU 설정 순서는 동일하다.
 
 ```plantuml
 @startuml
-title pVM → Host HW 전환 세부 순서 (요약)
+title pVM → Host HW 전환 C&C View
 
-autonumber
-participant "현재 Native Driver\n(pVM, g)" as Cur
-participant "신규 Native Driver\n(Host, g+1)" as New
-participant "신뢰 중재자" as Arb
-participant "MMIO·IRQ Guard" as Guard
-participant "SMMU/S2MPU Adapter" as Smmu
-participant "HW Adapter/HW" as Hw
+left to right direction
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
 
-New -> Arb : acquire(request_id)
-Arb -> Cur : prepare_revoke(g, deadline)
-Cur --> Arb : revoke_ready(g)\n선택적 참고 신호
+package "신뢰 Workload 영역" #E8F5E9 {
+  component "pVM Native Driver\n현재 소유자: PVM, g" as PvmDrv
+}
 
-Arb -> Hw : submission 차단·DMA 강제 정지
-Hw --> Arb : DMA idle 독립 확인
-Arb -> Guard : IRQ mask·pending clear·route 회수
-Arb -> Smmu : dma_revoke(g, PVM)\npVM mapping 무효화·명시적 deny
-Arb -> Guard : 기존 pVM MMIO 권한 회수
-Arb -> Hw : reset/zeroize
-Hw --> Arb : 소거 완료 확인
+package "비신뢰 Host 영역" #FDE2E2 {
+  component "Host Native Driver\n신규 소유자: HOST, g+1" as HostDrv
+}
 
-note right of Arb
-  pVM mapping 회수와 zeroize 확인 전에는
-  Host DMA·MMIO·IRQ 권한을 commit하지 않는다.
+package "신뢰 강제 영역" #E3F2FD {
+  component "신뢰 중재자\nowner·generation·Gate" as Arb
+  component "MMIO·IRQ Guard" as Guard
+  component "SMMU/S2MPU Adapter\nDMA deny·mapping" as Smmu
+  component "HW Policy/Adapter\nstop·reset·zeroize" as HwAdapter
+}
+
+package "공유 HW" #FFF3CD {
+  component "Camera/AI HW" as HW
+}
+
+HostDrv --> Arb : acquire·ready
+Arb --> HostDrv : grant
+Arb --> PvmDrv : prepare_revoke
+PvmDrv --> Arb : revoke_ready\n참고 신호
+
+Arb --> HwAdapter : submission 차단\nDMA idle·reset·zeroize
+Arb --> Smmu : dma_revoke·prepare·commit
+Arb --> Guard : MMIO·IRQ 회수·부여
+
+HwAdapter --> HW : 강제 정지·소거 검증
+Smmu --> HW : DMA 권한 강제
+Guard --> HW : MMIO·IRQ 권한 강제
+
+PvmDrv ..> HW : 전환 전 직접 사용
+HostDrv ..> HW : commit 후 직접 사용
+
+note bottom of Arb
+  pVM → Host 전환 순서
+  ① Host acquire
+  ② pVM quiesce
+  ③ DMA idle → IRQ 회수 → pVM DMA deny → pVM MMIO 회수
+  ④ reset/zeroize
+  ⑤ Host DMA·MMIO·IRQ commit
+  ⑥ Host grant·ready → resume
+
+  실패: staged 정책 폐기 + 모든 권한 차단
+       → QUARANTINED(owner=NONE)
 end note
 
-alt DMA idle·회수·소거 검증 성공
-  Arb -> Smmu : dma_prepare(g+1, HOST, host_dma_ranges)\ndeny 유지 중 논리적 준비
-
-  group 논리적 직렬 commit (물리적 단일 transaction 아님)
-    Arb -> Smmu : dma_commit(g+1, HOST)
-    Smmu --> Arb : Host DMA 정책 활성 확인
-    Arb -> Guard : Host MMIO 권한 활성화\nIRQ는 mask 유지
-    Arb -> Arb : owner=HOST·generation=g+1 공개
-  end
-
-  Arb -> New : grant(g+1, capability)\ncommit 결과 통지
-  New --> Arb : ready(g+1)
-  Arb -> Guard : IRQ unmask·submission 재개
-  New -> Hw : resume
-else 어느 단계든 검증 실패
-  Arb -> Smmu : staged 정책 폐기·DMA deny 유지
-  Arb -> Guard : MMIO·IRQ 차단 유지
-  Arb -> Arb : QUARANTINED(owner=NONE)
-  Arb --> New : 오류·사용권 미부여
-end
-
-note over Cur,New
-  본 다이어그램은 pVM → Host 전환 기준이다.
+note bottom of HW
+  pVM 회수·소거 완료 전에는 Host 권한을 commit하지 않는다.
   Host → pVM은 Driver 역할과 DMA 범위만 반대로 적용한다.
 end note
 @enduml
