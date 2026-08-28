@@ -1,9 +1,15 @@
 <mxfile host="Electron">
   <diagram name="context-view" id="ctx-view-001">
-    <mxGraphModel dx="2957" dy="944" grid="1" gridSize="1" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" background="none" math="0" shadow="0">
+    <mxGraphModel dx="2911" dy="1286" grid="1" gridSize="1" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="_2blMRULSjsZd5w0wPEc-96" edge="1" parent="1" source="_2blMRULSjsZd5w0wPEc-97" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=default;strokeWidth=2;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=21;fontColor=default;fontStyle=1;labelBackgroundColor=default;endArrow=classic;" target="_2blMRULSjsZd5w0wPEc-99">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Mp7e0SPLLse9mvR4YMIQ-4" edge="1" parent="1" source="_2blMRULSjsZd5w0wPEc-97" style="shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=default;strokeWidth=2;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=21;fontColor=default;fontStyle=1;labelBackgroundColor=default;endArrow=classic;" target="Mp7e0SPLLse9mvR4YMIQ-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="eHJ3cYNzuNgikISoj00n-5" parent="1" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;size=10;fontFamily=Helvetica;fontSize=22;fontStyle=1;align=left;verticalAlign=top;spacingLeft=8;fillColor=#d5e8d4;strokeColor=#82b366;" value="TEE" vertex="1">
           <mxGeometry height="250" width="158" x="4824" y="5190" as="geometry" />
         </mxCell>
@@ -2309,8 +2315,8 @@
         <mxCell id="_2blMRULSjsZd5w0wPEc-30" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=20;fontColor=default;fontStyle=1;" value="pVM 전용&lt;div&gt;&lt;span style=&quot;color: rgb(255, 0, 0);&quot;&gt;Host 사용 못함&lt;/span&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="30" width="149.5" x="2557" y="3328" as="geometry" />
         </mxCell>
-        <mxCell id="_2blMRULSjsZd5w0wPEc-31" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=20;fontColor=default;fontStyle=1;" value="Host 사용&lt;div&gt;&lt;span style=&quot;color: rgb(255, 0, 0);&quot;&gt;성능 지연 가능성 up&lt;/span&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="30" width="191" x="2846" y="3328" as="geometry" />
+        <mxCell id="_2blMRULSjsZd5w0wPEc-31" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=#000000;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=20;fontColor=default;fontStyle=1;" value="Host 사용&lt;div&gt;&lt;span style=&quot;color: light-dark(rgb(255, 0, 0), rgb(255, 144, 144)); background-color: transparent;&quot;&gt;(5~10% 성능 Drop, NPU기준)&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="55" width="287" x="2814" y="3315.5" as="geometry" />
         </mxCell>
         <mxCell id="_2blMRULSjsZd5w0wPEc-33" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#82b366;align=center;verticalAlign=middle;spacingLeft=7;fontFamily=Helvetica;fontSize=22;fontStyle=1;fillColor=#d5e8d4;gradientColor=#FFFFFF;gradientDirection=west;" value="HW" vertex="1">
           <mxGeometry height="42" width="151" x="3215" y="3781" as="geometry" />
@@ -2330,13 +2336,13 @@
         <mxCell id="_2blMRULSjsZd5w0wPEc-40" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=default;align=center;verticalAlign=middle;spacingLeft=7;fontFamily=Helvetica;fontSize=22;fontColor=default;fontStyle=1;fillColor=default;" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;Host 사용&lt;/span&gt;" vertex="1">
           <mxGeometry height="29" width="104" x="3575" y="3750" as="geometry" />
         </mxCell>
-        <mxCell id="_2blMRULSjsZd5w0wPEc-41" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#82b366;align=center;verticalAlign=middle;spacingLeft=7;fontFamily=Helvetica;fontSize=22;fontStyle=1;fillColor=#d5e8d4;" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;pVM 사용&lt;/span&gt;" vertex="1">
+        <mxCell id="_2blMRULSjsZd5w0wPEc-41" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;align=center;verticalAlign=middle;spacingLeft=7;fontFamily=Helvetica;fontSize=22;fontStyle=1;fillColor=#d5e8d4;" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;pVM 사용&lt;/span&gt;" vertex="1">
           <mxGeometry height="29" width="104" x="3680" y="3750" as="geometry" />
         </mxCell>
         <mxCell id="_2blMRULSjsZd5w0wPEc-42" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=default;align=center;verticalAlign=middle;spacingLeft=7;fontFamily=Helvetica;fontSize=22;fontColor=default;fontStyle=1;fillColor=default;" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;Host 사용&lt;/span&gt;" vertex="1">
           <mxGeometry height="29" width="104" x="3785" y="3750" as="geometry" />
         </mxCell>
-        <mxCell id="_2blMRULSjsZd5w0wPEc-43" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#82b366;align=center;verticalAlign=middle;spacingLeft=7;fontFamily=Helvetica;fontSize=22;fontStyle=1;fillColor=#d5e8d4;" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;pVM 사용&lt;/span&gt;" vertex="1">
+        <mxCell id="_2blMRULSjsZd5w0wPEc-43" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;align=center;verticalAlign=middle;spacingLeft=7;fontFamily=Helvetica;fontSize=22;fontStyle=1;fillColor=#d5e8d4;" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;pVM 사용&lt;/span&gt;" vertex="1">
           <mxGeometry height="29" width="104" x="3890" y="3750" as="geometry" />
         </mxCell>
         <mxCell id="_2blMRULSjsZd5w0wPEc-44" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=20;fontColor=default;fontStyle=1;" value="..." vertex="1">
@@ -2441,9 +2447,6 @@
         <mxCell id="_2blMRULSjsZd5w0wPEc-95" parent="1" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=20;fontColor=default;fontStyle=1;fillColor=default;" value="모듈 재사용성 100%&lt;div&gt;(QA-05)&lt;/div&gt;" vertex="1">
           <mxGeometry height="84" width="251.88" x="3206.56" y="4600" as="geometry" />
         </mxCell>
-        <mxCell id="_2blMRULSjsZd5w0wPEc-96" edge="1" parent="1" source="_2blMRULSjsZd5w0wPEc-97" style="edgeStyle=none;shape=connector;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=default;strokeWidth=2;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=21;fontColor=default;fontStyle=1;labelBackgroundColor=default;endArrow=classic;" target="_2blMRULSjsZd5w0wPEc-99">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
         <mxCell id="_2blMRULSjsZd5w0wPEc-97" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#82b366;align=center;verticalAlign=middle;spacingLeft=7;fontFamily=Helvetica;fontSize=22;fontStyle=1;fillColor=#d5e8d4;gradientColor=#FFFFFF;gradientDirection=west;" value="HW" vertex="1">
           <mxGeometry height="42" width="151" x="3990" y="4025" as="geometry" />
         </mxCell>
@@ -2451,13 +2454,13 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="_2blMRULSjsZd5w0wPEc-99" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#82b366;align=center;verticalAlign=middle;spacingLeft=7;fontFamily=Helvetica;fontSize=22;fontStyle=1;fillColor=#d5e8d4;gradientDirection=west;" value="pVM 보안 버퍼" vertex="1">
-          <mxGeometry height="42" width="151" x="3990" y="4100" as="geometry" />
+          <mxGeometry height="42" width="170" x="4099" y="4116" as="geometry" />
         </mxCell>
         <mxCell id="_2blMRULSjsZd5w0wPEc-100" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=20;fontColor=default;fontStyle=1;" value="HW 소유권 전환" vertex="1">
           <mxGeometry height="30" width="191" x="3842" y="3876" as="geometry" />
         </mxCell>
         <mxCell id="_2blMRULSjsZd5w0wPEc-102" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=20;fontColor=default;fontStyle=1;" value="DMA" vertex="1">
-          <mxGeometry height="30" width="79" x="4070" y="4070" as="geometry" />
+          <mxGeometry height="30" width="79" x="4026" y="4072" as="geometry" />
         </mxCell>
         <mxCell id="_2blMRULSjsZd5w0wPEc-103" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=20;fontColor=default;fontStyle=1;" value="사용" vertex="1">
           <mxGeometry height="30" width="79" x="4070" y="3996" as="geometry" />
@@ -2527,7 +2530,7 @@
           <mxGeometry height="58" width="167" x="4028" y="4490" as="geometry" />
         </mxCell>
         <mxCell id="7U2zNN0j9Gv5arXpZE5w-16" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=22;fontFamily=Helvetica;fontColor=default;fontStyle=1;align=center;verticalAlign=middle;spacingLeft=7;" value="pVM 메모리는 임의로&lt;div&gt;Host나 다른 pVM이&lt;/div&gt;&lt;div&gt;읽거나 쓸 수 없어야 함.&lt;/div&gt;" vertex="1">
-          <mxGeometry height="110" width="259.2857142857143" x="3959" y="4612" as="geometry" />
+          <mxGeometry height="110" width="259.2857142857143" x="3835" y="4612" as="geometry" />
         </mxCell>
         <mxCell id="7U2zNN0j9Gv5arXpZE5w-17" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=22;fontFamily=Helvetica;fontColor=default;fontStyle=1;align=center;verticalAlign=middle;spacingLeft=7;" value="Camera pVM 프레임을&lt;div&gt;AI pVM에서 소비해야 함.&lt;/div&gt;" vertex="1">
           <mxGeometry height="110" width="259.2857142857143" x="4283.004285714285" y="4612" as="geometry" />
@@ -2714,6 +2717,29 @@
         </mxCell>
         <mxCell id="eHJ3cYNzuNgikISoj00n-15" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=20;fontColor=#0000FF;fontStyle=1;" value="암호키 생성" vertex="1">
           <mxGeometry height="27" width="106" x="4911" y="5222" as="geometry" />
+        </mxCell>
+        <mxCell id="Mp7e0SPLLse9mvR4YMIQ-1" edge="1" parent="1" style="shape=flexArrow;endArrow=classic;startArrow=classic;html=1;rounded=0;strokeColor=#b85450;strokeWidth=2;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=21;fontColor=default;fontStyle=1;labelBackgroundColor=default;width=30;endSize=11;startSize=11;startWidth=45;endWidth=44;fillColor=#f8cecc;" value="">
+          <mxGeometry height="100" relative="1" width="100" as="geometry">
+            <mxPoint x="4108" y="4664" as="sourcePoint" />
+            <mxPoint x="4269" y="4665" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Mp7e0SPLLse9mvR4YMIQ-2" connectable="0" parent="Mp7e0SPLLse9mvR4YMIQ-1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontFamily=Helvetica;fontSize=21;fontColor=default;fontStyle=1;labelBackgroundColor=none;" value="Trade-off" vertex="1">
+          <mxGeometry relative="1" x="0.2282" as="geometry">
+            <mxPoint x="-20" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Mp7e0SPLLse9mvR4YMIQ-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;spacingLeft=7;fontFamily=Helvetica;fontSize=22;fontStyle=1;gradientDirection=west;" value="Host 일반 버퍼" vertex="1">
+          <mxGeometry height="42" width="170" x="3867" y="4116" as="geometry" />
+        </mxCell>
+        <mxCell id="Mp7e0SPLLse9mvR4YMIQ-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=default;align=center;verticalAlign=middle;spacingLeft=7;fontFamily=Helvetica;fontSize=22;fontColor=default;fontStyle=1;fillColor=default;" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;Host HW&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;Driver&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="58" width="167" x="2984" y="4766" as="geometry" />
+        </mxCell>
+        <mxCell id="Mp7e0SPLLse9mvR4YMIQ-15" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=default;align=center;verticalAlign=middle;spacingLeft=7;fontFamily=Helvetica;fontSize=22;fontColor=default;fontStyle=1;fillColor=default;" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;HW 소유권&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;중재자&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="58" width="167" x="3232" y="4766" as="geometry" />
+        </mxCell>
+        <mxCell id="Mp7e0SPLLse9mvR4YMIQ-16" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=default;align=center;verticalAlign=middle;spacingLeft=7;fontFamily=Helvetica;fontSize=22;fontColor=default;fontStyle=1;fillColor=default;" value="&lt;span style=&quot;font-size: 20px;&quot;&gt;pVM HW&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 20px;&quot;&gt;Driver&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="58" width="167" x="3480" y="4766" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
