@@ -94,12 +94,10 @@ OWNED(PVM, g)  ──전환 요청──> SWITCHING(g+1, owner=NONE)
 
 | 추상 동작 | 호출 방향 | 의미 |
 |---|---|---|
-| `acquire(hw, request_id)` | 신규 소유자 → 신뢰 중재자 | HW 사용을 요청한다. 현재 세대, 요청자 신원과 허용 DMA 범위를 검증한다. |
+| `acquire(hw, request_id)` | 신규 Driver → 신뢰 중재자 | HW 사용을 요청한다. 현재 세대, 요청자 신원과 허용 DMA 범위를 검증한다. |
 | `prepare_revoke(g, deadline)` | 신뢰 중재자 → 현재 Driver | 신규 작업을 받지 않고 진행 중 작업을 배출·취소하도록 요청한다. |
 | `revoke_ready(g)` | 현재 Driver → 신뢰 중재자 | 협조적 정리가 끝났다는 참고 신호다. 보안 Gate 통과 증거는 아니다. |
-| `dma_revoke(g, current_owner)` | 신뢰 중재자 → SMMU Adapter | DMA idle 확인 후 공유 HW의 device/stream에 결합된 현재 소유자 DMA mapping을 무효화하고 IOTLB 동기화 결과를 검증한다. |
-| `dma_prepare(g+1, new_owner, dma_ranges)` | 신뢰 중재자 → SMMU Adapter | HW와 submission을 정지한 상태에서 공유 HW의 device/stream에 신규 소유자의 허용 DMA 범위만 staging한다. 아직 DMA를 허용하지 않는다. |
-| `dma_commit(g+1, new_owner)` | 신뢰 중재자 → SMMU Adapter | 준비한 SMMU/S2MPU 정책을 `owner·generation` 갱신과 함께 공개하고 read-back 또는 권한 snapshot으로 활성 상태를 확인한다. |
+| `dma_handover(g, current_owner, new_owner, dma_ranges)` | 신뢰 중재자 → SMMU/S2MPU Adapter | DMA idle 뒤 기존 mapping을 회수하고 명시적 deny를 유지한다. 소거 완료 Gate가 통과되면 신규 범위만 `g+1` 정책으로 commit하며, 실패하면 staging을 폐기하고 deny를 유지한다. |
 | `grant(g, capability)` | 신뢰 중재자 → 신규 Driver | 검증된 세대와 허용 MMIO·DMA·IRQ 범위 안에서만 사용권을 부여한다. |
 | `ready(g)` | 신규 Driver → 신뢰 중재자 | Driver 초기화와 서비스 준비가 끝났다는 운용 상태 신호다. |
 | `release(g)` | 현재 Driver → 신뢰 중재자 | 자발적 반납을 요청한다. 실제 회수 절차는 `prepare_revoke` 이후와 동일하다. |
@@ -108,72 +106,46 @@ OWNED(PVM, g)  ──전환 요청──> SWITCHING(g+1, owner=NONE)
 상태는 각 Driver 자신의 비기밀·재구성 가능한 SW 상태로 제한하며, 이전 소유자의 HW context나 기밀 데이터를 다른
 도메인으로 전달하지 않는다.
 
-`dma_prepare`는 mapping을 staging하는 단계일 뿐 소유권 부여가 아니다. HW는 reset 또는 DMA disabled 상태이고
-submission gate는 닫혀 있어야 한다. `dma_commit`이 성공해도 `grant` 전에는 신규 Driver가 HW를 사용할 수 없으며,
-SMMU/S2MPU 정책 활성화, MMIO·IRQ 권한과 소유자 원장은 하나의 직렬화된 전환으로 외부에 공개한다.
+`dma_handover`는 물리적으로 한 번에 실행되는 HW transaction이 아니라 회수부터 신규 부여까지 이어지는 하나의 추상
+수명주기 동작이다. 내부적으로 `기존 mapping 회수 → 명시적 deny 유지 → 소거 완료 Gate → 신규 mapping commit`을
+수행한다. Gate 통과 전에는 submission을 차단하고, SMMU/S2MPU 정책, MMIO·IRQ 권한과 소유자 원장은 논리적으로
+직렬화된 전환으로 외부에 공개한다.
 
-아래 C&C view는 pVM에서 Host로 HW를 전환할 때의 참여자와 connector 책임을 보여준다. Host에서 pVM으로 전환할 때는
-현재·신규 Driver의 역할과 DMA 범위만 바뀌며, 회수·소거·SMMU 설정 순서는 동일하다.
+아래 C&C view는 추상 동작 표의 참여자와 호출 방향을 그대로 보여준다. pVM에서 Host로 전환할 때 현재 Driver는 pVM,
+신규 Driver는 Host이며, Host에서 pVM으로 전환할 때는 두 Driver의 역할과 DMA 범위만 바뀐다.
 
 ```plantuml
 @startuml
-title pVM → Host HW 전환 C&C View
+title HW 전환 추상 동작 C&C View (pVM → Host 기준)
 
 left to right direction
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
 
-package "신뢰 Workload 영역" #E8F5E9 {
-  component "pVM Native Driver\n현재 소유자: PVM, g" as PvmDrv
-}
+component "현재 Driver\n(pVM, g)" as CurrentDriver #E8F5E9
+component "신규 Driver\n(Host, g+1)" as NewDriver #FDE2E2
+component "신뢰 중재자" as Arbiter #E3F2FD
+component "SMMU/S2MPU Adapter" as DmaAdapter #E3F2FD
 
-package "비신뢰 Host 영역" #FDE2E2 {
-  component "Host Native Driver\n신규 소유자: HOST, g+1" as HostDrv
-}
+NewDriver --> Arbiter : acquire(hw, request_id)\nready(g+1)
+Arbiter --> NewDriver : grant(g+1, capability)
 
-package "신뢰 강제 영역" #E3F2FD {
-  component "신뢰 중재자\nowner·generation·Gate" as Arb
-  component "MMIO·IRQ Guard" as Guard
-  component "SMMU/S2MPU Adapter\nDMA deny·mapping" as Smmu
-  component "HW Policy/Adapter\nstop·reset·zeroize" as HwAdapter
-}
+Arbiter --> CurrentDriver : prepare_revoke(g, deadline)
+CurrentDriver --> Arbiter : revoke_ready(g)\nrelease(g)
 
-package "공유 HW" #FFF3CD {
-  component "Camera/AI HW" as HW
-}
+Arbiter --> DmaAdapter : dma_handover(g, current_owner,\nnew_owner, dma_ranges)
 
-HostDrv --> Arb : acquire·ready
-Arb --> HostDrv : grant
-Arb --> PvmDrv : prepare_revoke
-PvmDrv --> Arb : revoke_ready\n참고 신호
+note bottom of DmaAdapter
+  dma_handover 내부 Gate
+  pVM mapping 회수 → deny 유지 → 소거 완료 확인
+  → Host mapping을 g+1 정책으로 commit
 
-Arb --> HwAdapter : submission 차단\nDMA idle·reset·zeroize
-Arb --> Smmu : dma_revoke·prepare·commit
-Arb --> Guard : MMIO·IRQ 회수·부여
-
-HwAdapter --> HW : 강제 정지·소거 검증
-Smmu --> HW : DMA 권한 강제
-Guard --> HW : MMIO·IRQ 권한 강제
-
-PvmDrv ..> HW : 전환 전 직접 사용
-HostDrv ..> HW : commit 후 직접 사용
-
-note bottom of Arb
-  pVM → Host 전환 순서
-  ① Host acquire
-  ② pVM quiesce
-  ③ DMA idle → IRQ 회수 → pVM DMA deny → pVM MMIO 회수
-  ④ reset/zeroize
-  ⑤ Host DMA·MMIO·IRQ commit
-  ⑥ Host grant·ready → resume
-
-  실패: staged 정책 폐기 + 모든 권한 차단
-       → QUARANTINED(owner=NONE)
+  실패: staging 폐기 → deny 유지
 end note
 
-note bottom of HW
-  pVM 회수·소거 완료 전에는 Host 권한을 commit하지 않는다.
-  Host → pVM은 Driver 역할과 DMA 범위만 반대로 적용한다.
+note bottom of Arbiter
+  pVM → Host: 현재 Driver=PVM, 신규 Driver=HOST
+  실패 시: QUARANTINED(owner=NONE)
 end note
 @enduml
 ```
@@ -201,8 +173,9 @@ Host→pVM과 pVM→Host는 같은 순서를 사용한다. 다만 pVM→Host에�
 6. HW의 DMA 정지와 진행 중 transaction의 drain 완료를 독립적으로 확인한다. 완료 전에는 DMA mapping을 회수하지
    않는다.
 7. DMA idle 확인 후 IRQ source를 mask하고 pending interrupt를 처리·소거한 뒤 기존 IRQ routing을 회수한다.
-8. `dma_revoke(g, current_owner)`로 공유 HW의 device/stream에 결합된 기존 소유자의 SMMU/S2MPU DMA mapping을
-   무효화한다. 이어서 MMIO·Stage-2 권한 회수와 필요한 TLB·IOTLB·cache 동기화를 끝낸다.
+8. `dma_handover(g, current_owner, new_owner, dma_ranges)`의 회수 단계에서 공유 HW의 device/stream에 결합된 기존
+   소유자의 SMMU/S2MPU DMA mapping을 무효화하고 명시적 deny 상태로 전환한다. 이어서 MMIO·Stage-2 권한 회수와
+   필요한 TLB·IOTLB·cache 동기화를 끝낸다.
 9. reset/zeroize에 필요한 전원·클럭은 유지한 채 펌웨어 실행 상태, DMA descriptor·작업 목록, MMIO register,
    내부 SRAM·cache를 HW별 절차로 초기화한다. 신뢰 중재자는 소거 완료를 독립적으로 확인한다.
 10. 회수·소거 증거가 모두 확인되면 `owner=NONE`과 회수 완료 세대를 하나의 논리적 commit으로 기록한다. 유휴가
@@ -212,10 +185,10 @@ Host→pVM과 pVM→Host는 같은 순서를 사용한다. 다만 pVM→Host에�
 
 11. HW를 reset 상태와 submission 차단 상태로 유지한 채 필요한 전원·클럭을 활성화하고, HW Policy/Adapter 또는
     신뢰 검증 경로가 펌웨어를 알려진 초기 상태로 만든다.
-12. `dma_prepare(g+1, new_owner, dma_ranges)`로 신규 소유자의 등록된 buffer만 접근하도록 SMMU/S2MPU 정책을
-    staging하고, IRQ routing은 신규 소유자 방향으로 설정하되 아직 mask 상태를 유지한다.
-13. `dma_commit(g+1, new_owner)`와 함께 신규 MMIO 권한, DMA 범위, IRQ routing과 `owner·generation` 원장을 하나의
-    직렬화된 commit으로 공개한다. commit 전에는 외부에 `owner=NONE`으로 보이고 submission gate가 닫혀 있어야 한다.
+12. 같은 `dma_handover`의 부여 단계에서 신규 소유자의 등록된 buffer만 접근하도록 SMMU/S2MPU 정책을 준비하고,
+    IRQ routing은 신규 소유자 방향으로 설정하되 아직 mask 상태를 유지한다.
+13. 소거 완료 Gate가 통과되면 `dma_handover`가 신규 DMA 정책을 `g+1`로 commit한다. 신규 MMIO 권한, IRQ routing과
+    `owner·generation` 원장도 하나의 직렬화된 전환으로 공개하며, 그전에는 submission gate를 닫아 둔다.
 14. 신뢰 중재자가 신규 Driver에 `grant`를 알린다. 신규 Driver는 세대를 확인하고 자신의 SW 상태만 `restore`한 뒤
     reset된 HW를 초기화한다.
 15. 신규 Driver가 `ready`를 보고하면 IRQ를 unmask하고 submission gate를 열어 `resume`한다. `ready`는 서비스 시작
@@ -226,7 +199,7 @@ Host→pVM과 pVM→Host는 같은 순서를 사용한다. 다만 pVM→Host에�
 | 자원 | 회수 | 부여 | 주의점 |
 |---|---|---|---|
 | MMIO | 협조적 drain 뒤 접근 회수 | 보호정책 준비 후 commit 시 공개 | Driver의 `owner` 변수나 SW mutex만으로 대체할 수 없다. |
-| DMA | 신규 submission 차단 → DMA idle 확인 → `dma_revoke` | `dma_prepare`로 staging → 소유권 commit에서 `dma_commit` | CPU Stage-2와 SMMU/S2MPU 상태를 함께 검증한다. |
+| DMA | 신규 submission 차단 → DMA idle 확인 → `dma_handover` 회수 단계 | 같은 `dma_handover`의 deny 유지 → 신규 정책 commit | CPU Stage-2와 SMMU/S2MPU 상태를 함께 검증한다. |
 | IRQ | completion drain 동안 유지 → DMA idle 후 source mask·pending clear·route 회수 | 신규 route 설정 후 권한 commit이 끝난 다음 unmask | 너무 일찍 mask하면 quiesce가 completion을 기다리며 교착될 수 있다. |
 | 전원·클럭 | drain·reset·zeroize 완료까지 유지 | HW 초기화 전에 활성화 | 접근권과 별도인 lifecycle 자원이다. `owner=NONE`이어도 소거 중에는 활성일 수 있다. |
 | 펌웨어·내부 상태 | 실행 정지 후 신뢰 경로로 reset/zeroize | 알려진 초기 상태에서 신규 Driver가 재설정 | 이전 HW context를 Host와 pVM 사이에 직접 restore하지 않는다. |
@@ -258,17 +231,16 @@ sequenceDiagram
     end
 
     Arb->>Guard: IRQ mask·pending clear·기존 route 회수
-    Arb->>SMMU: dma_revoke(g, current_owner)
-    SMMU-->>Arb: 기존 DMA 차단 snapshot
+    Arb->>SMMU: dma_handover(g, current_owner, new_owner, dma_ranges)
+    SMMU-->>Arb: 기존 mapping 회수·명시적 deny 유지
     Arb->>Guard: 기존 MMIO 권한 회수
     Arb->>HW: reset/zeroize
     HW-->>Arb: 소거 완료 증거
     alt 회수·소거 검증 성공
         Arb->>Arb: owner=NONE 회수 완료 commit
-        Arb->>SMMU: dma_prepare(g+1, new_owner, dma_ranges)
+        Arb-->>SMMU: 소거 완료 Gate 통과
         Arb->>Guard: 신규 MMIO·IRQ 정책 준비, IRQ mask 유지
-        Arb->>SMMU: dma_commit(g+1, new_owner)
-        SMMU-->>Arb: 신규 DMA 정책 활성 확인
+        SMMU-->>Arb: 신규 DMA 정책 g+1 commit 완료
         Arb->>Guard: 신규 MMIO·IRQ 권한 활성화
         Note over Arb,SMMU: 권한과 owner·generation을 하나의 직렬화된 commit으로 공개
         Arb->>New: grant(g+1, capability)
@@ -278,7 +250,7 @@ sequenceDiagram
         Arb->>Guard: IRQ unmask·submission 허용
         New->>HW: resume
     else reset/zeroize 실패 또는 증거 불충분
-        Arb->>SMMU: 모든 DMA 차단 유지
+        Arb->>SMMU: dma_handover 실패 처리, staging 폐기·deny 유지
         Arb->>Guard: MMIO·IRQ 차단 유지
         Arb->>Arb: QUARANTINED(owner=NONE)
         Arb-->>New: 오류, 사용권 미부여
