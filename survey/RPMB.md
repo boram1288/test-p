@@ -26,6 +26,24 @@
 3. 보안 소프트웨어는 `Nonce`와 `MAC`을 확인한다.
 4. 보안 소프트웨어는 두 값이 모두 올바를 때만 데이터를 신뢰한다.
 
+### 읽기 실패
+
+```plantuml
+@startuml
+participant "보안 소프트웨어" as SecureSoftware
+participant "RPMB 장치" as RPMBDevice
+
+SecureSoftware -> RPMBDevice: 주소와 Nonce 전달
+RPMBDevice --> SecureSoftware: 데이터, Nonce, MAC 반환
+
+alt Nonce 불일치
+    SecureSoftware -> SecureSoftware: 과거 응답으로 판단하고 폐기
+else MAC 불일치
+    SecureSoftware -> SecureSoftware: 변경되거나 위조된 응답으로 판단하고 폐기
+end
+@enduml
+```
+
 ## 쓰기 과정
 
 1. 보안 소프트웨어가 현재 `Write Counter`를 읽는다.
@@ -33,6 +51,23 @@
 3. 장치는 `MAC`과 `Write Counter`를 확인한다.
 4. 장치는 검증에 성공하면 데이터를 기록하고 `Write Counter`를 증가시킨다.
 5. 보안 소프트웨어는 장치가 반환한 결과의 `MAC`을 확인한다.
+
+### 쓰기 실패
+
+```plantuml
+@startuml
+participant "보안 소프트웨어" as SecureSoftware
+participant "RPMB 장치" as RPMBDevice
+
+SecureSoftware -> RPMBDevice: 데이터, 주소, Write Counter, MAC 전달
+
+alt MAC 불일치
+    RPMBDevice --> SecureSoftware: 인증 실패
+else Write Counter 불일치
+    RPMBDevice --> SecureSoftware: 쓰기 거부
+end
+@enduml
+```
 
 ## 보안 범위
 
