@@ -33,13 +33,23 @@
 participant "보안 소프트웨어" as SecureSoftware
 participant "RPMB 장치" as RPMBDevice
 
-SecureSoftware -> RPMBDevice: 주소와 Nonce 전달
-RPMBDevice --> SecureSoftware: 데이터, Nonce, MAC 반환
+SecureSoftware -> RPMBDevice: 주소와 Nonce = 0xA1B2 전달
+note right of SecureSoftware
+  0xA1B2는 이해를 위한 축약 예시 값이다.
+end note
 
 alt Nonce 불일치
-    SecureSoftware -> SecureSoftware: 과거 응답으로 판단하고 폐기
+    RPMBDevice --> SecureSoftware: 데이터, Nonce = 0x1122, MAC 반환
+    note right of SecureSoftware
+      요청 값 0xA1B2와 응답 값 0x1122가 다르므로
+      보안 소프트웨어는 과거 응답으로 판단하고 폐기한다.
+    end note
 else MAC 불일치
-    SecureSoftware -> SecureSoftware: 변경되거나 위조된 응답으로 판단하고 폐기
+    RPMBDevice --> SecureSoftware: 데이터, Nonce = 0xA1B2, 잘못된 MAC 반환
+    note right of SecureSoftware
+      Nonce는 같지만 계산한 MAC과 응답의 MAC이 다르므로
+      보안 소프트웨어는 변경되거나 위조된 응답으로 판단하고 폐기한다.
+    end note
 end
 @enduml
 ```
@@ -59,12 +69,23 @@ end
 participant "보안 소프트웨어" as SecureSoftware
 participant "RPMB 장치" as RPMBDevice
 
-SecureSoftware -> RPMBDevice: 데이터, 주소, Write Counter, MAC 전달
+SecureSoftware -> RPMBDevice: 현재 Write Counter 요청
+RPMBDevice --> SecureSoftware: Write Counter = 42 반환
 
 alt MAC 불일치
-    RPMBDevice --> SecureSoftware: 인증 실패
+    SecureSoftware -> RPMBDevice: 데이터, 주소, Write Counter = 42, 잘못된 MAC 전달
+    note right of RPMBDevice
+      장치가 계산한 MAC과 요청의 MAC이 다르므로
+      장치는 인증 실패로 판단하고 쓰기를 수행하지 않는다.
+    end note
+    RPMBDevice --> SecureSoftware: 인증 실패, Write Counter = 42
 else Write Counter 불일치
-    RPMBDevice --> SecureSoftware: 쓰기 거부
+    SecureSoftware -> RPMBDevice: 데이터, 주소, Write Counter = 41, MAC 전달
+    note right of RPMBDevice
+      현재 값 42와 요청 값 41이 다르므로
+      장치는 과거 요청으로 판단하고 쓰기를 수행하지 않는다.
+    end note
+    RPMBDevice --> SecureSoftware: 쓰기 거부, Write Counter = 42
 end
 @enduml
 ```
