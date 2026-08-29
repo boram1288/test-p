@@ -80,7 +80,7 @@
 - **안정적인 Workload 식별자마다 논리 블록 장치 하나**를 둔다.
 - pVM 인스턴스가 아니라 Workload가 논리 장치의 수명을 가진다.
 - 새 pVM 세대는 기존 논리 장치를 다시 연결한다.
-- Host의 M-11은 UFS 공용 공간에서 기록된 블록만 할당한다.
+- Host의 M-11 (Secure Persistent Storage)은 UFS 공용 공간에서 기록된 블록만 할당한다.
 - 갱신 중에는 바뀐 블록과 새 위치표만 새 공간에 기록한다. 전체 볼륨을 한 벌 더 만들지 않는다.
 - RPMB에는 큰 자료를 넣지 않는다. 최신 버전과 자료 목록의 확인값만 넣는다.
 - 이전 버전의 블록은 새 버전이 RPMB에 확정된 뒤에 회수한다.
@@ -89,11 +89,11 @@
 
 ### 4.2 Host 공용 공간의 네 가지 구현 방향
 
-| 번호 | 공용 공간 구조 | 물리 공간 할당 | M-11이 맡을 일 | 판정 |
+| 번호 | 공용 공간 구조 | 물리 공간 할당 | M-11 (Secure Persistent Storage)이 맡을 일 | 판정 |
 |---|---|---|---|---|
 | P-01 | `Device Mapper thin provisioning` 공용 공간 | 쓰기가 처음 발생한 블록만 할당 | Workload별 논리 장치 생성·재연결·회수와 용량 제한 | 기본 조건과 맞음 |
 | P-02 | Host 파일시스템의 희소 저장 파일(`sparse backing file`) | 실제 파일 블록이 기록될 때 할당 | Workload별 저장 파일 수명·용량 제한·`virtio-blk` 연결 | 기본 조건과 맞음 |
-| P-03 | M-11 공용 블록 묶음 저장소 | M-11이 공용 블록 묶음을 Workload 논리 주소에 연결 | 위치표, 빈 공간, 회수와 `virtio-blk` 장치 제공 | 조건부: 자체 위치표 복구 검증 필요 |
+| P-03 | M-11 (Secure Persistent Storage) 공용 블록 묶음 저장소 | M-11 (Secure Persistent Storage)이 공용 블록 묶음을 Workload 논리 주소에 연결 | 위치표, 빈 공간, 회수와 `virtio-blk` 장치 제공 | 조건부: 자체 위치표 복구 검증 필요 |
 | P-04 | 공용 읽기 전용 기본 이미지와 Workload별 변경 블록 | 공통 내용은 한 번만 두고 Workload가 바꾼 블록만 할당 | 기본 이미지 검증, 변경 블록 수명과 하나의 `virtio-blk` 장치로 조합 | 조건부: 같은 초기 자료를 공유할 때만 이득 |
 
 네 구조 모두 Host가 관리하므로, Host가 보고하는 할당표 자체는 보안 판단의 근거가 될 수 없다. TEE가 확인하는 버전별 자료 목록 또는 블록 위치표의 확인값이 별도로 필요하다.
@@ -117,8 +117,8 @@ package "신뢰·격리 pVM" #E8F5E9 {
 }
 
 package "pKVM / EL2" #FFF3CD {
-  component "M-09 메모리 격리" as M09
-  component "M-10 보호 호출 경로" as M10E
+  component "M-09 (DMA/S2MPU Isolation Controller) 메모리 격리" as M09
+  component "M-10 (Secure OS Adapter) 보호 호출 경로" as M10E
 }
 
 package "TEE / Secure OS" #E3F2FD {
@@ -128,7 +128,7 @@ package "TEE / Secure OS" #E3F2FD {
 
 package "비신뢰 Host" #FDE2E2 {
   component "virtio-blk 뒷단" as VBack
-  component "M-11 공용 공간 관리자\n쓴 블록만 할당" as Pool
+  component "M-11 (Secure Persistent Storage) 공용 공간 관리자\n쓴 블록만 할당" as Pool
   database "UFS\n암호문·인증값·버전별 위치표" as UFS
 }
 
@@ -194,15 +194,15 @@ TEE가 인증 암호화를 할 때 `stable_workload_id_hash`, `storage_id`, `key
 
 ### 5.2 안전한 쓰기 확정 순서 A: 변경 블록을 새 위치에 기록
 
-1. M-05가 검증한 Workload 식별자와 M-02의 pVM 세대를 M-10이 TEE까지 보존한다.
+1. M-05 (Workload Loader / Verifier)가 검증한 Workload 식별자와 M-02 (pVM Lifecycle Manager)의 pVM 세대를 M-10 (Secure OS Adapter)이 TEE까지 보존한다.
 2. TEE는 RPMB의 `writer_generation`을 확인해 한 세대에만 쓰기 권한을 준다.
 3. 암호 TA가 새 자료를 인증 암호화한다. 각 조각은 Workload 식별자, `storage_id`, 논리 위치와 새 버전에 묶는다.
 4. pVM은 새 암호문과 인증값을 논리 장치 안의 **이전 위치와 다른 저장 위치**에 기록한다. 실제 UFS 물리 주소는 Host가 정한다.
 5. 새 자료를 가리키는 버전별 자료 목록 또는 블록 위치표도 새 위치에 기록한다. 이전 위치표를 덮어쓰지 않는다.
 6. pVM은 `virtio-blk`의 `FLUSH` 또는 필요한 `FUA` 처리를 요청하고 완료 응답을 기다린다.
-7. pVM은 M-10을 통해 `FLUSH` 완료 응답과 확정 요청을 TEE에 전달한다. 이는 비신뢰 Host의 응답을 전달하는 것이며, TEE가 실제 UFS 기록 완료를 독자적으로 확인했다는 뜻은 아니다.
+7. pVM은 M-10 (Secure OS Adapter)을 통해 `FLUSH` 완료 응답과 확정 요청을 TEE에 전달한다. 이는 비신뢰 Host의 응답을 전달하는 것이며, TEE가 실제 UFS 기록 완료를 독자적으로 확인했다는 뜻은 아니다.
 8. TEE는 새 위치표의 `root_hash`와 새 버전을 RPMB에 마지막으로 기록한다.
-9. RPMB 기록이 끝난 뒤 M-11이 이전 버전의 블록을 나중에 회수한다. 회수는 여러 번 실행해도 결과가 같아야 한다.
+9. RPMB 기록이 끝난 뒤 M-11 (Secure Persistent Storage)이 이전 버전의 블록을 나중에 회수한다. 회수는 여러 번 실행해도 결과가 같아야 한다.
 
 이 순서는 여러 자료를 종합한 **이번 설계의 판단**이다. 어느 한 표준이 pVM 전체 볼륨에 이 순서를 그대로 정한 것은 아니다.
 
@@ -214,13 +214,13 @@ TEE가 인증 암호화를 할 때 `stable_workload_id_hash`, `storage_id`, `key
 
 1. 새 암호문, 대상 논리 위치, 새 인증값과 최종 확인값을 다시 쓰기 기록에 넣는다.
 2. 다시 쓰기 기록을 UFS의 별도 위치에 쓴 뒤 `FLUSH` 완료를 기다린다.
-3. pVM은 M-10을 통해 완료 응답과 다시 쓰기 기록 확인값을 TEE에 전달한다.
+3. pVM은 M-10 (Secure OS Adapter)을 통해 완료 응답과 다시 쓰기 기록 확인값을 TEE에 전달한다.
 4. TEE가 RPMB에 “재적용 확정” 상태, 새 버전과 `redo_log_hash`를 남긴다.
 5. pVM은 다시 쓰기 기록을 본래 논리 위치에 여러 번 실행해도 같은 결과가 되도록 적용한다.
 6. 적용 결과를 `FLUSH`하고 완료 응답을 기다린다.
-7. pVM은 M-10을 통해 두 번째 완료 응답과 최종 `root_hash`를 TEE에 전달한다.
+7. pVM은 M-10 (Secure OS Adapter)을 통해 두 번째 완료 응답과 최종 `root_hash`를 TEE에 전달한다.
 8. TEE가 RPMB를 “적용 완료” 상태와 최종 `root_hash`로 바꾼다.
-9. M-11이 다시 쓰기 기록을 회수한다.
+9. M-11 (Secure Persistent Storage)이 다시 쓰기 기록을 회수한다.
 
 이 구조도 전체 두 번째 볼륨은 쓰지 않는다. 다만 바뀐 블록 크기만큼 다시 쓰기 기록이 필요하며, 확정 한 번에 RPMB 상태를 두 번 바꿀 수 있다. 구현 중간 상태와 복구 단계가 5.2절보다 많다.
 
@@ -239,13 +239,13 @@ TEE가 인증 암호화를 할 때 `stable_workload_id_hash`, `storage_id`, `key
 | 순서 B에서 적용 완료 뒤 다시 쓰기 기록 회수 전 | 적용 완료 | 새 버전 사용, 다시 쓰기 기록 회수만 재개 |
 | 순서 B에서 다시 쓰기 기록이 없거나 확인 실패 | 재적용 확정 | 사용 중단·오류 보고, 자동 복구는 불가 |
 
-M-04는 재연결과 회수 절차를 조정한다. 무엇이 최신 정상 상태인지는 Host의 M-04가 아니라 TEE와 RPMB 기록이 정한다.
+M-04 (Fault/Recovery Manager)는 재연결과 회수 절차를 조정한다. 무엇이 최신 정상 상태인지는 Host의 M-04 (Fault/Recovery Manager)가 아니라 TEE와 RPMB 기록이 정한다.
 
 ## 6. 암호 처리 위치·계층과 관련 경로의 전체 후보
 
 ### 6.1 빠른 판정표
 
-C-01~C-07, C-08A와 C-09~C-17은 암호 처리 위치 또는 키 사용 위치를 바꾸는 구조다. C-08B만 암호 위치를 바꾸지 않는 M-10 호출 경로 구조이며, D-09B에서 따로 비교한다.
+C-01~C-07, C-08A와 C-09~C-17은 암호 처리 위치 또는 키 사용 위치를 바꾸는 구조다. C-08B만 암호 위치를 바꾸지 않는 M-10 (Secure OS Adapter) 호출 경로 구조이며, D-09B에서 따로 비교한다.
 
 | 번호 | 후보 구조 | 평문 키 위치 | Host에 보이는 자료 | 현재 판정 |
 |---|---|---|---|---|
@@ -257,7 +257,7 @@ C-01~C-07, C-08A와 C-09~C-17은 암호 처리 위치 또는 키 사용 위치�
 | C-06 | `blk-crypto`/`dm-inlinecrypt`와 하드웨어로 감싼 키 사용 | TEE·저장 암호 장치 | 현재 표준 경로에서는 Host가 평문을 볼 수 있음 | 현재 조건에서는 사용 불가 |
 | C-07 | EL2의 보호된 `virtio-blk` 경계가 TEE 암호 처리를 연결 | TEE만 | 암호문만 보이도록 새 공유 버퍼 필요 | 조건부: EL2·virtio 확장 필요 |
 | C-08A | 별도 protected service pVM이 평문 요청을 받아 TEE 호출 후 암호문 반환 | TEE만 | Host에는 암호문, protected service pVM에는 평문 | 조건부: 신뢰 경계 확대 결정 필요 |
-| C-08B | 별도 protected service pVM이 내용을 보지 않고 TEE 호출 순서만 중계 | TEE만 | 암호문 또는 끝까지 보호된 요청 | 조건부: 암호 위치가 아닌 M-10 전달 구조 |
+| C-08B | 별도 protected service pVM이 내용을 보지 않고 TEE 호출 순서만 중계 | TEE만 | 암호문 또는 끝까지 보호된 요청 | 조건부: 암호 위치가 아닌 M-10 (Secure OS Adapter) 전달 구조 |
 | C-09 | Host Application이 GlobalPlatform로 TEE를 직접 호출 | TEE만이지만 Host가 입력 평문 보유 | 암호화 전 평문 | 보안 조건 위반으로 제외 |
 | C-10 | Host 커널 또는 UFS 암호 장치가 직접 암호화 | Host 쪽 또는 저장 암호 장치 | `virtio-blk` 뒷단의 평문 | 보안 조건 위반으로 제외 |
 | C-11 | TEE가 키를 pVM 커널에 풀어준 뒤 표준 `dm-crypt`/`fscrypt` 사용 | pVM 커널에도 있음 | 암호문 | 키 조건 위반으로 제외 |
@@ -268,16 +268,16 @@ C-01~C-07, C-08A와 C-09~C-17은 암호 처리 위치 또는 키 사용 위치�
 | C-16 | protected service pVM이 저장장치를 소유하고 Workload pVM에 다시 제공 | TEE만 | 암호문 | Workload pVM의 직접 `virtio-blk` 연결 조건을 바꾸므로 제외 |
 | C-17 | TEE가 키를 pVM 사용자 영역 암호 프로그램에 제공 | pVM 사용자 영역에도 있음 | 암호문 | 키 조건 위반으로 제외 |
 
-`기본 조건과 맞음`은 구현이 이미 검증됐다는 뜻이 아니다. M-10 보호 호출 경로, 처리량, 복구 순서와 메모리 사용을 시험해야 선택할 수 있다. C-09~C-17은 비교 기준과 제외 이유를 남기기 위한 구조이며, 현재 조건을 그대로 둔 정식 후보 쌍에는 넣지 않는다.
+`기본 조건과 맞음`은 구현이 이미 검증됐다는 뜻이 아니다. M-10 (Secure OS Adapter) 보호 호출 경로, 처리량, 복구 순서와 메모리 사용을 시험해야 선택할 수 있다. C-09~C-17은 비교 기준과 제외 이유를 남기기 위한 구조이며, 현재 조건을 그대로 둔 정식 후보 쌍에는 넣지 않는다.
 
 ### 6.2 C-01: pVM 사용자 영역의 명시적 자료 저장 API
 
-Workload가 일반 파일 쓰기 대신 M-11 저장 API를 호출한다. pVM 사용자 영역 저장 구성요소는 자료를 일정 크기로 나누고, M-10의 GlobalPlatform 연결을 통해 TEE 암호 TA에 맡긴다. TEE가 돌려준 암호문과 인증값만 pVM 파일시스템과 `virtio-blk`로 내려간다.
+Workload가 일반 파일 쓰기 대신 M-11 (Secure Persistent Storage) 저장 API를 호출한다. pVM 사용자 영역 저장 구성요소는 자료를 일정 크기로 나누고, M-10 (Secure OS Adapter)의 GlobalPlatform 연결을 통해 TEE 암호 TA에 맡긴다. TEE가 돌려준 암호문과 인증값만 pVM 파일시스템과 `virtio-blk`로 내려간다.
 
 필요 구성요소는 다음과 같다.
 
-- pVM EL0: M-11 자료 저장 API, 조각 처리, 버전별 자료 목록 관리
-- pVM EL0/EL1: M-10 GlobalPlatform Client 구성요소와 보호된 TEE 드라이버
+- pVM EL0: M-11 (Secure Persistent Storage) 자료 저장 API, 조각 처리, 버전별 자료 목록 관리
+- pVM EL0/EL1: M-10 (Secure OS Adapter) GlobalPlatform Client 구성요소와 보호된 TEE 드라이버
 - TEE: Workload별 키, 인증 암호화, RPMB 확정
 - Host: `virtio-blk` 뒷단, P-01/P-02/P-03 중 하나의 공용 공간
 
@@ -290,11 +290,11 @@ left to right direction
 skinparam componentStyle rectangle
 package "pVM" #E8F5E9 {
   component "Workload" as W1
-  component "M-11 저장 API\n조각·자료 목록" as A1
+  component "M-11 (Secure Persistent Storage) 저장 API\n조각·자료 목록" as A1
   component "파일시스템" as F1
   component "virtio-blk 앞단" as V1
 }
-package "EL2" #FFF3CD { component "M-09 / M-10\n격리·보호 호출" as E1 }
+package "EL2" #FFF3CD { component "M-09 (DMA/S2MPU Isolation Controller) / M-10 (Secure OS Adapter)\n격리·보호 호출" as E1 }
 package "TEE" #E3F2FD { component "암호 TA" as T1; database "RPMB" as R1 }
 package "Host" #FDE2E2 { component "virtio-blk 뒷단" as H1; database "공용 UFS" as U1 }
 W1 --> A1 : 평문 저장 요청
@@ -317,16 +317,16 @@ pVM 안의 사용자 영역 파일시스템이 일반 파일 경로를 제공한
 
 ### 6.4 C-03: pVM 커널 파일 계층의 TEE 연동
 
-`fscrypt`와 비슷하게 파일 내용과 이름을 파일 계층에서 처리하되, 표준 `fscrypt`처럼 평문 키를 커널에 넣지 않는다. 파일 내용 조각과 파일 이름 처리를 TEE에 맡기도록 파일시스템 암호 경로와 M-10 커널 TEE 호출부를 연결해야 한다.
+`fscrypt`와 비슷하게 파일 내용과 이름을 파일 계층에서 처리하되, 표준 `fscrypt`처럼 평문 키를 커널에 넣지 않는다. 파일 내용 조각과 파일 이름 처리를 TEE에 맡기도록 파일시스템 암호 경로와 M-10 (Secure OS Adapter) 커널 TEE 호출부를 연결해야 한다.
 
 표준 `fscrypt`는 파일 내용과 이름을 보호하지만 크기, 권한, 시각 같은 다른 파일시스템 정보는 가리지 않는다. 하드웨어로 감싼 키를 쓰지 않으면 사용 중인 키가 커널 메모리에 있을 수 있다. 하드웨어로 감싼 키를 써도 파일 이름 처리 등에 쓰는 일부 비밀값은 소프트웨어에 남는다. 따라서 이번의 엄격한 키 조건에서는 표준 `fscrypt`를 그대로 쓰지 못한다.
 
 필요한 변경은 다음과 같다.
 
 - `fscrypt` 정책에 평문 키 대신 TEE 키 손잡이와 Workload·저장 공간 결합값을 둔다.
-- 파일 내용과 이름 암복호화를 M-10 커널 TEE 호출부에 맡긴다.
+- 파일 내용과 이름 암복호화를 M-10 (Secure OS Adapter) 커널 TEE 호출부에 맡긴다.
 - 비동기 완료, 취소, 조각 묶음 처리와 오류 전파를 추가한다.
-- 파일 단위 새판 쓰기와 RPMB 확정 순서를 M-11과 연결한다.
+- 파일 단위 새판 쓰기와 RPMB 확정 순서를 M-11 (Secure Persistent Storage)과 연결한다.
 
 응용프로그램 변경은 적지만 파일시스템 경로 변경 범위가 크고, 작은 파일과 파일 이름 처리에서 TEE 호출이 많아질 수 있다.
 
@@ -338,11 +338,11 @@ pVM 파일시스템 아래, `virtio-blk` 앞에 블록 변환 계층을 둔다. 
 
 | 구성요소 | 연결 모듈 | 책임 |
 |---|---|---|
-| 보안 블록 대상 | M-11 | 파일시스템의 블록 요청 가로채기, 조각 묶음, 암호문 요청 생성 |
-| TEE 암호 연결부 | M-10 | TA 연결, 공유 버퍼 수명, 비동기 완료·취소, 오류 전달 |
-| 분리 버퍼 관리자 | M-10·M-11 | pVM 전용 버퍼와 Host 공유 암호문 버퍼를 나누고 암호문만 복사 |
-| 인증값·확정 관리자 | M-11 | 블록별 인증값, 버전별 위치표, `root_hash`, `FLUSH`와 RPMB 순서 |
-| 저장 공간 결합 확인부 | M-05·M-06·M-11 | Workload·`storage_id`·pVM 세대 확인, 단일 쓰기 주체 유지 |
+| 보안 블록 대상 | M-11 (Secure Persistent Storage) | 파일시스템의 블록 요청 가로채기, 조각 묶음, 암호문 요청 생성 |
+| TEE 암호 연결부 | M-10 (Secure OS Adapter) | TA 연결, 공유 버퍼 수명, 비동기 완료·취소, 오류 전달 |
+| 분리 버퍼 관리자 | M-10 (Secure OS Adapter)·M-11 (Secure Persistent Storage) | pVM 전용 버퍼와 Host 공유 암호문 버퍼를 나누고 암호문만 복사 |
+| 인증값·확정 관리자 | M-11 (Secure Persistent Storage) | 블록별 인증값, 버전별 위치표, `root_hash`, `FLUSH`와 RPMB 순서 |
+| 저장 공간 결합 확인부 | M-05 (Workload Loader / Verifier)·M-06 (Protected Policy Authority)·M-11 (Secure Persistent Storage) | Workload·`storage_id`·pVM 세대 확인, 단일 쓰기 주체 유지 |
 | 파일시스템 | 기존 커널 | 암호화 여부를 모른 채 논리 블록 장치 사용 |
 | `virtio-blk` 앞단 | 기존 커널 | Host에 암호문 블록만 전달 |
 
@@ -355,11 +355,11 @@ left to right direction
 skinparam componentStyle rectangle
 package "pVM" #E8F5E9 {
   component "Workload·파일시스템" as W4
-  component "M-11 보안 블록 대상\n묶음·인증값·버전별 위치표" as D4
-  component "M-10 TEE 암호 연결부" as K4
+  component "M-11 (Secure Persistent Storage) 보안 블록 대상\n묶음·인증값·버전별 위치표" as D4
+  component "M-10 (Secure OS Adapter) TEE 암호 연결부" as K4
   component "virtio-blk 앞단" as V4
 }
-package "EL2" #FFF3CD { component "M-09 격리\nM-10 보호 호출" as E4 }
+package "EL2" #FFF3CD { component "M-09 (DMA/S2MPU Isolation Controller) 격리\nM-10 (Secure OS Adapter) 보호 호출" as E4 }
 package "TEE" #E3F2FD { component "암호 TA\n키·인증 암호화" as T4; database "RPMB\n버전·root_hash" as R4 }
 package "Host" #FDE2E2 { component "virtio-blk 뒷단" as H4; database "공용 UFS\n암호문·인증값·위치표" as U4 }
 W4 --> D4 : 평문 블록
@@ -382,7 +382,7 @@ T4 -[#1565C0]-> R4 : 최신 버전 확정
 
 ### 6.6 C-04의 하위 구현 B: 고친 dm-crypt와 TEE를 부르는 Linux Crypto API
 
-전용 블록 대상을 새로 만드는 대신 `dm-crypt`의 요청 나누기와 대기열 처리를 재사용한다. 평문 키를 넘기는 표준 경로는 쓰지 않는다. `dm-crypt`가 내용이 드러나지 않는 TEE 키 손잡이를 가진 암호 기능을 호출하고, 그 암호 기능이 M-10을 통해 TEE에 실제 처리를 맡기도록 커널을 고친다.
+전용 블록 대상을 새로 만드는 대신 `dm-crypt`의 요청 나누기와 대기열 처리를 재사용한다. 평문 키를 넘기는 표준 경로는 쓰지 않는다. `dm-crypt`가 내용이 드러나지 않는 TEE 키 손잡이를 가진 암호 기능을 호출하고, 그 암호 기능이 M-10 (Secure OS Adapter)을 통해 TEE에 실제 처리를 맡기도록 커널을 고친다.
 
 TEE 키 손잡이는 비밀키가 아니며, TEE가 Workload 식별자·저장 공간·세대에 다시 묶어 확인해야 한다. 손잡이만 훔쳐 다른 pVM이 TEE를 호출할 수 있어서는 안 된다.
 
@@ -407,7 +407,7 @@ pVM이 UFS 암호 장치의 키 슬롯을 Host와 분리해 직접 쓰는 장치
 
 ### 6.8 C-07: EL2가 연결하는 보호된 virtio-blk 경계
 
-pVM은 계속 `virtio-blk` 장치를 사용한다. 다만 평문 요청 버퍼를 Host에 바로 공유하지 않는다. EL2가 pVM 전용 버퍼와 Host 공유 암호문 버퍼의 소유권을 바꾸고, M-10을 통해 TEE 암호 처리를 연결한다. Host 뒷단에는 암호문 버퍼만 보인다.
+pVM은 계속 `virtio-blk` 장치를 사용한다. 다만 평문 요청 버퍼를 Host에 바로 공유하지 않는다. EL2가 pVM 전용 버퍼와 Host 공유 암호문 버퍼의 소유권을 바꾸고, M-10 (Secure OS Adapter)을 통해 TEE 암호 처리를 연결한다. Host 뒷단에는 암호문 버퍼만 보인다.
 
 이 구조는 pVM 파일시스템과 상위 블록 계층 변경을 줄일 수 있다. 대신 EL2가 `virtio-blk` 요청 상태, 버퍼 수명과 오류 복구를 알아야 하므로 [시스템 개요](../docs/01_시스템_개요.md)의 작은 EL2 코드 원칙과 충돌할 수 있다. 표준 `virtio-blk`만으로는 구현되지 않으며 보호된 앞단과 공유 규약이 필요하다.
 
@@ -415,15 +415,15 @@ pVM은 계속 `virtio-blk` 장치를 사용한다. 다만 평문 요청 버퍼�
 
 #### C-08A: 평문 요청을 처리하는 공용 암호 서비스
 
-별도 protected service pVM이 Workload pVM으로부터 M-07 보호 통신으로 평문 자료 또는 블록을 받고, TEE 암호 TA를 호출한 뒤 암호문을 돌려준다. Workload pVM은 돌려받은 암호문을 자신의 `virtio-blk` 장치에 쓴다.
+별도 protected service pVM이 Workload pVM으로부터 M-07 (Secure Inter-domain Channel) 보호 통신으로 평문 자료 또는 블록을 받고, TEE 암호 TA를 호출한 뒤 암호문을 돌려준다. Workload pVM은 돌려받은 암호문을 자신의 `virtio-blk` 장치에 쓴다.
 
 이렇게 하면 “Workload pVM이 Host 제공 `virtio-blk`를 마운트한다”는 조건을 유지할 수 있다. 그러나 서비스 pVM은 저장장치를 대신 소유하는 것이 아니라 암호 처리 요청만 중계한다. 서비스 pVM이 저장장치를 직접 마운트하고 Workload pVM에 다시 제공하면 고정된 직접 연결 경로가 바뀌므로 이번 후보에서 제외한다.
 
-C-08A에는 M-07 보호 통신, protected service pVM의 측정·부팅, Workload별 자원 제한과 장애 격리가 추가로 필요하다. 평문을 볼 수 있는 신뢰 영역이 Workload pVM에서 공용 protected service pVM까지 넓어진다. 따라서 C-01 또는 C-04의 책임을 옮길 수는 있지만, 별도의 신뢰 경계 확대 결정이 있어야 한다.
+C-08A에는 M-07 (Secure Inter-domain Channel) 보호 통신, protected service pVM의 측정·부팅, Workload별 자원 제한과 장애 격리가 추가로 필요하다. 평문을 볼 수 있는 신뢰 영역이 Workload pVM에서 공용 protected service pVM까지 넓어진다. 따라서 C-01 또는 C-04의 책임을 옮길 수는 있지만, 별도의 신뢰 경계 확대 결정이 있어야 한다.
 
 #### C-08B: 내용을 보지 않는 호출 제어 서비스
 
-protected service pVM이 평문을 매핑하지 않고 TEE 호출 순서, 연결 수, 요청량과 시간 제한만 관리한다. 실제 자료는 Workload pVM과 TEE 사이에서 끝까지 보호된다. 이 구조는 암호 위치 후보가 아니라 M-10 호출 전달 책임의 후보다. 추가 실행 전환과 공용 장애점이 있으므로 D-09B에서 직접 경로와 비교한다.
+protected service pVM이 평문을 매핑하지 않고 TEE 호출 순서, 연결 수, 요청량과 시간 제한만 관리한다. 실제 자료는 Workload pVM과 TEE 사이에서 끝까지 보호된다. 이 구조는 암호 위치 후보가 아니라 M-10 (Secure OS Adapter) 호출 전달 책임의 후보다. 추가 실행 전환과 공용 장애점이 있으므로 D-09B에서 직접 경로와 비교한다.
 
 같은 쓰기 장치를 Workload pVM과 protected service pVM에 동시에 연결하는 구조는 제외한다. 파일시스템과 블록 갱신 충돌을 막을 수 없고, 단일 쓰기 세대 조건에도 맞지 않는다.
 
@@ -433,7 +433,7 @@ protected service pVM이 평문을 매핑하지 않고 TEE 호출 순서, 연결
 
 GlobalPlatform TEE Client API의 등록 공유 메모리는 클라이언트 프로그램(`Client Application`)이 가진 메모리를 TEE와 공유한다. Host Application이 이 클라이언트 프로그램이면 암호화 전에 평문이 Host 메모리에 있다. RPMB가 있어도 이 노출은 없어지지 않는다. 따라서 C-09는 제외한다.
 
-Host가 내용을 읽지 못한 채 보호된 요청을 옮기기만 하는 구조는 가능하다. 그러나 이는 “Host 직접 암호화”가 아니라 M-10의 보호 호출 중계이며 C-01·C-03·C-04에 붙는 별도 전송 선택이다.
+Host가 내용을 읽지 못한 채 보호된 요청을 옮기기만 하는 구조는 가능하다. 그러나 이는 “Host 직접 암호화”가 아니라 M-10 (Secure OS Adapter)의 보호 호출 중계이며 C-01·C-03·C-04에 붙는 별도 전송 선택이다.
 
 #### 표준 dm-crypt, fscrypt와 TEE 봉인 키
 
@@ -459,45 +459,45 @@ TEE가 자료 암호 키를 pVM 사용자 영역 프로그램에 주는 C-17도 
 
 ## 7. C-04 커널 구조의 구체적인 동작
 
-사용자가 요청한 커널 모듈과 EL2·TEE의 연결을 C-04를 기준으로 자세히 적는다. C-03과 C-04 하위 구현 B도 같은 M-10·M-11·RPMB 부분을 재사용한다.
+사용자가 요청한 커널 모듈과 EL2·TEE의 연결을 C-04를 기준으로 자세히 적는다. C-03과 C-04 하위 구현 B도 같은 M-10 (Secure OS Adapter)·M-11 (Secure Persistent Storage)·RPMB 부분을 재사용한다.
 
 ### 7.1 쓰기
 
 1. 파일시스템이 논리 블록 쓰기를 보안 블록 대상에 보낸다.
 2. 보안 블록 대상은 연속 블록을 제한된 크기의 묶음으로 모은다.
 3. 저장 공간 결합 확인부가 `stable_workload_id`, `storage_id`, `writer_generation`을 붙인다.
-4. TEE 암호 연결부가 M-10 보호 경로로 암호 TA를 호출한다.
+4. TEE 암호 연결부가 M-10 (Secure OS Adapter) 보호 경로로 암호 TA를 호출한다.
 5. 암호 TA가 키를 TEE 안에서 선택하고, Workload·저장 공간·키 세대·논리 블록 번호·새 버전을 추가 인증 자료에 넣어 인증 암호화한다. 같은 키에서 다시 쓰지 않을 `nonce`도 만든다.
 6. 버퍼 관리자는 평문과 분리된 Host 공유 버퍼에 암호문과 인증값을 놓는다.
 7. 보안 블록 대상은 암호문과 인증값을 논리 장치의 새 저장 위치에 쓰도록 `virtio-blk`에 보낸다.
 8. 인증값·확정 관리자가 버전별 위치표를 새로 만들고 `FLUSH` 완료를 기다린다.
-9. pVM은 M-10을 통해 완료 응답과 위치표 확인값을 TEE에 전달한다. TEE가 실제 UFS 기록을 독자적으로 확인한 것은 아니다.
+9. pVM은 M-10 (Secure OS Adapter)을 통해 완료 응답과 위치표 확인값을 TEE에 전달한다. TEE가 실제 UFS 기록을 독자적으로 확인한 것은 아니다.
 10. TEE가 위치표 확인값을 검증한 뒤 RPMB의 최신 버전을 바꾼다.
-11. M-11이 이전 위치를 회수 가능한 목록에 넣는다.
+11. M-11 (Secure Persistent Storage)이 이전 위치를 회수 가능한 목록에 넣는다.
 
 ### 7.2 읽기
 
 1. 재연결 때 TEE가 RPMB에서 Workload의 확정 버전과 `root_hash`를 읽는다.
-2. M-11은 UFS에서 해당 버전의 위치표와 암호문을 Host 공유 버퍼로 읽는다.
+2. M-11 (Secure Persistent Storage)은 UFS에서 해당 버전의 위치표와 암호문을 Host 공유 버퍼로 읽는다.
 3. 분리 버퍼 관리자는 읽기 완료 뒤 암호문과 인증값을 pVM 전용 버퍼에 한 번 복사한다. 복사 중 Host가 값을 바꾸면 뒤의 인증 확인이 실패해야 한다.
 4. TEE 또는 TEE가 확인한 단계별 검증기가 pVM 전용 복사본으로 위치표의 `root_hash`를 확인한다.
 5. 보안 블록 대상은 필요한 암호문 블록과 인증값을 묶어 TEE에 보낸다.
 6. TEE는 Workload·저장 공간·논리 블록·버전 결합과 인증값을 확인한다.
 7. 확인에 성공한 평문만 별도의 pVM 전용 평문 버퍼를 통해 파일시스템에 돌려준다.
-8. 하나라도 맞지 않으면 평문을 돌려주지 않고 M-04에 저장 오류를 알린다.
+8. 하나라도 맞지 않으면 평문을 돌려주지 않고 M-04 (Fault/Recovery Manager)에 저장 오류를 알린다.
 
-이 절은 D-26의 “분리 버퍼”를 기준으로 한다. 같은 페이지를 Host 공유 상태와 pVM 전용 상태로 바꾸는 대안을 고르면 pVM 구성요소가 전환을 요청하고, EL2의 M-09가 진행 중 DMA 종료와 Host 접근 회수를 확인한 뒤 실제 전환을 집행해야 한다.
+이 절은 D-26의 “분리 버퍼”를 기준으로 한다. 같은 페이지를 Host 공유 상태와 pVM 전용 상태로 바꾸는 대안을 고르면 pVM 구성요소가 전환을 요청하고, EL2의 M-09 (DMA/S2MPU Isolation Controller)가 진행 중 DMA 종료와 Host 접근 회수를 확인한 뒤 실제 전환을 집행해야 한다.
 
 ### 7.3 모듈 사이의 책임 경계
 
 | 실행 위치 | 모듈 | 해야 하는 일 | 하면 안 되는 일 |
 |---|---|---|---|
-| Host EL0/EL1 | M-11 공용 공간·`virtio-blk` 뒷단 | 암호문 저장, 쓴 만큼 할당, 용량 제한, 재연결·회수 실행 | 평문 처리, 최신 버전 결정, Workload 결합 최종 승인 |
-| Host EL0/EL1 | M-04 | 장애 감지, 재연결·정리 절차 시작 | Host 상태만 보고 정상 버전 확정 |
-| pVM EL1 | M-11 보안 블록 대상 | 블록 묶음, 버전별 위치표, 쓰기 순서 | 평문 키 보관 |
-| pVM EL1 | M-10 TEE 호출부·분리 버퍼 관리자 | TA 연결, 완료·취소, pVM 전용 버퍼와 Host 공유 암호문 버퍼 사이의 암호문 복사 | Host가 볼 수 있는 버퍼에 평문 놓기, EL2 권한을 직접 변경하기 |
-| EL2 | M-09·M-10 | pVM 메모리 격리, 호출 주체·세대 보존, 필요 시 보호 호출 전달. D-26의 페이지 전환을 고르면 공유 상태를 실제 집행 | 암호 키 보관, 파일시스템·위치표 처리 |
-| TEE | M-05·M-06 연동 | 검증된 Workload와 정책에 따른 사용 허가 | Host 식별자 주장만 신뢰 |
+| Host EL0/EL1 | M-11 (Secure Persistent Storage) 공용 공간·`virtio-blk` 뒷단 | 암호문 저장, 쓴 만큼 할당, 용량 제한, 재연결·회수 실행 | 평문 처리, 최신 버전 결정, Workload 결합 최종 승인 |
+| Host EL0/EL1 | M-04 (Fault/Recovery Manager) | 장애 감지, 재연결·정리 절차 시작 | Host 상태만 보고 정상 버전 확정 |
+| pVM EL1 | M-11 (Secure Persistent Storage) 보안 블록 대상 | 블록 묶음, 버전별 위치표, 쓰기 순서 | 평문 키 보관 |
+| pVM EL1 | M-10 (Secure OS Adapter) TEE 호출부·분리 버퍼 관리자 | TA 연결, 완료·취소, pVM 전용 버퍼와 Host 공유 암호문 버퍼 사이의 암호문 복사 | Host가 볼 수 있는 버퍼에 평문 놓기, EL2 권한을 직접 변경하기 |
+| EL2 | M-09 (DMA/S2MPU Isolation Controller)·M-10 (Secure OS Adapter) | pVM 메모리 격리, 호출 주체·세대 보존, 필요 시 보호 호출 전달. D-26의 페이지 전환을 고르면 공유 상태를 실제 집행 | 암호 키 보관, 파일시스템·위치표 처리 |
+| TEE | M-05 (Workload Loader / Verifier)·M-06 (Protected Policy Authority) 연동 | 검증된 Workload와 정책에 따른 사용 허가 | Host 식별자 주장만 신뢰 |
 | TEE | 암호 TA | 키 선택, 인증 암복호화, 논리 위치·버전 결합 | 큰 암호문 영구 보관 |
 | TEE | RPMB 상태 관리자 | 최신 버전, `root_hash`, 쓰기 세대를 RPMB의 안전 갱신 단위에 맞춰 변경 | UFS 전체 위치표 저장 |
 
@@ -511,10 +511,10 @@ TEE가 자료 암호 키를 pVM 사용자 영역 프로그램에 주는 C-17도 
 |---|---|---|---|---|
 | D-01 | C-01 명시적 저장 API | C-02 마운트형 사용자 파일시스템 | 응용프로그램이 전용 API를 쓸지, 일반 파일 경로를 유지할지 | 사용자 영역 암호 처리 선택 |
 | D-02 | C-02 사용자 영역 파일시스템 | C-03 커널 파일 계층 | 파일 단위 처리를 pVM EL0에 둘지 EL1에 둘지 | C-03의 TEE 연동 가능성 확인 |
-| D-03 | C-03 커널 파일 계층 | C-04 커널 블록 계층 | 커널 안에서 파일 단위로 처리할지 블록 단위로 처리할지 | 같은 M-10 보호 호출 전제 |
+| D-03 | C-03 커널 파일 계층 | C-04 커널 블록 계층 | 커널 안에서 파일 단위로 처리할지 블록 단위로 처리할지 | 같은 M-10 (Secure OS Adapter) 보호 호출 전제 |
 | D-05 | C-04 pVM 커널·TEE 처리 | C-06 저장 암호 장치 처리 | 블록 암호 연산을 TEE에 맡길지 하드웨어에 맡길지 | C-06용 보호된 virtio·키 슬롯 경로 필요 |
 | D-06 | C-04 pVM 커널 경계 | C-07 EL2 virtio 경계 | 블록 암호 연결 책임을 pVM EL1에 둘지 EL2에 둘지 | EL2 범위 확대 허용 여부 |
-| D-07 | C-01 Workload pVM 사용자 영역 | C-08A protected service pVM | 자료 단위 평문 처리 경계를 각 Workload에 한정할지 공용 pVM까지 넓힐지 | M-07 보호 통신, 서비스 pVM 신뢰 확립과 신뢰 경계 확대 승인 |
+| D-07 | C-01 Workload pVM 사용자 영역 | C-08A protected service pVM | 자료 단위 평문 처리 경계를 각 Workload에 한정할지 공용 pVM까지 넓힐지 | M-07 (Secure Inter-domain Channel) 보호 통신, 서비스 pVM 신뢰 확립과 신뢰 경계 확대 승인 |
 | D-08 | C-04 Workload pVM 블록 계층 | C-08A의 블록 처리형 | 블록 단위 평문 처리 경계를 각 Workload에 한정할지 공용 pVM까지 넓힐지 | 직접 `virtio-blk` 마운트를 유지하는 암호문 반환 경로 필요 |
 
 D-05~D-08의 후보 B는 현재 조건에서 바로 선택할 수 없다. 필요한 선행 조건을 추가할지 먼저 정해야 하므로 후속 Decision Point로만 남긴다.
@@ -527,7 +527,7 @@ C-01과 C-04는 현재 조건에서 가장 넓게 비교할 수 있는 대표 �
 
 | 쌍 | 후보 A | 후보 B | 결정 질문 |
 |---|---|---|---|
-| D-09A | pVM에서 EL2 보호 경로로 TEE 직접 전달 | Host가 읽지 못하는 보호 요청을 단순 중계 | M-10 호출 전달 책임을 EL2에 둘지 Host 중계부에 둘지 |
+| D-09A | pVM에서 EL2 보호 경로로 TEE 직접 전달 | Host가 읽지 못하는 보호 요청을 단순 중계 | M-10 (Secure OS Adapter) 호출 전달 책임을 EL2에 둘지 Host 중계부에 둘지 |
 | D-09B | pVM에서 EL2 보호 경로로 TEE 직접 전달 | C-08B protected service pVM이 내용을 보지 않고 호출 제어 | 호출량·연결 제어를 각 pVM 경로에 둘지 공용 protected service pVM에 둘지 |
 | D-09C | Host가 읽지 못하는 보호 요청을 단순 중계 | C-08B protected service pVM이 내용을 보지 않고 호출 제어 | 비신뢰 중계부에는 전달만 맡길지, 검증된 공용 pVM에 연결·요청량 제어까지 맡길지 |
 
@@ -549,11 +549,11 @@ P-01~P-04는 모두 암호문 아래에서 동작하며 암호 처리 위치와 
 | 쌍 | 후보 A | 후보 B | 구조 차이 |
 |---|---|---|---|
 | D-12 | P-01 Device Mapper 공용 공간 | P-02 희소 저장 파일 | Host의 블록 계층이 할당할지 파일시스템이 할당할지 |
-| D-13 | P-01 Device Mapper 공용 공간 | P-03 M-11 공용 블록 묶음 저장소 | 기존 블록 할당기를 쓸지 M-11이 위치표와 할당을 함께 소유할지 |
-| D-14 | P-02 희소 저장 파일 | P-03 M-11 공용 블록 묶음 저장소 | 파일별 수명 관리를 쓸지 공용 블록 위치표를 직접 관리할지 |
+| D-13 | P-01 Device Mapper 공용 공간 | P-03 M-11 (Secure Persistent Storage) 공용 블록 묶음 저장소 | 기존 블록 할당기를 쓸지 M-11 (Secure Persistent Storage)이 위치표와 할당을 함께 소유할지 |
+| D-14 | P-02 희소 저장 파일 | P-03 M-11 (Secure Persistent Storage) 공용 블록 묶음 저장소 | 파일별 수명 관리를 쓸지 공용 블록 위치표를 직접 관리할지 |
 | D-15 | P-01 Device Mapper 공용 공간 | P-04 공용 기본 이미지와 변경 블록 | 모든 기록 블록을 Workload별로 둘지 공통 읽기 전용 블록을 나눠 쓸지 |
 | D-16 | P-02 희소 저장 파일 | P-04 공용 기본 이미지와 변경 블록 | Workload별 희소 파일만 쓸지 공통 읽기 전용 블록을 나눠 쓸지 |
-| D-17 | P-03 M-11 공용 블록 묶음 저장소 | P-04 공용 기본 이미지와 변경 블록 | 모든 블록 묶음을 Workload별로 둘지 읽기 전용 블록 묶음을 공통으로 둘지 |
+| D-17 | P-03 M-11 (Secure Persistent Storage) 공용 블록 묶음 저장소 | P-04 공용 기본 이미지와 변경 블록 | 모든 블록 묶음을 Workload별로 둘지 읽기 전용 블록 묶음을 공통으로 둘지 |
 
 제품 이름만 고르는 수준이면 D-12~D-17은 Decision Point가 아니다. 위치표 소유자, 복구 책임과 장애 경계가 실제로 달라질 때만 구조 결정으로 올린다. P-04 관련 쌍은 공통 초기 자료가 있을 때만 비교한다.
 
@@ -667,7 +667,7 @@ P-01~P-04의 공용 공간 네 가지와 C-01~C-04의 암호 처리 네 가지�
 | [Linux blk-crypto](https://docs.kernel.org/block/inline-encryption.html), [dm-inlinecrypt](https://docs.kernel.org/admin-guide/device-mapper/dm-inlinecrypt.html) | 입출력 요청의 암호 문맥을 저장 암호 장치에 전달하며 하드웨어로 감싼 키를 지원할 수 있다. 소프트웨어 대신 처리하는 경로는 그 키를 지원하지 않는다. | C-06은 실제 저장 암호 장치까지 보호된 전달 경로가 있을 때만 가능하다. |
 | [virtio 1.4](https://docs.oasis-open.org/virtio/virtio/v1.4/virtio-v1.4.pdf) | `virtio-blk`는 `FLUSH`, `DISCARD`, `WRITE_ZEROES` 등을 정한다. 기능 목록과 요청 형식에는 `blk-crypto` 암호 문맥 전달 항목이 없다. | 표준 전달 방법이 없다는 것은 기능 목록을 바탕으로 한 설계 판단이다. |
 | [Device Mapper thin provisioning](https://docs.kernel.org/admin-guide/device-mapper/thin-provisioning.html) | 여러 논리 장치가 공용 자료 공간을 쓰고, 기록할 때 물리 블록을 할당할 수 있다. | 큰 전용 물리 볼륨을 pVM마다 미리 떼지 않는 P-01의 근거다. |
-| [Linux TEE subsystem](https://docs.kernel.org/6.2/staging/tee.html) | 사용자 영역뿐 아니라 커널 TEE 호출 드라이버도 TA와 통신할 수 있다. | C-03~C-04에서 pVM 커널이 M-10을 통해 TEE를 부를 수 있는 근거다. |
+| [Linux TEE subsystem](https://docs.kernel.org/6.2/staging/tee.html) | 사용자 영역뿐 아니라 커널 TEE 호출 드라이버도 TA와 통신할 수 있다. | C-03~C-04에서 pVM 커널이 M-10 (Secure OS Adapter)을 통해 TEE를 부를 수 있는 근거다. |
 | [GlobalPlatform TEE Client API](https://globalplatform.org/specs-library/tee-client-api-specification/) | 클라이언트 프로그램이 가진 메모리를 TEE 공유 메모리로 등록한다. | Host가 클라이언트 프로그램이면서 평문을 넣는 C-09가 실패하는 근거다. |
 | [OP-TEE Secure Storage](https://optee.readthedocs.io/en/latest/architecture/secure_storage.html) | REE 파일 저장과 RPMB 저장을 지원하며, RPMB로 이전 상태 되돌리기 보호를 제공할 수 있다. 큰 자료와 작은 최신 상태를 나누는 구성도 설명한다. | UFS에 암호문, RPMB에 최신 버전과 확인값을 두는 공통 구조의 선례다. |
 | [Linux Trusted and Encrypted Keys](https://kernel.org/doc/html/latest/security/keys/trusted-encrypted.html) | 사용자 영역은 봉인 키 자료를 보관할 수 있고 TEE를 신뢰 근원으로 쓸 수 있다. | 봉인 보관과 사용 중 키 노출은 다른 문제임을 확인한다. |
@@ -723,7 +723,7 @@ Herdr의 Claude에게 고정 조건과 후보 목록을 주고 누락, 성립 �
 - C-01 사용자 영역 처리와 C-04 커널 블록 처리가 현재 조건에서 우선 검증할 수 있는 대표 구조다.
 - RPMB 확정은 새 암호문과 새 위치표 기록, `FLUSH`, RPMB 갱신, 이전 자료 회수 순서여야 한다.
 - 별도 protected service pVM도 설계 공간에는 들어간다. 평문을 처리하는 C-08A는 신뢰 경계를 넓히는 별도 결정이 필요하고, 내용을 보지 않는 C-08B는 암호 위치가 아니라 호출 제어 구조다. 저장장치를 대신 소유하면 고정 경로를 바꾸므로 제외했다.
-- 완성 문서 재검토에서 pVM이 `FLUSH` 완료 응답을 M-10으로 TEE에 알려야 한다는 단계와, 다시 쓰기 기록 방식의 RPMB 상태·중단 복구 행을 보완했다.
+- 완성 문서 재검토에서 pVM이 `FLUSH` 완료 응답을 M-10 (Secure OS Adapter)으로 TEE에 알려야 한다는 단계와, 다시 쓰기 기록 방식의 RPMB 상태·중단 복구 행을 보완했다.
 - C-04의 전용 대상과 고친 `dm-crypt`는 책임·실행 위치·신뢰 경계가 같으므로 별도 Decision Point가 아니라 C-04의 두 하위 구현으로 합쳤다.
 - C-04의 기준 버퍼 방식은 평문용 pVM 전용 버퍼와 Host 공유 암호문 버퍼를 분리하는 것으로 고쳤다. 같은 페이지 전환은 D-26의 조건부 대안으로만 남겼다.
 
