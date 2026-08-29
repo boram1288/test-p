@@ -107,7 +107,6 @@ P-04의 기본 이미지는 읽기 전용이고 서명 또는 고정된 확인�
 ```plantuml
 @startuml
 title 공통 저장 배치: Workload 논리 장치 하나와 공용 물리 공간
-left to right direction
 skinparam componentStyle rectangle
 
 package "신뢰·격리 pVM" #E8F5E9 {
@@ -286,7 +285,6 @@ Workload가 일반 파일 쓰기 대신 M-11 (Secure Persistent Storage) 저장 
 ```plantuml
 @startuml
 title C-01: pVM 사용자 영역의 명시적 자료 저장 API
-left to right direction
 skinparam componentStyle rectangle
 package "pVM" #E8F5E9 {
   component "Workload" as W1
@@ -359,7 +357,6 @@ TEE에는 Workload별 키를 가진 암호 TA와 RPMB 상태 관리가 필요하
 ```plantuml
 @startuml
 title C-04: pVM 커널의 전용 Device Mapper 대상
-left to right direction
 skinparam componentStyle rectangle
 package "pVM" #E8F5E9 {
   component "Workload·파일시스템" as W4
