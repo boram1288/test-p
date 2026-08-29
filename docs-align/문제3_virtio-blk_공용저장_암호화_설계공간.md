@@ -294,9 +294,17 @@ package "pVM" #E8F5E9 {
   component "파일시스템" as F1
   component "virtio-blk 앞단" as V1
 }
-package "EL2" #FFF3CD { component "M-09 (DMA/S2MPU Isolation Controller) / M-10 (Secure OS Adapter)\n격리·보호 호출" as E1 }
-package "TEE" #E3F2FD { component "암호 TA" as T1; database "RPMB" as R1 }
-package "Host" #FDE2E2 { component "virtio-blk 뒷단" as H1; database "공용 UFS" as U1 }
+package "EL2" #FFF3CD {
+  component "M-09 (DMA/S2MPU Isolation Controller) / M-10 (Secure OS Adapter)\n격리·보호 호출" as E1
+}
+package "TEE" #E3F2FD {
+  component "암호 TA" as T1
+  database "RPMB" as R1
+}
+package "Host" #FDE2E2 {
+  component "virtio-blk 뒷단" as H1
+  database "공용 UFS" as U1
+}
 W1 --> A1 : 평문 저장 요청
 A1 --> E1 : 평문 조각·확인된 식별자
 E1 --> T1
@@ -359,9 +367,17 @@ package "pVM" #E8F5E9 {
   component "M-10 (Secure OS Adapter) TEE 암호 연결부" as K4
   component "virtio-blk 앞단" as V4
 }
-package "EL2" #FFF3CD { component "M-09 (DMA/S2MPU Isolation Controller) 격리\nM-10 (Secure OS Adapter) 보호 호출" as E4 }
-package "TEE" #E3F2FD { component "암호 TA\n키·인증 암호화" as T4; database "RPMB\n버전·root_hash" as R4 }
-package "Host" #FDE2E2 { component "virtio-blk 뒷단" as H4; database "공용 UFS\n암호문·인증값·위치표" as U4 }
+package "EL2" #FFF3CD {
+  component "M-09 (DMA/S2MPU Isolation Controller) 격리\nM-10 (Secure OS Adapter) 보호 호출" as E4
+}
+package "TEE" #E3F2FD {
+  component "암호 TA\n키·인증 암호화" as T4
+  database "RPMB\n버전·root_hash" as R4
+}
+package "Host" #FDE2E2 {
+  component "virtio-blk 뒷단" as H4
+  database "공용 UFS\n암호문·인증값·위치표" as U4
+}
 W4 --> D4 : 평문 블록
 D4 --> K4 : 여러 블록 한 묶음
 K4 --> E4
