@@ -22,8 +22,8 @@
 ## 읽기 과정
 
 1. 보안 소프트웨어가 주소와 새 `Nonce`를 장치에 보낸다.
-2. 장치는 데이터, `Nonce`, `MAC`을 반환한다.
-3. 보안 소프트웨어는 `Nonce`와 `MAC`을 확인한다.
+2. 장치는 데이터, `Nonce`, `HMAC`을 반환한다.
+3. 보안 소프트웨어는 `Nonce`와 `HMAC`을 확인한다.
 4. 보안 소프트웨어는 두 값이 모두 올바를 때만 데이터를 신뢰한다.
 
 ### 읽기 실패
@@ -39,15 +39,15 @@ note right of SecureSoftware
 end note
 
 alt Nonce 불일치
-    RPMBDevice --> SecureSoftware: 데이터, Nonce = 0x1122, MAC 반환
+    RPMBDevice --> SecureSoftware: 데이터, Nonce = 0x1122, HMAC 반환
     note right of SecureSoftware
       요청 값 0xA1B2와 응답 값 0x1122가 다르므로
       보안 소프트웨어는 과거 응답으로 판단하고 폐기한다.
     end note
-else MAC 불일치
-    RPMBDevice --> SecureSoftware: 데이터, Nonce = 0xA1B2, 잘못된 MAC 반환
+else HMAC 불일치
+    RPMBDevice --> SecureSoftware: 데이터, Nonce = 0xA1B2, 잘못된 HMAC 반환
     note right of SecureSoftware
-      Nonce는 같지만 계산한 MAC과 응답의 MAC이 다르므로
+      Nonce는 같지만 계산한 HMAC과 응답의 HMAC이 다르므로
       보안 소프트웨어는 변경되거나 위조된 응답으로 판단하고 폐기한다.
     end note
 end
@@ -57,10 +57,10 @@ end
 ## 쓰기 과정
 
 1. 보안 소프트웨어가 현재 `Write Counter`를 읽는다.
-2. 보안 소프트웨어는 데이터, 주소, `Write Counter`로 `MAC`을 생성하여 장치에 보낸다.
-3. 장치는 `MAC`과 `Write Counter`를 확인한다.
+2. 보안 소프트웨어는 데이터, 주소, `Write Counter`로 `HMAC`을 생성하여 장치에 보낸다.
+3. 장치는 `HMAC`과 `Write Counter`를 확인한다.
 4. 장치는 검증에 성공하면 데이터를 기록하고 `Write Counter`를 증가시킨다.
-5. 보안 소프트웨어는 장치가 반환한 결과의 `MAC`을 확인한다.
+5. 보안 소프트웨어는 장치가 반환한 결과의 `HMAC`을 확인한다.
 
 ### 쓰기 실패
 
@@ -72,15 +72,15 @@ participant "RPMB 장치" as RPMBDevice
 SecureSoftware -> RPMBDevice: 현재 Write Counter 요청
 RPMBDevice --> SecureSoftware: Write Counter = 42 반환
 
-alt MAC 불일치
-    SecureSoftware -> RPMBDevice: 데이터, 주소, Write Counter = 42, 잘못된 MAC 전달
+alt HMAC 불일치
+    SecureSoftware -> RPMBDevice: 데이터, 주소, Write Counter = 42, 잘못된 HMAC 전달
     note right of RPMBDevice
-      장치가 계산한 MAC과 요청의 MAC이 다르므로
+      장치가 계산한 HMAC과 요청의 HMAC이 다르므로
       장치는 인증 실패로 판단하고 쓰기를 수행하지 않는다.
     end note
     RPMBDevice --> SecureSoftware: 인증 실패, Write Counter = 42
 else Write Counter 불일치
-    SecureSoftware -> RPMBDevice: 데이터, 주소, Write Counter = 41, MAC 전달
+    SecureSoftware -> RPMBDevice: 데이터, 주소, Write Counter = 41, HMAC 전달
     note right of RPMBDevice
       현재 값 42와 요청 값 41이 다르므로
       장치는 과거 요청으로 판단하고 쓰기를 수행하지 않는다.
@@ -94,6 +94,6 @@ end
 
 - 장치는 `Write Counter`가 맞지 않는 과거 쓰기 요청을 거부한다.
 - 보안 소프트웨어는 `Nonce`가 맞지 않는 과거 읽기 응답을 거부한다.
-- 보안 소프트웨어는 `MAC` 검증으로 데이터 변경을 탐지한다.
+- 보안 소프트웨어는 `HMAC` 검증으로 데이터 변경을 탐지한다.
 - `RPMB`는 데이터 암호화를 보장하지 않는다.
 - 사용자는 `Authentication Key`가 노출된 경우 `RPMB`의 보호 기능을 신뢰할 수 없다.
