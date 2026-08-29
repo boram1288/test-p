@@ -34,9 +34,6 @@ participant "보안 소프트웨어" as SecureSoftware
 participant "RPMB 장치" as RPMBDevice
 
 SecureSoftware -> RPMBDevice: 주소와 Nonce = 0xA1B2 전달
-note right of SecureSoftware
-  0xA1B2는 이해를 위한 축약 예시 값이다.
-end note
 
 alt Nonce 불일치
     RPMBDevice --> SecureSoftware: 데이터, Nonce = 0x1122, HMAC 반환
