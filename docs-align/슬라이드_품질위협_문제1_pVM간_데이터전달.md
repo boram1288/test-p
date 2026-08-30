@@ -70,4 +70,4 @@ FREE → CAMERA_OWNED → IN_TRANSFER → AI_OWNED → RECLAIMING → FREE
 
 `FR-05` · `VOS-01/09` · `QS-01/02/04/06/07`
 
-> 상세 근거: [강한 격리로 인한 pVM 간 데이터 전달 공백](품질위협_문제2_pVM간_데이터전달.md)
+> 상세 근거: [강한 격리로 인한 pVM 간 데이터 전달 공백](품질위협_문제1_pVM간_데이터전달.md)
