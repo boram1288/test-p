@@ -47,8 +47,8 @@ Gate는 충족/미충족으로 판정하고, 성능은 연속적인 보존율과
 
 | 환경 | 일반파일 | 암호파일 |
 |---|---|---|
-| Baremetal | **BM-P**: Workload → VFS/FS → Block Layer → UFS | **BM-E**: Workload → GP TEE API/TA → VFS/FS → Block Layer → UFS |
-| VM | **VM-P**: Workload → VFS → Guest FS → Guest Block Layer → virtio-blk → UFS | **VM-E**: Workload → GP TEE API/TA → VFS → Guest FS → Guest Block Layer → virtio-blk → UFS |
+| Baremetal | **BM-P**: App → FS → UFS | **BM-E**: App → GP API/TEE → FS → UFS |
+| VM | **VM-P**: pVM App → Guest FS → virtio-blk → UFS | **VM-E**: pVM App → GP API/TEE → Guest FS → virtio-blk → UFS |
 
 네 조건은 다음 항목을 동일하게 유지해야 한다.
 
@@ -68,80 +68,22 @@ fscrypt, dm-crypt/LUKS, QEMU image encryption을 사용하는 경우에는 각 �
 
 ### 3.1 VM 환경의 일반파일·암호파일 Read/Write 흐름
 
-VFS는 Guest FS 전체가 아니라 ext4/F2FS 같은 실제 파일시스템을 호출하는 추상화
-계층이다. 따라서 VFS와 virtio-blk 사이에 Guest FS와 Guest Block Layer를 표시한다.
+virtio-blk frontend는 VM 내부, backend는 VM 외부의 저장장치 처리 영역에 위치한다고
+가정한다. Read는 요청 전달과 데이터 반환 방향을 나누어 표현한다.
 
-#### 공통 VM 저장 경로
+| 파일·동작 | 처리 순서 |
+|---|---|
+| 일반파일 Write | Workload → VFS → virtio-blk(frontend) → EL2 → virtio-blk(backend) → 저장장치 |
+| 일반파일 Read 요청 | Workload → VFS → virtio-blk(frontend) → EL2 → virtio-blk(backend) → 저장장치 |
+| 일반파일 Read 반환 | 저장장치 → virtio-blk(backend) → EL2 → virtio-blk(frontend) → VFS → Workload |
+| 암호파일 Write | Workload(평문) → VFS → 암호화 → virtio-blk(frontend) → EL2 → virtio-blk(backend) → 저장장치(암호문) |
+| 암호파일 Read 요청 | Workload → VFS → 암·복호화 모듈 → virtio-blk(frontend) → EL2 → virtio-blk(backend) → 저장장치 |
+| 암호파일 Read 반환 | 저장장치(암호문) → virtio-blk(backend) → EL2 → virtio-blk(frontend) → 복호화 → VFS → Workload(평문) |
 
-```text
-[pVM Guest: EL0/EL1]
-Workload
-  → VFS
-  → Guest FS (ext4/F2FS)
-  → Guest Block Layer (bio/blk-mq)
-  → virtio-blk frontend
-  → Virtqueue / Shared Buffer + Notification
-
-[Host]
-  → virtio-blk backend (crosvm)
-  → Host I/O Stack
-  → Storage
-```
-
-pKVM/EL2는 payload가 순서대로 통과하는 저장장치 처리 모듈이 아니다. 위 경로를
-감싸면서 VM 격리, Stage-2 주소 변환, 공유 메모리 접근 및 trap/notification을 통제하는
-경계로 표현한다.
-
-```text
-[pVM Guest]                 [Shared I/O Boundary]                 [Host]
-virtio-blk frontend → Virtqueue / Shared Buffer → virtio-blk backend(crosvm)
-                               ↑
-            pKVM/EL2: Stage-2 격리·페이지 공유·trap/notification 통제
-```
-
-#### 일반파일
-
-```text
-Write
-Workload(평문) → VFS → Guest FS → Guest Block Layer
-→ virtio-blk frontend → Virtqueue/Shared Buffer → backend → Host I/O → Storage(평문)
-
-Read 요청
-Workload → VFS → Guest FS → Guest Block Layer
-→ virtio-blk frontend → Virtqueue/Shared Buffer → backend → Host I/O → Storage
-
-Read 반환
-Storage(평문) → Host I/O → backend → Virtqueue/Shared Buffer → virtio-blk frontend
-→ Guest Block Layer → Guest FS → VFS → Workload(평문)
-```
-
-#### 암호파일 — GP TEE Client API/TA 암호화 방식
-
-```text
-Write
-Workload(평문) → GP TEE API/TA 암호화 → 암호문 반환 → write()/VFS
-→ Guest FS → Guest Block Layer → virtio-blk frontend
-→ Virtqueue/Shared Buffer → backend → Host I/O → Storage(암호문)
-
-Read 요청 및 암호문 반환
-Workload → read()/VFS → Guest FS → Guest Block Layer → virtio-blk frontend
-→ Virtqueue/Shared Buffer → backend → Host I/O → Storage
-→ Host I/O → backend → Virtqueue/Shared Buffer → virtio-blk frontend
-→ Guest Block Layer → Guest FS → VFS → Workload buffer(암호문)
-
-복호화
-Workload buffer(암호문) → GP TEE API/TA 복호화 → Workload(평문)
-```
-
-따라서 GP TEE API/TA 암호화 방식에서는 암호화가 VFS 뒤에 배치되는 것이 아니라,
-Workload가 TEE로부터 암호문을 받은 뒤 파일 I/O를 시작한다. Read에서는 암호문 파일을
-먼저 읽은 뒤 TEE 복호화를 수행한다. 파일시스템이 직접 TEE를 호출하는 별도 kernel
-hook을 구현한 경우에만 암·복호화 단계가 VFS 이후에 위치할 수 있다.
-
-Read/Write KPI는 Workload가 처리를 시작한 시점부터 최종 평문을 전달받거나 durable
-write가 완료된 시점까지 측정해야 TEE 암·복호화와 virtio 경로 비용을 모두 반영할 수
-있다. Buffered I/O의 cache hit는 virtio 경로를 생략할 수 있으므로 저장장치 경로 자체를
-평가할 때는 direct I/O 또는 명시적인 cache·fsync 조건을 사용한다.
+핵심 차이는 암호파일 경로에 암·복호화 단계가 추가된다는 점이다. Write에서는 평문을
+암호화한 뒤 backend로 전달하고, Read에서는 backend가 반환한 암호문을 복호화한 뒤
+Workload에 전달한다. 따라서 Read/Write KPI는 Workload 관점의 전체 구간을 측정해야
+암·복호화와 EL2·virtio-blk 전환 비용을 모두 반영할 수 있다.
 
 ## 4. KPI 정의
 
