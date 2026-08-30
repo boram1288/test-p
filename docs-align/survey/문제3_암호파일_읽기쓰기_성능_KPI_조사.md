@@ -66,6 +66,25 @@ fscrypt, dm-crypt/LUKS, QEMU image encryption을 사용하는 경우에는 각 �
 수행하는 계층이 다르므로 별도 하위 시험으로 분리한다. 서로 다른 암호화 계층의 결과를
 하나의 KPI로 합치지 않는다.
 
+### 3.1 VM 환경의 일반파일·암호파일 Read/Write 흐름
+
+virtio-blk frontend는 VM 내부, backend는 VM 외부의 저장장치 처리 영역에 위치한다고
+가정한다. Read는 요청 전달과 데이터 반환 방향을 나누어 표현한다.
+
+| 파일·동작 | 처리 순서 |
+|---|---|
+| 일반파일 Write | Workload → VFS → virtio-blk(frontend) → EL2 → virtio-blk(backend) → 저장장치 |
+| 일반파일 Read 요청 | Workload → VFS → virtio-blk(frontend) → EL2 → virtio-blk(backend) → 저장장치 |
+| 일반파일 Read 반환 | 저장장치 → virtio-blk(backend) → EL2 → virtio-blk(frontend) → VFS → Workload |
+| 암호파일 Write | Workload(평문) → VFS → 암호화 → virtio-blk(frontend) → EL2 → virtio-blk(backend) → 저장장치(암호문) |
+| 암호파일 Read 요청 | Workload → VFS → 암·복호화 모듈 → virtio-blk(frontend) → EL2 → virtio-blk(backend) → 저장장치 |
+| 암호파일 Read 반환 | 저장장치(암호문) → virtio-blk(backend) → EL2 → virtio-blk(frontend) → 복호화 → VFS → Workload(평문) |
+
+핵심 차이는 암호파일 경로에 암·복호화 단계가 추가된다는 점이다. Write에서는 평문을
+암호화한 뒤 backend로 전달하고, Read에서는 backend가 반환한 암호문을 복호화한 뒤
+Workload에 전달한다. 따라서 Read/Write KPI는 Workload 관점의 전체 구간을 측정해야
+암·복호화와 EL2·virtio-blk 전환 비용을 모두 반영할 수 있다.
+
 ## 4. KPI 정의
 
 워크로드별 읽기 또는 쓰기 성능을 다음과 같이 정의한다.
