@@ -14,6 +14,10 @@ Exception Level(EL)은 CPU가 현재 실행 중인 코드에 허용하는 **권�
 - 낮은 EL에서 같거나 높은 EL로: exception 진입
 - 높은 EL에서 원래 또는 낮은 EL로: exception return인 `ERET`
 
+높은 EL이 낮은 EL에 **비동기 이벤트를 알리는 것**은 별도 문제다. EL2는 EL1용
+virtual interrupt를 pending시킬 수 있지만, 같은 PE에서 EL2가 실행 중이라면 EL1이
+실제로 실행되기 위해서는 여전히 `ERET` 또는 이후의 vCPU scheduling이 필요하다.
+
 Reset은 실행 중인 software 전환이 아니라 최초 EL과 Execution state를 정하는 별도
 진입점이다. 실제 reset state와 boot hand-off EL은 CPU와 platform 구성을 확인해야 한다.
 
@@ -170,6 +174,101 @@ EL을 내려가는 동작에는 exception return인 `ERET`이 필요하다.
 1. **상향 또는 같은 EL 진입은 exception이다.**
 2. **하향 또는 이전 문맥 복귀는 `ERET`이다.**
 
+### 5.1 하향 전환과 비동기 알림은 다르다
+
+같은 PE에서는 EL2와 EL1이 동시에 실행되지 않는다. 따라서 EL2가 현재 실행 중일 때
+EL1의 임의 함수로 내려가 실행하는 별도 `CALL` instruction은 없다. physical execution
+level을 EL2에서 EL1로 바꾸는 정상 AArch64 경로는 exception return인 `ERET`이다.
+Pointer Authentication을 결합한 `ERETAA`/`ERETAB`도 같은 exception-return 계열이지
+별도의 down-call mechanism은 아니다.[S5]
+
+반면 EL2가 EL1에 이벤트를 **pending**시키는 데에는 EL1의 선행 `HVC`가 필요하지 않다.
+대표 수단은 다음과 같다.[S3]
+
+- `HCR_EL2.VI`, `VF`, `VSE`로 vIRQ, vFIQ, vSError를 pending
+- GIC virtualization interface에 특정 vCPU용 virtual interrupt를 등록
+- EL2와 EL1이 합의한 shared mailbox/virtqueue에 payload를 기록하고 interrupt는
+  notification으로만 사용
+- target vCPU가 멈춰 있으면 event를 pending한 채 runnable로 만들고 나중에 schedule
+
+Virtual interrupt는 EL0/EL1을 실행할 때만 signal된다. 같은 PE가 EL2/EL3에 있는
+동안에는 받아들여지지 않으며, EL1로 돌아간 뒤 interrupt mask와 priority 조건을
+만족할 때 exception handler가 실행된다.[S3]
+
+EL2는 독립적으로 계속 실행되는 background thread가 아니다. event를 처리할 EL2
+code가 실행되려면 다음 중 하나의 진입 원인이 있어야 한다.
+
+- EL1 실행 중 EL2로 routing된 physical IRQ, timer 또는 SError
+- EL1/EL0의 trap이나 `HVC`
+- 이미 다른 PE에서 실행 중인 EL2 code
+
+첫 번째 경우에는 EL1이 `HVC`를 호출하지 않았어도 physical event 자체가 asynchronous
+exception을 발생시켜 `EL1 → EL2`로 진입한다.
+
+### 5.2 EL2 → EL1 비동기 이벤트의 일반 흐름
+
+```text
+EL1 실행 중
+  → physical IRQ/timer가 EL2로 routing되어 asynchronous exception 발생
+  → EL2 handler 진입                 /* EL1의 HVC 호출은 없음 */
+  → EL2가 bounded shared queue에 event record 기록
+  → memory ordering을 보장한 뒤 target vCPU의 vIRQ를 pending
+  → target vCPU를 runnable로 표시
+  → 같은 PE라면 EL2 --ERET--> EL1, 미실행 vCPU라면 이후 schedule
+  → EL1이 vIRQ vector로 진입
+  → EL1 IRQ handler/workqueue가 queue를 읽고 처리
+```
+
+Arm의 interrupt forwarding 예제도 physical IRQ를 EL2가 받은 뒤 target vCPU를
+선택하고 GIC에 virtual interrupt를 등록한다. GIC 신호는 EL2 실행 중에는 무시되고,
+Hypervisor가 vCPU로 복귀한 다음 EL0/EL1에서 받아들여진다.[S3]
+
+payload를 interrupt 자체에 넣지 않는다. interrupt는 pending work가 있다는 알림이고,
+실제 opcode, length, sequence, generation과 status는 shared queue나 virtual device
+state에 둔다. EL1 handler는 interrupt를 acknowledge한 뒤 queue를 검증하고, 오래 걸리는
+처리는 workqueue 같은 일반 kernel context로 넘긴다.
+
+### 5.3 상황별 ERET 필요 여부
+
+| 상황 | 처리 | 현재 PE의 `ERET` |
+| --- | --- | --- |
+| EL1 실행 중 HW event를 EL1으로 직접 routing | EL1이 physical IRQ/FIQ를 바로 처리, EL2는 관여하지 않음 | 불필요 |
+| EL2가 같은 PE에서 event를 중재한 뒤 EL1에 전달 | shared state 기록 + vIRQ pending 후 EL1 context로 복귀 | 필요 |
+| target vCPU가 현재 미실행 | vIRQ를 pending하고 runnable로 만든 뒤 scheduler가 나중에 진입 | 실제 vCPU 진입 시 필요 |
+| 다른 PE에서 target EL1이 실행 중 | GIC가 해당 PE로 interrupt를 routing하거나 구현 지원 시 direct injection | event 생성 PE의 EL 전환은 불필요 |
+| EL2 실행 중인데 interrupt target이 EL1 | interrupt는 lower EL로 즉시 전환시키지 않고 pending | EL1 복귀 시 필요 |
+
+GIC는 interrupt를 특정 PE affinity로 routing할 수 있고 SGI의 target PE도 지정할 수
+있다.[S6] 이 경우 한 PE의 EL2가 다른 PE에서 이미 실행 중인 EL1에 알릴 수 있으므로
+event를 생성한 PE 자체는 EL을 낮출 필요가 없다. 이것은 같은 PE의 EL2→EL1
+transition을 대체한 것이 아니라, 이미 EL1인 다른 실행 문맥에 interrupt를 전달한 것이다.
+
+### 5.4 pKVM에 적용할 권장 형태
+
+이 프로젝트에서 EL2가 pVM EL1에 보내는 unsolicited event는 다음 형태가 적합하다.
+
+```text
+EL2 producer → bounded shared event queue → per-vCPU vIRQ → pVM EL1 IRQ handler/workqueue
+```
+
+- setup 시 queue, event type, virtual INTID와 target vCPU를 미리 등록한다.
+- `HVC`는 setup/acknowledgement에 사용할 수 있지만 매 event의 선행 조건은 아니다.
+- queue에는 producer/consumer index, generation, sequence와 최대 길이를 둔다.
+- 여러 event를 한 IRQ로 합치는 coalescing과 queue-full policy를 정의한다.
+- EL1이 IRQ를 mask하거나 event를 무시할 수 있으므로 EL2는 acknowledgement를 무한히
+  기다리지 않고 timeout, drop 또는 안전한 자원 회수 정책을 사용한다.
+- EL2가 검증해야 할 보안 상태와 EL1에 보내는 단순 progress notification을 구분한다.
+
+Host EL1은 guest vCPU가 아니므로 같은 표현을 그대로 적용하지 않는다. Host kernel에
+알릴 때는 Host-visible event state와 physical IRQ/SGI 또는 해당 pKVM port가 정의한
+Host notification mechanism을 사용한다. 어느 경우에도 Host의 acknowledgement를
+보호 권한 전환 완료의 증거로 신뢰하지 않는다.
+
+따라서 정확한 표현은 다음과 같다.
+
+> EL1의 선행 호출 없이도 EL2는 EL1에 비동기 이벤트를 pending시킬 수 있다.
+> 다만 같은 PE에서 실제 실행을 EL2에서 EL1로 넘기는 동작은 여전히 `ERET`이다.
+
 ## 6. Security state와 EL은 다르다
 
 EL은 privilege 축이고 Secure/Non-secure는 security state 축이다. 따라서 다음 표현은
@@ -208,6 +307,8 @@ Host kernel과 pVM kernel은 둘 다 EL1 코드지만 동시에 같은 context�
 | `HVC`가 Host kernel driver를 호출한다 | `HVC`는 EL2 exception handler에 진입한다. driver IPC는 별도 protocol이다. |
 | `SMC`는 반드시 EL2를 순서대로 거친다 | Architecture상 EL3 target이다. 다만 EL2가 trap하도록 설정할 수 있다. |
 | 높은 EL에서 낮은 EL로 `RET`하면 된다 | `RET`은 EL을 바꾸지 않는다. valid `SPSR_ELx`/`ELR_ELx`와 `ERET`이 필요하다. |
+| vIRQ를 pending하면 EL2에서 즉시 EL1로 바뀐다 | vIRQ는 EL0/EL1에서만 signal된다. 같은 PE가 EL2라면 EL1로 복귀할 때까지 pending이다. |
+| EL2는 event가 생기면 background task처럼 실행된다 | physical exception, trap/HVC 또는 이미 EL2인 PE처럼 EL2 code를 실행시킬 원인이 필요하다. |
 | EL2는 항상 Secure world다 | EL과 Security state는 별개다. 일반 pKVM은 Non-secure EL2에서 실행된다. |
 
 ## 9. 공식 자료
@@ -217,9 +318,11 @@ Host kernel과 pVM kernel은 둘 다 EL1 코드지만 동시에 같은 context�
 - [S3] [Arm: Armv8-A virtualization](https://developer.arm.com/-/media/Arm%20Developer%20Community/PDF/Learn%20the%20Architecture/Armv8-A%20virtualization.pdf)
 - [S4] [Arm: Changing Exception Level and Security State with an Armv8-A FVP](https://developer.arm.com/community/arm-community-blogs/b/tools-software-ides-blog/posts/changing-exception-level-and-security-state-with-an-armv8a-fixed-virtual-platform)
 - [S5] [Arm Architecture Reference Manual for A-profile](https://developer.arm.com/documentation/ddi0487/latest/)
+- [S6] [Arm: GICv3/v4 Software Overview](https://developer.arm.com/-/media/Arm%20Developer%20Community/PDF/Learn%20the%20Architecture/GICv3_v4_overview.pdf)
 
 [S1]: https://developer.arm.com/-/media/Arm%20Developer%20Community/PDF/Learn%20the%20Architecture/Exception%20model.pdf
 [S2]: https://developer.arm.com/-/media/Arm%20Developer%20Community/PDF/Learn%20the%20Architecture/Armv8-A%20Instruction%20Set%20Architecture.pdf
 [S3]: https://developer.arm.com/-/media/Arm%20Developer%20Community/PDF/Learn%20the%20Architecture/Armv8-A%20virtualization.pdf
 [S4]: https://developer.arm.com/community/arm-community-blogs/b/tools-software-ides-blog/posts/changing-exception-level-and-security-state-with-an-armv8a-fixed-virtual-platform
 [S5]: https://developer.arm.com/documentation/ddi0487/latest/
+[S6]: https://developer.arm.com/-/media/Arm%20Developer%20Community/PDF/Learn%20the%20Architecture/GICv3_v4_overview.pdf
