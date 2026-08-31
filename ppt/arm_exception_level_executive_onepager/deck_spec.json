@@ -1,0 +1,77 @@
+{
+  "deck_name": "arm_exception_level_executive_onepager",
+  "language": "Korean",
+  "goal": "ARM Exception Level의 계층, 전환 방식, 보안 및 성능 특성을 임원이 30초 안에 이해하도록 설명한다.",
+  "deck_context": {
+    "source_summary": "ARMv8-A/AArch64는 CPU 권한을 EL0부터 EL3까지 분리한다. 낮은 EL은 SVC, HVC, SMC와 Hardware Exception을 통해 상위 EL Handler로 진입하고, 상위 EL은 ERET으로 복귀한다. 하향 비동기 알림은 Queue와 IRQ 또는 vIRQ를 결합한다.",
+    "core_claim": "상위 EL일수록 권한과 장애 영향, 전환 비용이 커지므로 EL2와 EL3에는 최소한의 격리 및 정책 집행 기능만 둔다.",
+    "canonical_terms": [
+      "EL0",
+      "EL1",
+      "EL2",
+      "EL3",
+      "SVC",
+      "HVC",
+      "SMC",
+      "ERET",
+      "IRQ/vIRQ",
+      "pKVM"
+    ]
+  },
+  "selected_image_backend": "built-in image tool",
+  "max_concurrent_slides": 1,
+  "sample_generation_method": {
+    "backend_used": "built-in image tool",
+    "tool_name": "image_gen",
+    "mode": "generate",
+    "prompt_source": "/home/boram1288/orange/architect/test-p/ppt/arm_exception_level_executive_onepager/sample_prompt.md",
+    "size": "1672x941, 16:9 landscape",
+    "quality": "built-in default",
+    "model_config": "built-in image tool; model and quality controls not exposed",
+    "approved_sample_path": "/home/boram1288/orange/architect/test-p/ppt/arm_exception_level_executive_onepager/origin_image/slide_01.png",
+    "input_context_preparation": "기존 PPTX의 대표 슬라이드 4와 13을 실제 PNG로 렌더링하고 view_image로 확인한 뒤 style-only reference로 전달했다.",
+    "handoff_rule": "Subagents must use this same backend/tool/mode; return a blocker if unavailable."
+  },
+  "style": {
+    "name": "기존 자료 확장형 Executive Technical Brief",
+    "visual_direction": "기존 발표자료의 실용적인 Corporate tone을 유지하되 정보 밀도를 낮춘 임원용 Architecture one-pager",
+    "color_palette": "white background, deep navy #0B1F35, cobalt blue #1677C8, pale blue-gray #EEF3F8, orange #F59E0B for upward calls, teal #0F9D91 for asynchronous downward notification",
+    "typography": "굵고 선명한 Korean sans-serif 제목, 큰 EL label, 짧고 좌측 정렬된 본문",
+    "texture_and_finish": "flat vector, thin rules, restrained cards, generous whitespace"
+  },
+  "approved_style_reference": {
+    "path": "/home/boram1288/orange/architect/test-p/ppt/arm_exception_level_executive_onepager/origin_image/slide_01.png",
+    "role": "approved sample slide style reference",
+    "fidelity": "match style only; do not copy layout or content"
+  },
+  "slides": [
+    {
+      "number": 1,
+      "title": "ARM Exception Level — CPU 권한과 격리를 나누는 4단계 실행 계층",
+      "role": "concept explanation and architecture decision summary",
+      "intent": "네 계층의 책임, EL 전환 방향, 보안과 성능 Trade-off를 한 화면에서 설명한다.",
+      "key_points": [
+        "EL0는 Service, EL1은 OS 자원, EL2는 VM 격리, EL3는 Platform 보안을 담당한다.",
+        "낮은 EL은 SVC, HVC, SMC와 Hardware Exception을 통해 통제된 상위 EL Service에 진입한다.",
+        "높은 EL은 ERET으로 복귀하고, 비동기 알림은 Event Queue와 IRQ/vIRQ를 결합한다.",
+        "상위 EL의 코드와 호출 빈도를 최소화해 보안 영향과 전환 비용을 줄인다."
+      ],
+      "local_context": {
+        "required_background": "높은 EL이 낮은 EL의 임의 함수를 직접 호출하는 별도 instruction은 없으며, 낮은 EL이 실행 중이 아니면 비동기 Event는 Pending 후 처리된다."
+      },
+      "layout": {
+        "composition": "상단 제목과 핵심 메시지, 왼쪽 4단 Stack, 가운데 상향 요청과 하향 비동기 알림, 오른쪽 보안 및 성능 Insight, 하단 결론"
+      },
+      "visual_elements": {
+        "main_visual": "EL3에서 EL0로 이어지는 4단 Architecture stack과 주황색 상향·청록색 하향 경로",
+        "supporting_elements": "Shield와 performance gauge line icon, full-width decision bar"
+      },
+      "constraints": [
+        "모든 Korean text를 정확하고 읽기 쉽게 표현한다.",
+        "상위 EL에서 하위 EL로 직접 함수 호출이 가능한 것처럼 표현하지 않는다.",
+        "Logo, watermark, page number를 넣지 않는다."
+      ],
+      "sample_approved": true
+    }
+  ]
+}

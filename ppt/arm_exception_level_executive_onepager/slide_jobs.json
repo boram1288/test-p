@@ -1,0 +1,43 @@
+{
+  "run_status": "jobs_prepared",
+  "deck_name": "arm_exception_level_executive_onepager",
+  "selected_backend": "built-in image tool",
+  "sample_generation_method": {
+    "backend_used": "built-in image tool",
+    "tool_name": "image_gen",
+    "mode": "generate",
+    "prompt_source": "/home/boram1288/orange/architect/test-p/ppt/arm_exception_level_executive_onepager/sample_prompt.md",
+    "size": "1672x941, 16:9 landscape",
+    "quality": "built-in default",
+    "model_config": "built-in image tool; model and quality controls not exposed",
+    "approved_sample_path": "/home/boram1288/orange/architect/test-p/ppt/arm_exception_level_executive_onepager/origin_image/slide_01.png",
+    "input_context_preparation": "기존 PPTX의 대표 슬라이드 4와 13을 실제 PNG로 렌더링하고 view_image로 확인한 뒤 style-only reference로 전달했다.",
+    "handoff_rule": "Subagents must use this same backend/tool/mode; return a blocker if unavailable."
+  },
+  "max_concurrent_slides": 1,
+  "slides": [
+    {
+      "slide_id": "slide_01",
+      "number": 1,
+      "title": "ARM Exception Level — CPU 권한과 격리를 나누는 4단계 실행 계층",
+      "job": "prompts/slide_01.json",
+      "out": "origin_image/slide_01.png",
+      "input_images": [
+        {
+          "path": "/home/boram1288/orange/architect/test-p/ppt/arm_exception_level_executive_onepager/origin_image/slide_01.png",
+          "role": "approved sample slide style reference",
+          "fidelity": "match style only; do not copy layout or content"
+        }
+      ],
+      "requires_context_images": true,
+      "status": "accepted",
+      "dispatch": null,
+      "result": {
+        "final_image": "origin_image/slide_01.png",
+        "accepted_sample": true
+      },
+      "blocker": null
+    }
+  ],
+  "updated_at": "2026-08-31T04:30:53Z"
+}
