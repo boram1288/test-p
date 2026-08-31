@@ -3,9 +3,11 @@
 ## Slide 1 — ARM Exception Level: CPU 권한과 격리를 나누는 4단계 실행 계층
 
 - ARM은 Application부터 보안 Firmware까지 CPU 실행 권한을 EL0~EL3의 4단계로 분리한다.
-- EL0는 Service, EL1은 OS 자원, EL2는 VM 격리, EL3는 Platform 보안을 담당한다.
+- EL0는 Host App·pVM Userspace Workload, EL1은 Host/pVM Kernel·Driver, EL2는 VM 격리,
+  EL3는 Platform 보안을 담당한다.
 - 낮은 EL은 `SVC`·`HVC`·`SMC` 또는 Hardware Exception으로 통제된 상위 EL Service에 진입한다.
-- 높은 EL은 `ERET`으로 복귀하며, 비동기 알림은 Event Queue와 `IRQ/vIRQ`를 결합해 전달한다.
+- 높은 EL은 `ERET`으로 같은 EL 또는 유효한 하위 EL에 복귀하며, 이와 별개로 비동기 알림은
+  Event Queue와 `IRQ/vIRQ`를 결합해 전달한다.
 - 권한이 높을수록 장애 영향과 전환 비용이 커지므로 EL2·EL3의 코드와 호출 빈도를 최소화한다.
 
 ### Visual idea

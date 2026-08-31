@@ -5,13 +5,13 @@
   "sample_generation_method": {
     "backend_used": "built-in image tool",
     "tool_name": "image_gen",
-    "mode": "generate",
-    "prompt_source": "/home/boram1288/orange/architect/test-p/ppt/arm_exception_level_executive_onepager/sample_prompt.md",
+    "mode": "edit",
+    "prompt_source": "/home/boram1288/orange/architect/test-p/ppt/arm_exception_level_executive_onepager/edit_prompt_v2.md",
     "size": "1672x941, 16:9 landscape",
     "quality": "built-in default",
     "model_config": "built-in image tool; model and quality controls not exposed",
     "approved_sample_path": "/home/boram1288/orange/architect/test-p/ppt/arm_exception_level_executive_onepager/origin_image/slide_01.png",
-    "input_context_preparation": "기존 PPTX의 대표 슬라이드 4와 13을 실제 PNG로 렌더링하고 view_image로 확인한 뒤 style-only reference로 전달했다.",
+    "input_context_preparation": "기존 PPTX의 대표 슬라이드를 style-only reference로 사용해 최초 이미지를 생성한 뒤, view_image로 확인한 최초 이미지를 입력으로 국소 기술 교정했다.",
     "handoff_rule": "Subagents must use this same backend/tool/mode; return a blocker if unavailable."
   },
   "max_concurrent_slides": 1,
@@ -39,5 +39,5 @@
       "blocker": null
     }
   ],
-  "updated_at": "2026-08-31T04:30:53Z"
+  "updated_at": "2026-08-31T04:35:31Z"
 }
