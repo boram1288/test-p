@@ -17,6 +17,10 @@ NPU(AI 가속기)를 여러 VM이 공유할 때, HW 수준에서 "지금 이 메
 - 목적: VM 단위 메모리 격리(Isolation) — 한 VM의 AI Model/데이터를 다른 VM이나 조작된 NPU FW를 통해 탈취당하지 않도록 하는 것이 이 프로젝트의 핵심 목표.
 - 제약: VID가 8개로 제한되어 동시에 최대 8개 VM까지만 이 격리 기능 사용 가능 (`[5G][완료] Project Completion Report`).
 
+![VID Allocation 과정 다이어그램](images/pvm_npu_memory_and_irq_qa/vid_allocation_diagram.png)
+
+*Design Document 3.1.1 "VID Allocation 과정" 절의 draw.io 다이어그램*
+
 ---
 
 ## 2. pVM에서 Physically Contiguous 메모리를 생성하는 방식
@@ -33,6 +37,10 @@ NPU(AI 가속기)를 여러 VM이 공유할 때, HW 수준에서 "지금 이 메
 5. Halla가 새 PA를 Guest의 원래 IPA에 다시 Mapping하고 Guest로 복귀.
 6. Guest는 처음 요청한 IPA를 그대로 쓰며, 이제 그 IPA는 물리적으로 연속된 실제 메모리에 매핑되어 있음.
 
+![Physically Contiguous Memory 시퀀스](images/pvm_npu_memory_and_irq_qa/contiguous_memory_sequence.png)
+
+*Design Document 3.2 "Physically Contiguous Memory Operation Design" 절의 시퀀스 다이어그램*
+
 ### 핵심 데이터 구조
 `contiguous_memory` (Halla ↔ HVM 공유, `hvm_vcpu_run`의 union field): `requested_contig_ipa`(u64), `size`(u32), `error_code`(u32).
 
@@ -44,6 +52,10 @@ NPU(AI 가속기)를 여러 VM이 공유할 때, HW 수준에서 "지금 이 메
 
 SysMMU 같은 HW는 Page Table Base Address로 연속된 물리 메모리를 요구하지만, Guest 커널은 가상화 격리로 물리 메모리 할당자에 직접 접근할 수 없어 Host에 위임하고 Halla가 IPA-PA 매핑만 사후 연결해주는 구조.
 
+![SysMMU Page Table을 위한 Contiguous Physical Memory 지원 과정](images/pvm_npu_memory_and_irq_qa/contiguous_memory_page_table.png)
+
+*Design Document 4.1.2.3 "Memory Management (Physically Contiguous Memory)" 절의 다이어그램*
+
 ---
 
 ## 3. Guest VM에서 IRQ를 핸들링하는 방법
@@ -53,6 +65,10 @@ SysMMU 같은 HW는 Page Table Base Address로 연속된 물리 메모리를 요
 ### 배경 문제
 기존 Exynos IRQ Handling Framework는 모든 IRQ를 Host kernel driver에서 처리. Guest VM 동작 중 NPU IRQ가 발생해도 원래는 Guest Exit → Host가 처리 → Host가 다시 Guest에 주입, 이라는 긴 경로를 거쳐야 했음.
 
+![IRQ Phase2 처리 시퀀스](images/pvm_npu_memory_and_irq_qa/irq_phase2_only.png)
+
+*Design Document 3.3 "Handling VM Interrupt Operation Design" 절의 다이어그램*
+
 ### 개선된 방식 — Halla(EL2)에서 즉시 처리
 1. **사전 등록**: NPU Plugin이 `exynos_plugin_guest_map_irq(vmid, int_id)`로 Guest VM이 쓸 NPU IRQ 번호를 Halla에 미리 등록 (`halla_vm` 구조체, `npu_device_irqs[IRQ_MAP_NUM]` 배열로 관리).
 2. Guest VM 동작 중 IRQ 발생 → Guest Exit.
@@ -61,6 +77,10 @@ SysMMU 같은 HW는 Page Table Base Address로 연속된 물리 메모리를 요
 5. Guest 복귀 후 `ICC_IAR1_EL1`로 Ack → `vgic_queue_irq`로 vCPU의 vIRQ 큐 등록 → 처리 후 `ICC_EOIR1_EL1`로 EOI 통보.
 
 핵심은 "등록된 NPU IRQ인지 여부를 Halla(EL2)가 직접 판단해 Host를 스킵하고 Guest에 즉시 되돌려주는 것" — NPU IRQ 처리 latency 절감이 목적.
+
+![기존 방식(Host가 모든 IRQ 처리) vs 개선된 방식(Halla가 즉시 Return) 비교](images/pvm_npu_memory_and_irq_qa/irq_phase2_comparison.png)
+
+*Design Document 4.1.2.2 "Exception Handler" 절의 비교 다이어그램*
 
 ### 관련 API
 | API | 역할 |
