@@ -168,25 +168,74 @@ Workload 사이에서 순환시킬 수 있다.
 
 ### 4.1 구조
 
-```text
-┌─────────────────────────┐  프레임 준비·반환 알림  ┌────────────────────────┐
-│ 카메라 생산자 pVM       │ ───────────────────────▶ │ AI 소비자 pVM          │
-│ - 카메라 앱             │ ◀─────────────────────── │ - AI 앱                 │
-│ - 로컬 DMA-BUF 내보내기 │                         │ - 프록시 DMA-BUF 가져오기│
-└────────────┬────────────┘                         └────────────┬───────────┘
-             │ 내보내기                                         │ 사용·해제
-             └──────────────────┬────────────────────────────────┘
-                                ▼
-                  ┌─────────────────────────────┐
-                  │ 쌍 전용 DMA-BUF 연결부      │
-                  │ 보호 핸들·원격 임대·펜스 변환│
-                  └──────────────┬──────────────┘
-                                 ▼
-                  ┌─────────────────────────────┐
-                  │ EL2 최소 매핑 집행부         │
-                  └─────────────────────────────┘
+```plantuml
+@startuml
+title 후보 A — 워크로드 소유·쌍 전용 연결
 
-카메라 장치 ──DMA 쓰기──▶ 동일 보호 기반 페이지 ──DMA 읽기──▶ AI 장치
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+
+package "카메라 생산자 pVM" #E8F5E9 {
+  component "카메라 앱" as ACamApp
+  component "로컬 DMA-BUF\n할당·내보내기" as AExporter
+}
+
+package "쌍 전용 Cross-pVM DMA-BUF 연결부" #E3F2FD {
+  component "보호 핸들 관리" as AHandle
+  component "원격 임대·세대 관리" as ALease
+  component "펜스 변환" as AFence
+}
+
+package "EL2" #EDE7F6 {
+  component "최소 매핑 집행" as AMapper
+}
+
+package "AI 소비자 pVM" #E8F5E9 {
+  component "프록시 DMA-BUF\n가져오기" as AImporter
+  component "AI 앱" as AAIApp
+}
+
+package "보호 장치·메모리" #FFF3CD {
+  component "카메라 장치" as ACamHW
+  database "동일 보호 기반 페이지" as APage
+  component "AI 장치" as AAIHW
+}
+
+package "비신뢰 Host" #FDE2E2 {
+  component "Host Linux" as AHost
+}
+
+ACamApp -[#1565C0]-> AExporter : 버퍼 요청·촬영 제출
+AExporter -[#1565C0]-> AHandle : 로컬 DMA-BUF 내보내기
+AExporter -[#1565C0]-> AFence : 생산 완료 펜스 내보내기
+AHandle -[#1565C0]-> ALease : 쌍 전용 원격 임대 생성
+ALease -[#1565C0]-> AMapper : 최초 매핑·최종 해제
+AMapper -[#1565C0]-> APage : Stage-2·SMMU/IOMMU 매핑
+AHandle -[#1565C0]-> AImporter : 보호 핸들 사용
+AFence -[#1565C0]-> AImporter : AI 로컬 펜스 전달
+AImporter -[#1565C0]-> AAIApp : 프록시 DMA-BUF
+
+ACamApp -[#1565C0]-> AAIApp : 프레임 준비\n핸들·메타데이터·펜스
+AAIApp -[#1565C0]-> ACamApp : 처리 완료·반환 알림
+AImporter -[#1565C0]-> ALease : 최종 해제·임대 반환
+
+ACamApp -[#1565C0]-> ACamHW : 촬영 시작
+ACamHW -[#2E7D32,bold]-> APage : 데이터 DMA 쓰기
+APage -[#2E7D32,bold]-> AAIHW : 데이터 DMA 읽기
+AAIApp -[#1565C0]-> AAIHW : 펜스 완료 후 작업 제출
+AHost -[#C62828,dashed]-> APage : 접근 금지
+
+note bottom of ALease
+  전역 등록부 없이 Camera–AI 쌍의
+  핸들·원격 임대·세대만 관리한다.
+end note
+
+legend bottom
+  파란 실선: 제어·메타데이터 / 초록 굵은선: 프레임 데이터 / 빨간 점선: 금지 접근
+endlegend
+@enduml
 ```
 
 Producer workload가 protected allocator driver에 allocation을 요청하고 local DMA-BUF를
@@ -260,25 +309,73 @@ EL2 TCB 최소성:
 
 ### 5.1 구조
 
-```text
-┌─────────────────────────┐  프레임 준비·반환 알림  ┌────────────────────────┐
-│ 카메라 생산자 pVM       │ ───────────────────────▶ │ AI 소비자 pVM          │
-│ - 카메라 앱             │ ◀─────────────────────── │ - AI 앱                 │
-│ - 보호 버퍼 할당        │                         │ - 프록시 DMA-BUF 가져오기│
-│ - 로컬 DMA-BUF 내보내기 │                         └────────────┬───────────┘
-└────────────┬────────────┘                                      │ 사용·해제
-             │ 등록                                               │
-             └──────────────────┬─────────────────────────────────┘
-                                ▼
-                  ┌──────────────────────────────┐
-                  │ EL2 DMA-BUF 연결부           │
-                  │ - 보호 핸들 등록부           │
-                  │ - 접근 권한·세대 검증        │
-                  │ - 원격 임대·매핑 장부        │
-                  │ - 펜스 변환·강제 정리        │
-                  └──────────────────────────────┘
+```plantuml
+@startuml
+title 후보 B — 워크로드 소유·EL2 등록 연결
 
-카메라 장치 ──DMA 쓰기──▶ 동일 보호 기반 페이지 ──DMA 읽기──▶ AI 장치
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+
+package "카메라 생산자 pVM" #E8F5E9 {
+  component "카메라 앱" as BCamApp
+  component "보호 버퍼 할당" as BAllocator
+  component "로컬 DMA-BUF\n내보내기" as BExporter
+}
+
+package "EL2 Cross-pVM DMA-BUF 연결부" #E3F2FD {
+  component "보호 핸들 등록부" as BRegistry
+  component "접근 권한·세대 검증" as BPolicy
+  component "원격 임대·매핑 장부" as BLedger
+  component "펜스 변환·강제 정리" as BFence
+}
+
+package "AI 소비자 pVM" #E8F5E9 {
+  component "프록시 DMA-BUF\n가져오기" as BImporter
+  component "AI 앱" as BAIApp
+}
+
+package "보호 장치·메모리" #FFF3CD {
+  component "카메라 장치" as BCamHW
+  database "동일 보호 기반 페이지" as BPage
+  component "AI 장치" as BAIHW
+}
+
+package "비신뢰 Host" #FDE2E2 {
+  component "Host Linux" as BHost
+}
+
+BCamApp -[#1565C0]-> BAllocator : 풀·버퍼 요청
+BAllocator -[#1565C0]-> BExporter : 보호 backing 연결
+BExporter -[#1565C0]-> BRegistry : 풀·버퍼 한 번 등록
+BExporter -[#1565C0]-> BFence : 생산 완료 펜스 등록
+BRegistry -[#1565C0]-> BPolicy : 페이지·권한·세대 검증
+BPolicy -[#1565C0]-> BLedger : 보호 핸들·원격 임대 생성
+BLedger -[#1565C0]-> BPage : Stage-2·SMMU/IOMMU 매핑
+BLedger -[#1565C0]-> BImporter : 보호 핸들 사용·매핑
+BFence -[#1565C0]-> BImporter : AI 로컬 펜스 전달
+BImporter -[#1565C0]-> BAIApp : 프록시 DMA-BUF
+
+BCamApp -[#1565C0]-> BAIApp : 프레임 준비\n슬롯·메타데이터·펜스
+BAIApp -[#1565C0]-> BCamApp : 처리 완료·슬롯 반환
+BImporter -[#1565C0]-> BLedger : 세션 종료 시 임대 반환
+
+BCamApp -[#1565C0]-> BCamHW : 촬영 시작
+BCamHW -[#2E7D32,bold]-> BPage : 데이터 DMA 쓰기
+BPage -[#2E7D32,bold]-> BAIHW : 데이터 DMA 읽기
+BAIApp -[#1565C0]-> BAIHW : 펜스 완료 후 작업 제출
+BHost -[#C62828,dashed]-> BPage : 접근 금지
+
+note bottom of BLedger
+  기반 페이지 임대는 세션 동안 유지한다.
+  프레임 준비·반환은 pVM 사이에서 직접 교환한다.
+end note
+
+legend bottom
+  파란 실선: 제어·메타데이터 / 초록 굵은선: 프레임 데이터 / 빨간 점선: 금지 접근
+endlegend
+@enduml
 ```
 
 Producer workload가 allocation과 pool 정책을 담당한다. EL2 Bridge는 등록 시 backing
@@ -362,23 +459,78 @@ Consumer proxy importer는 EL2 Bridge에 handle을 redeem해야 local mapping과
 
 ### 6.1 구조
 
-```text
-                         ┌──────────────────────────────┐
-                         │ EL2 보호 기반 페이지 할당부  │
-                         │ - 보호 페이지·풀 생성        │
-                         │ - 보호 핸들·접근 권한 발급   │
-                         │ - 할당 수명·할당량 관리      │
-                         └───────────┬──────────────────┘
-                                     │ 보호 핸들
-                    ┌────────────────┴────────────────┐
-                    ▼                                 ▼
-┌─────────────────────────┐  프레임 준비·반환 알림  ┌────────────────────────┐
-│ 카메라 생산자 pVM       │ ───────────────────────▶ │ AI 소비자 pVM          │
-│ - 프록시 내보내기       │ ◀─────────────────────── │ - 프록시 가져오기       │
-│ - 로컬 DMA-BUF          │                         │ - 로컬 DMA-BUF          │
-└─────────────────────────┘                         └────────────────────────┘
+```plantuml
+@startuml
+title 후보 C — EL2 기반 페이지 소유·직접 연결
 
-카메라 장치 ──DMA 쓰기──▶ EL2 소유 보호 기반 페이지 ──DMA 읽기──▶ AI 장치
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+
+package "EL2" #E3F2FD {
+  component "보호 기반 페이지·풀 할당" as CAllocator
+  component "할당 장부·할당량 관리" as CQuota
+  component "보호 핸들·접근 권한" as CHandle
+  component "원격 임대·매핑 관리" as CLease
+  component "펜스 변환" as CFence
+}
+
+package "카메라 생산자 pVM" #E8F5E9 {
+  component "카메라 앱" as CCamApp
+  component "프록시 DMA-BUF\n내보내기" as CExporter
+}
+
+package "AI 소비자 pVM" #E8F5E9 {
+  component "프록시 DMA-BUF\n가져오기" as CImporter
+  component "AI 앱" as CAIApp
+}
+
+package "보호 장치·메모리" #FFF3CD {
+  component "카메라 장치" as CCamHW
+  database "EL2 소유 보호 기반 페이지" as CPage
+  component "AI 장치" as CAIHW
+}
+
+package "비신뢰 Host" #FDE2E2 {
+  component "Host Linux" as CHost
+}
+
+CCamApp -[#1565C0]-> CAllocator : 크기·용도·허용 소비자 요청
+CAllocator -[#1565C0]-> CQuota : 기반 페이지 할당·기록
+CAllocator -[#1565C0]-> CPage : 보호 기반 페이지 생성
+CQuota -[#1565C0]-> CHandle : 보호 핸들 발급
+CHandle -[#1565C0]-> CExporter : Camera local DMA-BUF 생성
+CExporter -[#1565C0]-> CFence : 생산 완료 펜스 전달
+CHandle -[#1565C0]-> CImporter : 보호 핸들 사용
+CLease -[#1565C0]-> CPage : Stage-2·SMMU/IOMMU 매핑
+CFence -[#1565C0]-> CImporter : AI 로컬 펜스 전달
+CImporter -[#1565C0]-> CLease : 소비자 원격 임대 획득·해제
+CImporter -[#1565C0]-> CAIApp : AI local DMA-BUF
+
+CCamApp -[#1565C0]-> CAIApp : 프레임 준비\n핸들·메타데이터·펜스
+CAIApp -[#1565C0]-> CCamApp : 처리 완료·반환 알림
+
+CCamApp -[#1565C0]-> CCamHW : 촬영 시작
+CCamHW -[#2E7D32,bold]-> CPage : 데이터 DMA 쓰기
+CPage -[#2E7D32,bold]-> CAIHW : 데이터 DMA 읽기
+CAIApp -[#1565C0]-> CAIHW : 펜스 완료 후 작업 제출
+CHost -[#C62828,dashed]-> CPage : 접근 금지
+
+note bottom of CExporter
+  기반 페이지 소유자는 EL2이고
+  DMA-BUF 내보내기는 Camera pVM이 담당한다.
+end note
+
+note bottom of CLease
+  직접 전달의 소비자 임대를 EL2에 기록하거나
+  보호 핸들에 안전하게 위임해야 한다.
+end note
+
+legend bottom
+  파란 실선: 제어·메타데이터 / 초록 굵은선: 프레임 데이터 / 빨간 점선: 금지 접근
+endlegend
+@enduml
 ```
 
 EL2가 보호 backing 또는 pool을 할당하고 allocation identity와 backing 수명을 소유한다.
@@ -468,25 +620,76 @@ fan-out reference protocol이 복잡해진다.
 
 ### 7.1 구조
 
-```text
-┌────────────────────────┐                         ┌────────────────────────┐
-│ 카메라 생산자 pVM      │                         │ AI 소비자 pVM          │
-│ - 프록시 내보내기      │                         │ - 프록시 가져오기       │
-│ - 로컬 DMA-BUF         │                         │ - 로컬 DMA-BUF          │
-└───────┬─────────▲──────┘                         └───────▲─────────┬──────┘
-        │ 완료 게시│                                        │사용 허가 │ 처리 완료
-        ▼         │                                        │         ▼
-     ┌──────────────────────────────────────────────────────────────┐
-     │ EL2 DMA-BUF 중개 연결부                                      │
-     │ - 보호 기반 페이지 할당                                      │
-     │ - 핸들·접근 권한·원격 임대                                   │
-     │ - 준비 대기열·상태 전이·펜스 변환                            │
-     │ - 할당량·감사·장애 복구                                      │
-     └──────────────────────────────────────────────────────────────┘
+```plantuml
+@startuml
+title 후보 D — EL2 기반 페이지 소유·중개 연결
 
-상태: 비어 있음 → 생산자 사용 중 → 전달 준비 → 소비자 사용 중 → 비어 있음
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
 
-카메라 장치 ──DMA 쓰기──▶ EL2 소유 보호 기반 페이지 ──DMA 읽기──▶ AI 장치
+package "카메라 생산자 pVM" #E8F5E9 {
+  component "카메라 앱" as DCamApp
+  component "프록시 DMA-BUF\n내보내기" as DExporter
+}
+
+package "EL2 Cross-pVM DMA-BUF 중개 연결부" #E3F2FD {
+  component "보호 기반 페이지·풀 할당" as DAllocator
+  component "보호 핸들·접근 권한·원격 임대" as DRegistry
+  component "준비 대기열·상태 전이" as DQueue
+  component "펜스 변환·매핑·강제 정리" as DRecovery
+  component "할당량·감사" as DAudit
+}
+
+package "AI 소비자 pVM" #E8F5E9 {
+  component "프록시 DMA-BUF\n가져오기" as DImporter
+  component "AI 앱" as DAIApp
+}
+
+package "보호 장치·메모리" #FFF3CD {
+  component "카메라 장치" as DCamHW
+  database "EL2 소유 보호 기반 페이지" as DPage
+  component "AI 장치" as DAIHW
+}
+
+package "비신뢰 Host" #FDE2E2 {
+  component "Host Linux" as DHost
+}
+
+DAllocator -[#1565C0]-> DRegistry : 보호 핸들 생성
+DAllocator -[#1565C0]-> DPage : 보호 기반 페이지 생성
+DRegistry -[#1565C0]-> DExporter : 비어 있는 버퍼 사용 허가
+DExporter -[#1565C0]-> DCamApp : Camera local DMA-BUF
+DCamApp -[#1565C0]-> DQueue : 촬영 완료 게시\n핸들·메타데이터·펜스
+DQueue -[#1565C0]-> DRecovery : 상태·펜스 검증
+DRecovery -[#1565C0]-> DPage : Stage-2·SMMU/IOMMU 매핑
+DRecovery -[#1565C0]-> DImporter : 준비 버퍼 사용 허가
+DImporter -[#1565C0]-> DAIApp : AI local DMA-BUF
+DAIApp -[#1565C0]-> DQueue : 처리 완료·버퍼 반환
+DQueue -[#1565C0]-> DRegistry : 원격 임대 해제·비어 있음 전환
+DRegistry -[#1565C0]-> DAudit : 할당량·상태 기록
+
+DCamApp -[#1565C0]-> DCamHW : 촬영 시작
+DCamHW -[#2E7D32,bold]-> DPage : 데이터 DMA 쓰기
+DPage -[#2E7D32,bold]-> DAIHW : 데이터 DMA 읽기
+DAIApp -[#1565C0]-> DAIHW : 펜스 완료 후 작업 제출
+DHost -[#C62828,dashed]-> DPage : 접근 금지
+
+note bottom of DQueue
+  비어 있음 → 생산자 사용 중 → 전달 준비
+  → 소비자 사용 중 → 비어 있음
+end note
+
+note bottom of DRecovery
+  프레임마다 게시·사용 허가·반환이
+  EL2 중개 연결부를 통과한다.
+end note
+
+legend bottom
+  파란 실선: 제어·메타데이터 / 초록 굵은선: 프레임 데이터 / 빨간 점선: 금지 접근
+endlegend
+@enduml
 ```
 
 EL2가 backing allocation, pool, 상태 머신, routing, ACL과 cross-pVM lease를 모두
