@@ -1,0 +1,69 @@
+@startuml
+title 후보 B — Protected DMA-BUF Broker
+left to right direction
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+package "비신뢰 Host" #FDE2E2 {
+  component "Host Linux\npayload 접근 없음" as BHost
+}
+
+package "Camera pVM — broker client" #E8F5E9 {
+  component "B-01\nCamera Frame Producer" as BProducer
+  component "B-02\nCamera DMA-BUF\nProxy Importer" as BCamProxy
+  component "B-03a\nBroker Endpoint Adapter" as BCamAdapter
+}
+
+package "Protected DMA-BUF Broker pVM — metadata-only" #EDE7F6 {
+  component "B-04\nBuffer Factory /\nDMA-BUF Exporter" as BFactory
+  database "B-05\nBuffer Reference Registry\nhandle·ref·generation" as BRegistry
+  component "B-06\nFence Event Relay" as BFence
+}
+
+package "pKVM EL2 — independent enforcement" #E3F2FD {
+  component "B-07\nBroker Health Monitor" as BHealth
+  component "B-08\nShared Page Mapping Adapter\nHost 비매핑·forced detach" as BMapper
+}
+
+package "AI pVM — broker client" #E8F5E9 {
+  component "B-03b\nBroker Endpoint Adapter" as BAIAdapter
+  component "B-09\nAI DMA-BUF\nProxy Importer" as BAIProxy
+  component "B-10\nAI Frame Consumer" as BConsumer
+}
+
+package "보호 HW·메모리" #FFF3CD {
+  component "Camera HW" as BCamHW
+  database "Broker backing page\n수명 정책: Broker" as BPage
+  component "AI HW" as BAIHW
+}
+
+BProducer -[#1565C0]-> BCamProxy : 제어: buffer 요청
+BCamProxy -[#1565C0]-> BCamAdapter : local proxy
+BCamAdapter -[#1565C0]-> BRegistry : 제어: get·put·producer fence
+BFactory -[#1565C0]-> BRegistry : handle 생성·해제
+BFactory -[#1565C0]-> BPage : backing 할당·pool 반환
+BRegistry -[#1565C0]-> BMapper : 제어: initial map / final unmap
+BMapper -[#1565C0]-> BPage : 보호 mapping 설정
+BRegistry -[#1565C0]-> BFence : fence metadata
+BFence -[#1565C0]-> BAIAdapter : completion event
+BAIAdapter -[#1565C0]-> BAIProxy : handle redeem
+BAIProxy -[#1565C0]-> BConsumer : local proxy dma-buf
+BProducer -[#1565C0]-> BCamHW : capture submit
+BCamHW -[#2E7D32,bold]-> BPage : payload: DMA write
+BPage -[#2E7D32,bold]-> BAIHW : payload: same-page DMA read
+BConsumer -[#1565C0]-> BAIHW : AI submit after fence
+BHealth -[#C62828,dashed]-> BMapper : broker crash → generation detach
+BHost -[#C62828,dashed]-> BPage : 금지: Host mapping
+BRegistry -[#C62828,dashed]-> BPage : 금지: Broker CPU payload mapping
+
+note bottom of BRegistry
+  Broker = exporter + metadata repository + event relay
+  frame별 소유권/권한 상태 머신 없음
+  장애 영향 범위 = broker를 공유하는 endpoint 집합
+end note
+
+legend bottom
+  파란 실선: control·metadata / 초록 굵은선: payload / 빨간 점선: 차단·오류
+endlegend
+@enduml
