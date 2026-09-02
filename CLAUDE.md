@@ -10,6 +10,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 이모지는 사용하지 않는다.
 - 모든 동작 완료후 git commit, push를 진행한다.
 - 문장은 짧게 작성한다.
+- 고유명사는 영어를 그대로 사용하되, 고유명사가 아닌 것은 한글로 표현해줘.
+- 비유는 사용하지마
+- ID는 항상 이름을 같이 표기해줘.
 
 ## 프로젝트 개요
 
