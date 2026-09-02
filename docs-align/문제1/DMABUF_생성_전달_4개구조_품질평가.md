@@ -5,12 +5,12 @@
 Camera Producer pVM과 AI Consumer pVM 사이에서 동일한 보호 backing page를 DMA-BUF로
 사용할 때, allocation authority와 전달 중계 위치에 따라 다음 네 구조를 비교한다.
 
-| 후보 | Allocation authority | 전달 방식 |
+| 후보 | Allocation authority | Bridge와 전달 방식 |
 |---|---|---|
-| A. Workload-Owned Direct | Producer workload | Producer가 Consumer에 직접 전달 |
-| B. Workload-Owned Registered Direct | Producer workload | EL2 등록 후 Producer가 Consumer에 직접 전달 |
-| C. EL2-Owned Direct | EL2 | Producer가 할당을 받아 사용한 뒤 Consumer에 직접 전달 |
-| D. EL2-Owned Brokered | EL2 | Producer가 사용 후 EL2에 publish하고 Consumer가 EL2에서 acquire |
+| A. Workload-Owned Pair Bridge | Producer workload | pair-local Bridge translation 후 직접 notification |
+| B. Workload-Owned EL2 Registered Bridge | Producer workload | EL2 Bridge 등록·redeem 후 직접 notification |
+| C. EL2-Backed Direct Bridge | EL2 backing allocator | Producer가 local exporter로 사용 후 직접 notification |
+| D. EL2-Backed Brokered Bridge | EL2 backing allocator | Producer가 EL2에 publish하고 Consumer가 acquire |
 
 평가 품질속성은 다음과 같다.
 
@@ -44,11 +44,58 @@ device attachment를 만든다. GEM handle도 DRM file에 local하다.
 - [DRM PRIME 수명 규칙](https://docs.kernel.org/gpu/drm-mm.html)
 - [Pixel buffer 교환 원칙](https://docs.kernel.org/userspace-api/dma-buf-alloc-exchange.html)
 
-### 2.2 직접 전달도 EL2의 보안 집행을 우회하지 않는다
+### 2.2 Cross-pVM DMA-BUF Bridge 적용 원칙
 
-`직접 전달`은 frame ready event와 protected token이 Producer에서 Consumer로 직접
-전달된다는 뜻이다. 다음 동작은 모든 후보에서 EL2 또는 신뢰 가능한 보호 제어 경로가
-수행해야 한다.
+Camera pVM과 AI pVM은 서로 다른 Linux kernel instance이므로 Camera pVM의 DMA-BUF fd,
+`struct dma_buf`, `dma_resv`와 reference count를 AI pVM이 그대로 사용할 수 없다. 각
+pVM은 local DMA-BUF 객체를 가지며 protected buffer handle을 통해 동일 backing page에
+연결한다.
+
+```text
+Camera pVM
+  Camera DMA-BUF fd / struct dma_buf / local dma_resv
+                 |
+                 | export
+                 v
+Cross-pVM DMA-BUF Bridge
+  protected buffer handle + metadata + fence
+                 |
+                 | bridge / redeem
+                 v
+AI pVM
+  AI proxy DMA-BUF fd / struct dma_buf / local dma_resv
+```
+
+적용 범위는 다음과 같다.
+
+- 전달 API는 Linux DMA-BUF API의 exporter/importer와 reference 수명 모델을 응용한다.
+- Camera pVM은 DMA-BUF exporter로 동작한다.
+- AI pVM은 protected handle을 local DMA-BUF로 바꾸는 proxy importer로 동작한다.
+- 각 pVM 내부 객체의 정상 수명은 해당 kernel의 DMA-BUF reference count로 관리한다.
+- kernel 경계를 넘는 수명은 Bridge의 cross-pVM lease로 관리한다.
+- Bridge lease는 local DMA-BUF reference count의 복제본이 아니다.
+- Consumer proxy 생성 시 remote lease를 획득하고 최종 proxy release 시 lease를 해제한다.
+- `dma_resv`는 공유하지 않고 fence handle 또는 completion event를 local fence로 변환한다.
+- fence ordering과 cache maintenance는 구분하고 각 local exporter/importer가 수행한다.
+- pVM crash로 정상 `dma_buf_put()`이 실행되지 않으면 endpoint 또는 buffer generation을
+  폐기하고 해당 generation의 remote lease와 mapping을 강제로 정리한다.
+
+backing page를 해제하려면 다음 조건을 모두 만족해야 한다.
+
+```text
+Producer local DMA-BUF reference 종료
+  AND Consumer local proxy reference 종료 또는 generation forced detach
+  AND Bridge cross-pVM lease 종료
+  AND Camera/AI device DMA quiesce
+  AND Stage-2 및 SMMU/IOMMU mapping 제거 가능
+```
+
+### 2.3 직접 전달도 Bridge와 EL2의 보안 집행을 우회하지 않는다
+
+`직접 전달`은 Bridge가 handle, reference와 fence를 연결한 뒤 frame ready event가
+Producer에서 Consumer로 직접 전달된다는 뜻이다. Bridge를 생략하거나 Camera의 fd를
+AI에 그대로 전달한다는 뜻이 아니다. 다음 동작은 모든 후보에서 Bridge, EL2 또는 신뢰
+가능한 보호 제어 경로가 수행해야 한다.
 
 - Host stage-2에서 보호 page 제거
 - 승인된 pVM의 Stage-2 mapping 설정
@@ -63,7 +110,7 @@ EL2 검증 없이 Producer가 임의 물리 page를 Consumer pVM에 mapping할 �
 
 - [Linux pKVM 공식 문서](https://docs.kernel.org/next/virt/kvm/arm/pkvm.html)
 
-### 2.3 공통 불변조건
+### 2.4 공통 불변조건
 
 - 정상 frame payload `memcpy`는 0회다.
 - Host와 등록되지 않은 제3 pVM의 payload mapping/read 성공은 0회다.
@@ -71,11 +118,15 @@ EL2 검증 없이 Producer가 임의 물리 page를 Consumer pVM에 mapping할 �
 - Consumer DMA 완료와 모든 reference 해제 전 backing을 재사용하거나 해제하지 않는다.
 - format, modifier, width, height와 plane별 offset, stride, size를 함께 전달한다.
 - token은 buffer 또는 pool generation과 endpoint generation을 포함한다.
+- Camera local reference와 AI local reference를 하나의 전역 refcount로 합치지 않는다.
+- Bridge lease와 각 kernel의 local DMA-BUF reference를 분리해 기록한다.
 - fence 완료와 reference 해제를 같은 사건으로 처리하지 않는다.
+- Camera의 `dma_resv`를 AI pVM이 직접 참조하지 않는다.
+- Bridge가 전달한 fence를 AI proxy의 local synchronization object에 연결한다.
 - Stage-2 mapping과 장치 SMMU/IOMMU mapping을 구분한다.
 - crash 후 장치 DMA 정지를 확인하기 전에 page를 unmap하거나 free하지 않는다.
 
-### 2.4 Allocation lifetime과 frame-content lifetime
+### 2.5 Allocation lifetime과 frame-content lifetime
 
 네 후보 모두 frame별 동적 allocation 또는 session pool과 결합할 수 있다. allocation
 authority와 frame 운용 정책을 혼동하지 않는다.
@@ -98,21 +149,22 @@ Frame N+1 content lifetime
 ## 3. 평가 축으로 본 네 구조
 
 사용자가 제시한 네 구조는 완전한 2×2 조합이 아니다. 후보 A와 B는 모두 Workload가
-allocation하고 직접 전달하지만, EL2 registry와 lifecycle ledger 유무가 다르다.
+allocation하고 직접 notification하지만, pair-local Bridge와 EL2 authoritative Bridge의
+범위가 다르다. 주어진 적용 원칙에 따라 네 후보 모두 Cross-pVM DMA-BUF Bridge를 가진다.
 
 | 후보 | Backing allocation | EL2 registry | Frame notification | 수명 authority |
 |---|---|---|---|---|
-| A. Workload-Owned Direct | Workload | 없음 | Producer→Consumer 직접 | Producer와 pair protocol |
-| B. Workload-Owned Registered Direct | Workload | 있음 | Producer→Consumer 직접 | Workload local ref + EL2 cross-pVM ledger |
-| C. EL2-Owned Direct | EL2 | allocation ledger | Producer→Consumer 직접 | EL2 allocation ref, direct handoff는 별도 계약 |
-| D. EL2-Owned Brokered | EL2 | allocation·frame state | Producer→EL2→Consumer | EL2 authoritative state machine |
+| A. Workload-Owned Pair Bridge | Workload | pair-local Bridge state | Producer→Consumer 직접 | local ref + pair-local remote lease |
+| B. Workload-Owned EL2 Registered Bridge | Workload | EL2 authoritative registry | Producer→Consumer 직접 | local ref + EL2 cross-pVM lease |
+| C. EL2-Backed Direct Bridge | EL2 | allocation ledger | Producer→Consumer 직접 | EL2 backing ref + local ref + direct handoff lease |
+| D. EL2-Backed Brokered Bridge | EL2 | allocation·frame state | Producer→EL2→Consumer | EL2 authoritative state machine |
 
 후보 B에서 EL2는 buffer identity, ACL과 backing reference ledger를 보유한다. frame
 ready/release notification은 직접 전달하므로 EL2가 매 frame relay하지 않아도 된다.
 pool의 backing reference는 session 동안 유지하고 frame content의 READY/RELEASE만
 Workload 사이에서 순환시킬 수 있다.
 
-## 4. 후보 A — Workload-Owned Direct
+## 4. 후보 A — Workload-Owned Pair Bridge
 
 ### 4.1 구조
 
@@ -120,27 +172,33 @@ Workload 사이에서 순환시킬 수 있다.
 Producer pVM
   Producer App
     -> Local Protected Allocator/Exporter
-    -> Pair Channel --------------------------------> Consumer App
-                                                        -> Local Proxy Importer
+    -> Pair-local Cross-pVM DMA-BUF Bridge
+    -> READY(handle, metadata, fence) --------------> Consumer App
+                                                       -> Bridge REDEEM
+                                                       -> Local Proxy Importer
 
 EL2
   Minimal Mapping Enforcement
 ```
 
 Producer workload가 protected allocator driver에 allocation을 요청하고 local DMA-BUF를
-받는다. Producer는 pair channel을 통해 protected token과 metadata를 Consumer에 직접
-전달한다. EL2는 page mapping primitive만 제공하며 buffer registry와 수명 ledger를
-보유하지 않는다.
+받는다. Pair-local Bridge가 Camera local DMA-BUF를 protected handle로 export하고
+Consumer local proxy의 remote lease, fence translation과 endpoint generation을 관리한다.
+Producer는 pair channel을 통해 handle notification을 Consumer에 직접 전달한다. EL2는
+page mapping enforcement를 제공하지만 system-wide buffer registry는 보유하지 않는다.
 
 ### 4.2 정상 흐름
 
 1. Producer가 backing과 local DMA-BUF를 할당한다.
-2. Producer가 Consumer identity를 지정해 share/mapping을 요청한다.
-3. EL2가 최소 mapping 검증을 수행한다.
-4. Producer가 token, metadata와 producer fence event를 Consumer에 직접 전달한다.
-5. Consumer local proxy driver가 동일 backing의 local DMA-BUF를 만든다.
-6. Consumer가 처리 후 Producer에 release fence와 release event를 직접 반환한다.
-7. Producer가 pair-local reference를 확인하고 allocation을 해제한다.
+2. Camera exporter가 pair-local Bridge에 export를 요청한다.
+3. Bridge가 protected handle, producer generation과 remote lease record를 만든다.
+4. EL2가 최소 mapping 검증을 수행한다.
+5. Producer가 handle, metadata와 producer fence event를 Consumer에 직접 전달한다.
+6. Consumer가 Bridge에 handle을 redeem하고 local proxy DMA-BUF를 만든다.
+7. Bridge가 producer fence를 AI local fence로 translation한다.
+8. Consumer가 처리 후 release fence와 release event를 반환한다.
+9. AI proxy final release가 pair-local remote lease를 해제한다.
+10. Producer가 local reference와 pair-local lease 종료를 확인하고 allocation을 해제한다.
 
 ### 4.3 장점
 
@@ -153,7 +211,7 @@ Producer workload가 protected allocator driver에 allocation을 요청하고 lo
 
 EL2 TCB 최소성:
 
-- EL2가 image format, allocator, queue와 buffer 상태 머신을 알 필요가 없다.
+- EL2가 image format, allocator, queue와 frame 상태 머신을 알 필요가 없다.
 - hypervisor ABI와 privileged code가 가장 작다.
 
 장애 격리:
@@ -165,11 +223,11 @@ EL2 TCB 최소성:
 
 보안과 수명 안전성:
 
-- Producer가 token, metadata와 허용 Consumer를 사실상 통제한다.
-- global reference ledger가 없어 조기 free와 누락 release 검증이 어렵다.
+- Producer가 handle export 요청, metadata와 허용 Consumer를 사실상 통제한다.
+- pair-local lease는 있지만 global reference ledger가 없어 중복 공유와 quota 검증이 어렵다.
 - Producer crash 시 정상 owner가 사라져 orphan backing 회수 authority가 불명확하다.
 - 악성 Producer가 동일 buffer를 정책에 없는 Consumer에 재전달하는 것을 막기 어렵다.
-- stale token과 pair-local reference protocol의 정확성에 크게 의존한다.
+- stale handle, local reference와 pair-local remote lease protocol의 정확성에 크게 의존한다.
 
 시나리오 확장성:
 
@@ -190,7 +248,7 @@ EL2 TCB 최소성:
 - 보호 memory가 pair 전용이고 global quota가 불필요한 경우
 - Producer crash 시 pipeline 전체 재시작과 page 격리를 허용하는 경우
 
-## 5. 후보 B — Workload-Owned Registered Direct
+## 5. 후보 B — Workload-Owned EL2 Registered Bridge
 
 ### 5.1 구조
 
@@ -200,7 +258,8 @@ Producer pVM
        |
        | REGISTER(page, metadata, ACL, generation)
        v
-EL2 Buffer Registry ---- issue capability / reference ledger
+EL2 Cross-pVM DMA-BUF Bridge
+  Buffer Registry ------- issue handle / remote lease ledger
        ^
        | REDEEM / RELEASE
        |
@@ -210,23 +269,25 @@ Consumer pVM
 Producer App ---------------- READY/RELEASE ---------------- Consumer App
 ```
 
-Producer workload가 allocation과 pool 정책을 담당한다. EL2는 등록 시 backing provenance,
-page 범위, 허용 endpoint, generation과 quota를 검증하고 위조하기 어려운 capability를
-발급한다. Producer와 Consumer의 frame notification은 직접 전달하지만 Consumer는 EL2에
-capability를 redeem해야 local mapping을 얻는다.
+Producer workload가 allocation과 pool 정책을 담당한다. EL2 Bridge는 등록 시 backing
+provenance, page 범위, 허용 endpoint, generation과 quota를 검증하고 위조하기 어려운
+protected handle을 발급한다. Producer와 Consumer의 frame notification은 직접 전달하지만
+Consumer proxy importer는 EL2 Bridge에 handle을 redeem해야 local mapping과 remote lease를
+얻는다.
 
 ### 5.2 정상 흐름
 
 1. Producer가 protected allocator를 통해 backing 또는 pool을 생성한다.
-2. Producer가 buffer/pool, metadata, ACL과 generation을 EL2에 등록한다.
-3. EL2가 page provenance와 quota를 검증하고 capability를 발급한다.
-4. Producer가 capability와 frame-ready event를 Consumer에 직접 전달한다.
-5. Consumer가 EL2에 capability를 redeem한다.
-6. EL2가 endpoint ACL과 generation을 확인하고 Consumer mapping을 승인한다.
-7. Consumer가 처리 후 Producer에 frame-content release event를 보낸다.
-8. 동적 buffer는 Consumer 사용 종료 시 EL2 reference를 해제한다.
-9. pool은 backing reference를 session 동안 유지하고 slot content만 반복 사용한다.
-10. session 종료 시 EL2 reference가 0이고 DMA가 종료된 뒤 Producer가 unregister/free한다.
+2. Producer가 buffer/pool, metadata, ACL과 generation을 EL2 Bridge에 등록한다.
+3. EL2 Bridge가 page provenance와 quota를 검증하고 protected handle을 발급한다.
+4. Producer가 protected handle과 frame-ready event를 Consumer에 직접 전달한다.
+5. Consumer proxy importer가 EL2 Bridge에 protected handle을 redeem한다.
+6. EL2 Bridge가 endpoint ACL과 generation을 확인하고 Consumer mapping을 승인한다.
+7. Bridge가 producer fence handle을 AI kernel의 local fence로 translation한다.
+8. Consumer가 처리 후 Producer에 frame-content release event를 보낸다.
+9. 동적 buffer는 AI proxy final release 시 EL2 remote lease를 해제한다.
+10. pool은 backing lease를 session 동안 유지하고 slot content만 반복 사용한다.
+11. session 종료 시 local ref와 remote lease가 0이고 DMA가 종료된 뒤 unregister/free한다.
 
 ### 5.3 장점
 
@@ -238,16 +299,16 @@ capability를 redeem해야 local mapping을 얻는다.
 
 보안:
 
-- Producer가 생성한 backing의 provenance와 page 범위를 EL2가 검증한다.
-- capability에 허용 Consumer, access mode와 generation을 결합할 수 있다.
-- Consumer가 token을 임의 추측하거나 오래된 token을 redeem하는 것을 차단할 수 있다.
-- EL2 reference ledger로 조기 free와 crash orphan 회수를 검증할 수 있다.
+- Producer가 생성한 backing의 provenance와 page 범위를 EL2 Bridge가 검증한다.
+- protected handle에 허용 Consumer, access mode와 generation을 결합할 수 있다.
+- Consumer가 handle을 임의 추측하거나 오래된 handle을 redeem하는 것을 차단할 수 있다.
+- EL2 remote lease ledger로 조기 free와 crash orphan 회수를 검증할 수 있다.
 - allocation policy는 workload에 두면서 security authority는 EL2에 유지한다.
 
 시나리오 확장성:
 
 - 신규 Consumer는 공통 register/redeem/release API를 사용한다.
-- fan-out은 동일 capability의 ACL과 Consumer별 reference로 표현할 수 있다.
+- fan-out은 동일 protected handle의 ACL과 Consumer별 remote lease로 표현할 수 있다.
 - Producer별 allocator와 format 차이는 EL2 registry protocol에 직접 유입되지 않는다.
 - pool, frame별 동적 buffer와 여러 plane 구성을 같은 identity model로 지원할 수 있다.
 
@@ -285,35 +346,38 @@ capability를 redeem해야 local mapping을 얻는다.
 - Host 비노출, ACL, stale token 차단과 crash cleanup이 필수인 경우
 - 중앙 frame relay 비용 없이 공통 보안 정책과 audit가 필요한 경우
 
-## 6. 후보 C — EL2-Owned Direct
+## 6. 후보 C — EL2-Backed Direct Bridge
 
 ### 6.1 구조
 
 ```text
-EL2 Protected Allocator
+EL2 Protected Backing Allocator
   -> backing/pool allocation
-  -> capability + allocation-time ACL
+  -> protected handle + allocation-time ACL
          |
          v
-Producer Local Proxy DMA-BUF
+Camera pVM Local Proxy Exporter
+  -> Camera local DMA-BUF
   -> capture
-  -> capability 직접 전달 ----------------------> Consumer Local Proxy
+  -> handle notification 직접 전달 -------------> AI Proxy Importer
 ```
 
-EL2가 보호 backing 또는 pool을 할당하고 allocation identity와 정상 수명을 소유한다.
-Producer는 local proxy DMA-BUF를 받아 사용한 뒤 capability를 Consumer에 직접 전달한다.
-EL2가 frame publish를 중계하지 않으므로 Consumer authorization은 allocation-time ACL 또는
-위임 가능한 capability에 의존한다.
+EL2가 보호 backing 또는 pool을 할당하고 allocation identity와 backing 수명을 소유한다.
+Camera pVM의 proxy exporter는 해당 backing을 local `struct dma_buf`로 감싼다. Producer는
+local DMA-BUF를 사용한 뒤 protected handle notification을 Consumer에 직접 전달한다.
+EL2가 frame publish를 중계하지 않으므로 Consumer authorization은 allocation-time ACL
+또는 위임 가능한 handle에 의존한다.
 
 ### 6.2 정상 흐름
 
 1. Producer가 size, usage, format constraint와 허용 Consumer를 EL2 allocator에 요청한다.
-2. EL2가 backing을 할당하고 capability를 발급한다.
-3. Producer local proxy driver가 capability를 local DMA-BUF로 만든다.
-4. Producer가 capture 후 capability와 fence event를 Consumer에 직접 전달한다.
-5. Consumer가 capability를 redeem하고 local DMA-BUF를 만든다.
-6. Consumer가 처리 후 Producer 또는 EL2 reference API에 release를 기록한다.
-7. EL2가 모든 reference와 DMA 종료를 확인하고 backing을 회수한다.
+2. EL2가 backing을 할당하고 protected handle을 발급한다.
+3. Camera proxy exporter가 handle을 Camera local DMA-BUF로 만든다.
+4. Producer가 capture 후 handle, metadata와 fence event를 Consumer에 직접 전달한다.
+5. AI proxy importer가 handle을 redeem하고 AI local DMA-BUF를 만든다.
+6. Bridge가 producer fence를 AI local fence로 translation한다.
+7. Consumer가 처리 후 Producer 또는 EL2 lease API에 release를 기록한다.
+8. EL2가 양쪽 local release, remote lease와 DMA 종료를 확인하고 backing을 회수한다.
 
 ### 6.3 장점
 
@@ -347,7 +411,7 @@ EL2 TCB와 유지보수성:
 
 전달 보안의 불완전성:
 
-- EL2가 allocation을 소유해도 direct handoff를 모르면 frame별 상태를 검증할 수 없다.
+- EL2가 backing allocation을 소유해도 direct handoff를 모르면 frame별 상태를 검증할 수 없다.
 - allocation-time ACL에 없는 동적 Consumer 추가에는 capability delegation API가 필요하다.
 - token possession만으로 redeem할 수 있으면 탈취·재전달 위험이 남는다.
 - 정확한 release ledger가 없다면 중앙 allocation의 crash 장점이 감소한다.
@@ -365,10 +429,11 @@ EL2 TCB와 유지보수성:
 
 ### 6.5 구조적 불완전성
 
-후보 C는 다음 둘 중 하나를 추가하지 않으면 수명 안전성이 완성되지 않는다.
+후보 C는 backing owner가 EL2이고 DMA-BUF exporter는 Camera pVM이므로 두 수명 authority가
+분리된다. 다음 둘 중 하나를 추가하지 않으면 수명 안전성이 완성되지 않는다.
 
-1. Producer가 direct handoff마다 EL2에 Consumer reference를 등록한다.
-2. capability 자체가 Consumer identity와 reference delegation을 안전하게 표현한다.
+1. Producer가 direct handoff마다 EL2에 Consumer remote lease를 등록한다.
+2. protected handle 자체가 Consumer identity와 lease delegation을 안전하게 표현한다.
 
 1번을 선택하면 후보 B의 registered direct 구조에 가까워진다. 2번은 capability revocation과
 fan-out reference protocol이 복잡해진다.
@@ -380,12 +445,12 @@ fan-out reference protocol이 복잡해진다.
 - buffer constraint가 단순하고 장기간 안정적인 platform
 - Consumer가 allocation 시점에 고정되는 1:1 pipeline
 
-## 7. 후보 D — EL2-Owned Brokered
+## 7. 후보 D — EL2-Backed Brokered Bridge
 
 ### 7.1 구조
 
 ```text
-                    EL2 Protected Buffer Broker
+                    EL2 Cross-pVM DMA-BUF Broker
                   +------------------------------+
 Producer ACQUIRE  | allocator + registry + queue |  Consumer ACQUIRE
         <---------| state + ACL + ref + fence    |--------->
@@ -396,18 +461,20 @@ Producer PUBLISH  | audit + quota + recovery     |  Consumer RELEASE
 State: FREE -> IN_PRODUCER -> READY -> IN_CONSUMER -> FREE
 ```
 
-EL2가 allocation, pool, 상태 머신, routing, ACL과 cross-pVM reference를 모두 소유한다.
-Producer는 EL2에서 buffer를 acquire해 capture하고 다시 EL2에 publish한다. Consumer는
-EL2가 관리하는 ready queue에서 buffer를 acquire하고 완료 후 EL2에 release한다.
+EL2가 backing allocation, pool, 상태 머신, routing, ACL과 cross-pVM lease를 모두
+소유한다. Camera proxy exporter는 EL2 backing을 local DMA-BUF로 만들어 capture하고,
+handle 상태와 producer fence를 EL2에 publish한다. backing이나 local DMA-BUF 객체가 EL2로
+이동하는 것은 아니다. AI proxy importer는 EL2 ready queue에서 handle을 acquire해 별도의
+local DMA-BUF를 만들고 완료 후 EL2에 release한다.
 
 ### 7.2 정상 흐름
 
 1. EL2가 protected pool과 slot table을 생성한다.
 2. Producer가 EL2에서 FREE slot을 acquire한다.
-3. Producer local proxy가 Camera capture를 수행한다.
+3. Camera proxy exporter의 local DMA-BUF로 capture를 수행한다.
 4. Producer가 token, metadata와 producer fence를 EL2에 publish한다.
 5. EL2가 상태와 ACL을 검증하고 slot을 Consumer ready queue에 넣는다.
-6. Consumer가 EL2에서 slot을 acquire하고 local proxy를 만든다.
+6. AI proxy importer가 EL2에서 slot handle을 acquire하고 local DMA-BUF를 만든다.
 7. Consumer가 처리 후 consumer fence와 함께 EL2에 release한다.
 8. EL2가 reference와 DMA 완료를 확인하고 slot을 FREE로 반환한다.
 
@@ -475,24 +542,26 @@ EL2 TCB와 유지보수성:
 점수는 `1점=불리`, `3점=중간`, `5점=유리`다. 이는 구조적 가설이며 구현과 실측에
 따라 달라질 수 있다. 서로 다른 품질을 합산한 총점은 사용하지 않는다.
 
-| 품질속성 | A. Workload Direct | B. Workload Registered | C. EL2 Direct | D. EL2 Brokered |
+| 품질속성 | A. Workload Pair Bridge | B. Workload EL2 Registered | C. EL2-Backed Direct | D. EL2-Backed Brokered |
 |---|---:|---:|---:|---:|
 | Steady-state 성능 | 5 | 4 | 4 | 2 |
-| Latency predictability | 4 | 4 | 4 | 2 |
-| 보안 정책 통제력 | 2 | 4 | 4 | 5 |
+| Latency predictability | 5 | 4 | 4 | 2 |
+| 보안 정책 통제력 | 3 | 5 | 4 | 5 |
 | EL2 TCB 최소성 | 5 | 4 | 2 | 1 |
-| 수명·crash 회수성 | 2 | 4 | 4 | 5 |
+| 수명 안전성 | 3 | 5 | 3 | 5 |
+| Crash 회수성 | 3 | 5 | 4 | 5 |
 | 시나리오 확장성 | 2 | 4 | 3 | 5 |
 | 처리량 수평 확장 | 5 | 4 | 4 | 2 |
 | 장애 격리 | 5 | 4 | 4 | 2 |
-| 유지보수성 | 3 | 4 | 2 | 1 |
-| 자원 통제·관측성 | 1 | 4 | 5 | 5 |
+| 유지보수성 | 3 | 5 | 2 | 1 |
+| 자원 통제 | 2 | 4 | 5 | 5 |
+| 관측·감사성 | 2 | 5 | 4 | 5 |
 
 ### 8.1 성능
 
 순서는 일반적으로 `A > B ≈ C > D`로 예상한다.
 
-- A는 direct frame path와 pair-local queue로 control overhead가 가장 작다.
+- A는 Bridge translation은 필요하지만 pair-local frame path로 control overhead가 가장 작다.
 - B는 pool을 한 번 등록하면 A에 가까우며 security check를 setup/redeem에 집중할 수 있다.
 - C는 allocation setup은 중앙화되지만 frame path는 direct다.
 - D는 매 frame EL2 relay와 중앙 상태 전이 때문에 p99 latency와 jitter가 가장 불리하다.
@@ -503,10 +572,10 @@ interference에서 발생한다.
 
 ### 8.2 보안
 
-정책 통제력은 `D > B ≈ C > A`지만 TCB 최소성은 반대 방향이다.
+정책 통제력은 `D ≈ B > C > A`지만 TCB 최소성은 반대 방향이다.
 
-- A는 EL2 code가 작지만 Producer 신뢰와 pair protocol에 의존한다.
-- B는 untrusted allocation을 EL2가 검증하면서 allocation policy는 workload에 남긴다.
+- A는 pair-local Bridge가 generation과 lease를 관리하지만 Producer 신뢰에 크게 의존한다.
+- B는 Workload allocation을 EL2 Bridge가 검증하면서 allocation policy는 workload에 남긴다.
 - C는 page provenance와 quota가 강하지만 direct handoff authorization이 별도로 필요하다.
 - D는 상태 전이까지 강제하지만 highest-privilege attack surface가 가장 크다.
 
@@ -527,8 +596,8 @@ interference에서 발생한다.
 
 ### 8.4 유지보수성
 
-- A는 EL2는 단순하지만 각 workload에 보안·reference logic이 중복된다.
-- B는 workload policy와 EL2 enforcement의 책임 경계가 가장 명확하다.
+- A는 EL2는 단순하지만 pair Bridge와 각 workload에 remote lease logic이 중복된다.
+- B는 Camera exporter, AI proxy importer와 EL2 Bridge의 책임 경계가 가장 명확하다.
 - C는 device별 allocation constraint와 heap 정책이 EL2 ABI에 누적된다.
 - D는 allocator, broker와 queue 변경이 hypervisor release에 결합된다.
 
@@ -537,15 +606,15 @@ interference에서 발생한다.
 
 ### 8.5 가용성과 장애 격리
 
-- A는 pair-local 장애 격리는 좋지만 Producer crash 후 orphan 회수가 약하다.
-- B는 EL2 ledger로 crash를 회수하면서 정상 frame path는 pair-local로 유지한다.
+- A는 pair generation cleanup은 가능하지만 Producer crash 후 system-wide orphan 회수가 약하다.
+- B는 EL2 remote lease ledger로 crash를 회수하면서 정상 frame path는 direct로 유지한다.
 - C는 allocation 회수 authority가 EL2에 있지만 allocator 장애 영향이 전역적이다.
 - D는 endpoint crash 처리는 명확하지만 broker overload와 bug의 영향 범위가 가장 크다.
 
 ### 8.6 자원 통제와 관측성
 
-- A는 Producer별 정보가 분산되어 global quota와 leak 탐지가 어렵다.
-- B는 allocation은 workload가 하되 EL2 registration에서 quota와 page ledger를 강제한다.
+- A는 pair Bridge별 정보가 분산되어 global quota와 leak 탐지가 어렵다.
+- B는 allocation은 Workload가 하되 EL2 Bridge registration에서 quota와 page ledger를 강제한다.
 - C와 D는 중앙 allocation으로 global memory accounting이 가장 쉽다.
 - D는 frame queue와 latency까지 중앙 관측할 수 있지만 observability 책임이 EL2에 들어간다.
 
@@ -554,7 +623,7 @@ interference에서 발생한다.
 ### 9.1 기본 권고: 후보 B
 
 현재 Camera Producer pVM에서 AI Consumer pVM으로 1080p 30fps frame을 지속 전달하는
-workload에는 후보 B인 `Workload-Owned Registered Direct`를 우선 권고한다.
+workload에는 후보 B인 `Workload-Owned EL2 Registered Bridge`를 우선 권고한다.
 
 권장 세부 구조는 다음과 같다.
 
@@ -562,9 +631,10 @@ workload에는 후보 B인 `Workload-Owned Registered Direct`를 우선 권고�
 Session setup
   Camera App
     -> protected allocator driver로 N개 DMA-BUF allocation
-    -> EL2에 pool과 slot N개를 한 번 REGISTER
-    -> EL2가 provenance, ACL, quota와 generation 검증
-    -> AI pVM이 slot N개를 한 번 REDEEM/import
+    -> EL2 Cross-pVM DMA-BUF Bridge에 pool과 slot N개를 한 번 REGISTER
+    -> Bridge가 provenance, ACL, quota와 generation 검증
+    -> AI proxy importer가 slot N개를 한 번 REDEEM/import
+    -> local DMA-BUF와 session-level remote lease 생성
 
 Per-frame steady path
   Camera QBUF/DQBUF
@@ -576,14 +646,15 @@ Per-frame steady path
 
 Session teardown
   AI local pool detach
-    -> EL2 backing reference 해제
+    -> AI local proxy final dma_buf_put
+    -> EL2 Bridge remote lease 해제
     -> Camera unregister/free
 ```
 
 이 구조의 이유는 다음과 같다.
 
 - Camera workload가 format, modifier, slot 수와 backpressure를 가장 잘 안다.
-- EL2가 protected page provenance, ACL, generation과 crash cleanup을 강제한다.
+- EL2 Bridge가 protected page provenance, ACL, generation, remote lease와 crash cleanup을 강제한다.
 - pool 등록과 import를 session setup에 한 번 수행해 frame별 EL2 relay를 피한다.
 - 신규 Consumer와 fan-out을 공통 capability protocol로 확장할 수 있다.
 - allocator, queue와 image policy를 EL2 TCB에 넣지 않는다.
@@ -631,13 +702,18 @@ Stage-2/SMMU mapping과 capability 검증만 담당하는 것이 TCB 측면에�
 
 | 후보 | 핵심 가치 | 핵심 위험 | 판단 |
 |---|---|---|---|
-| A. Workload-Owned Direct | 최소 latency와 pair 장애 격리 | 낮은 수명 통제와 시나리오 중복 | 제한적 1:1 환경 |
-| B. Workload-Owned Registered Direct | 성능·보안·유지보수 균형 | register/direct event ordering 복잡성 | 기본 권고 |
-| C. EL2-Owned Direct | 강한 provenance와 global quota | EL2 allocator TCB와 handoff 불완전성 | 중앙 allocation 필수 시 |
-| D. EL2-Owned Brokered | 가장 강한 중앙 정책과 routing | 최고 latency, 중앙 병목, 최대 EL2 TCB | 중앙 orchestration 필수 시 |
+| A. Workload-Owned Pair Bridge | 최소 latency와 pair 장애 격리 | 분산 lease와 낮은 global 통제 | 제한적 1:1 환경 |
+| B. Workload-Owned EL2 Registered Bridge | 성능·보안·유지보수 균형 | register/direct event ordering 복잡성 | 기본 권고 |
+| C. EL2-Backed Direct Bridge | 강한 provenance와 global quota | backing owner와 exporter 수명 분리 | 중앙 allocation 필수 시 |
+| D. EL2-Backed Brokered Bridge | 가장 강한 중앙 정책과 routing | 최고 latency, 중앙 병목, 최대 EL2 TCB | 중앙 orchestration 필수 시 |
 
 핵심 원칙은 다음과 같다.
 
-> Workload가 buffer의 format·pool·queue policy를 소유하고, EL2가 protected page의
-> provenance·ACL·generation·reference·revoke를 강제하며, 정상 frame notification은
-> Producer와 Consumer가 직접 교환하는 후보 B가 현재 요구에서 가장 균형적이다.
+네 후보 모두 Bridge가 필수이므로 Bridge 자체를 제거해 성능을 얻는 선택지는 없다.
+결정 대상은 Bridge가 session-level handle·lease·mapping만 관리할지, frame별 queue와
+상태 전이까지 중계할지다.
+
+> Camera pVM이 local DMA-BUF exporter로서 format·pool·queue policy를 소유하고, AI pVM이
+> local proxy importer로 동작하며, EL2 Cross-pVM DMA-BUF Bridge가 protected handle,
+> provenance, ACL, generation, remote lease, fence translation과 forced detach를 담당하는
+> 후보 B가 현재 요구에서 가장 균형적이다.
