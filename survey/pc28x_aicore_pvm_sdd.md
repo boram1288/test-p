@@ -1,13 +1,13 @@
-# [8G][PC28-X] Privacy 강화를 위한 AICore on pVM 솔루션 개발 (차동현) ⬝ 3.SDD
+# [8G][xxx] xxx (xxx) ⬝ 3.SDD
 
 - 원본: https://confluence-mirror.samsungds.net/pages/3738353538
-- 작성자: 차동현 / AP S/W개발팀(S.LSI)
+- 작성자: xxx / xxx
 - 수정일: 2026-08-07T20:33:32.000+09:00
 
 ---
 \
 
-# [8G][PC28-X] Privacy 강화를 위한 AICore on pVM 솔루션 개발 (차동현) ⬝ 3.SDD
+# [8G][xxx] xxx (xxx) ⬝ 3.SDD
 
 ---
 
@@ -520,52 +520,52 @@ Document Review
 
 | 의견 내용 | 답변 내용 | 상태 |  |  |  |  |
 | --- | --- | --- | --- | --- | --- | --- |
-| 김정태 / TL / AP S/W개발팀(S.LSI) 2026-07-31 PM 02:24:26 " Guest 3계층으로 구성된다. " kernel 과 platform도 그림에 구분되면 이해하는데 도움이 될듯합니다. 전체 architecture에서 개발 범위를 별도로 구분해 줘도 좋겠네요 id 정보는 현재 수준의 architecture 그림에서는 조금 detail한 정보로 보여서..좀더 추상화 시켜도 좋겠습니다. | 김정태 / TL / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) 2026-08-07 PM 06:33:52 수정하였습니다. | 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 06:33:52 수정하였습니다. | Open |
-| 김정태 / TL / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 06:33:52 수정하였습니다. |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 김정태 / TL / AP S/W개발팀(S.LSI) 2026-07-31 PM 02:26:10 " Host + pVM 동시 사용 목표 " 이것도 구현 범위는 아니지만, 설계 완료가 과제 목표이니.. multi vm 지원에 대한 설계 내용도 포함을 하면 좋을것 같습니다. | 김정태 / TL / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) 2026-08-07 PM 08:34:19 3.7 Multi VM NPU 동시 사용 절에 추가하였습니다. | 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 08:34:19 3.7 Multi VM NPU 동시 사용 절에 추가하였습니다. | Open |
-| 김정태 / TL / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 08:34:19 3.7 Multi VM NPU 동시 사용 절에 추가하였습니다. |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 김정태 / TL / AP S/W개발팀(S.LSI) 2026-07-31 PM 02:27:24 " 개발 범위 " 이 정보가..그림에 같이 표현되면 좋겠네요 | 김정태 / TL / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) 2026-08-07 PM 06:34:00 수정하였습니다. | 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 06:34:00 수정하였습니다. | Resolved |
-| 김정태 / TL / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 06:34:00 수정하였습니다. |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 김정태 / TL / AP S/W개발팀(S.LSI) 2026-07-31 PM 02:28:40 " Composition of Arc " table에서 담당은.. S.LSI 내부 그룹 단위로 구분해주면 좀 더 의미 있어 보입니다. | 김정태 / TL / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) 2026-08-07 PM 06:34:07 수정하였습니다. | 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 06:34:07 수정하였습니다. | Resolved |
-| 김정태 / TL / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 06:34:07 수정하였습니다. |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 김정태 / TL / AP S/W개발팀(S.LSI) 2026-07-31 PM 02:33:28 " Host 간 핵심 인터페이스 " 설계 단계에서 각 module 간의 interface에 대한 내용은.. input / output 에 대한 정의가 가장 필수 정보로 중요할것 같고, 추가적으로 내부적인 동작에 대한 설명 정도가 있으면 될것 같습니다. 이외 정보는 부가적인 정보로 봐도 될것 같습니다. | 김정태 / TL / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) 2026-08-07 PM 08:05:02 수정하였습니다. | 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 08:05:02 수정하였습니다. | Resolved |
-| 김정태 / TL / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 08:05:02 수정하였습니다. |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 김정태 / TL / AP S/W개발팀(S.LSI) 2026-07-31 PM 02:35:55 " 흐름. " 아래 "핵심 계약"은 뭔가 좀 어색해 보이고.. 시퀀스 정도로 해도 될것 같네요.ㅎ | 김정태 / TL / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) 2026-08-07 PM 05:22:32 수정하였습니다. | 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 05:22:32 수정하였습니다. | Resolved |
-| 김정태 / TL / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 05:22:32 수정하였습니다. |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 김정태 / TL / AP S/W개발팀(S.LSI) 2026-07-31 PM 02:38:33 " VM 생성부터 NPU가 pVM " behavior view는.. 각 module이 어떻게 연결 되어 동작하는지를 설명하는 내용이라.. sequence는 앞에 그림 static view(module view)에 있는 module를 중심으로 dynamic view(sequce diagram 등)을 그려주면 좋을것 같습니다. | 김정태 / TL / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) 2026-08-07 PM 08:10:48 넵 아래 내용들 전반적으로 수정하였습니다. | 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 08:10:48 넵 아래 내용들 전반적으로 수정하였습니다. | Resolved |
-| 김정태 / TL / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 08:10:48 넵 아래 내용들 전반적으로 수정하였습니다. |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 김정태 / TL / AP S/W개발팀(S.LSI) 2026-07-31 PM 02:41:16 " uest에서 물리 자원(SFR)에 DT resource로 접근할 수 없으므로, MMIO 확보를 HVC로 지연 처리한다. " 디자인 단계에서..아래 code 수준 내용은 너무 세부적인 내용으로 보입니다. 아래 내용도 sequence diagram 정도로 추상화 해서 그려도 좋을것 같습니다. | 김정태 / TL / AP S/W개발팀(S.LSI) |  | Dangling |  |  |  |
-| 김정태 / TL / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 김정태 / TL / AP S/W개발팀(S.LSI) 2026-07-31 PM 02:42:45 " SysMMU는 VA→PA 변 " 중요한건 최종 단계 구조이니.. 최종 단계 구조도 함께 그려주면 좋을것 같습니다. 아님, 최종 단계 구조만 표현되어도 될것 같습니다. | 김정태 / TL / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) 2026-08-07 PM 07:54:52 네 수정하였습니다. | 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 07:54:52 네 수정하였습니다. | Resolved |
-| 김정태 / TL / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 07:54:52 네 수정하였습니다. |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 김정태 / TL / AP S/W개발팀(S.LSI) 2026-07-31 PM 02:48:06 " PU Interru " 아래 그림도.. 앞에 그린 module view를 기준으로 각 module이 어떤 역할을 하는지 매핑을 시켜줘도 좋을것 같네요.. ex, 아래 그림이서.. 1/2번은 Host VM → 3/4번은 pKVM → 5번은 Guest VM 정도로 매핑 시켜줘도 좋겠네요 | 김정태 / TL / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) 2026-08-07 PM 07:55:13 수정하였습니다. | 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 07:55:13 수정하였습니다. | Resolved |
-| 김정태 / TL / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 07:55:13 수정하였습니다. |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 김정태 / TL / AP S/W개발팀(S.LSI) 2026-07-31 PM 02:52:24 " 메모리 격리는 두 축으로 이뤄 " 아래 내용도.. detail한 내용이 많은데..  글 보다는 간단한 그림으로 표현해줘도 좋겠네요 | 김정태 / TL / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) 2026-08-07 PM 07:55:05 네 수정하였습니다. | 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 07:55:05 네 수정하였습니다. | Resolved |
-| 김정태 / TL / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 07:55:05 네 수정하였습니다. |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 김정태 / TL / AP S/W개발팀(S.LSI) 2026-07-31 PM 02:59:57 " Security " 이건 지금 문서에 수정하자는 comment는 아니고, 이후에 디자인 문서 작성할때 참고용으로 드리는 의견입니다.ㅎ 일반적으로  Design consideration의 내용은.. 설계하는 sw에서 가장 중요하게 고려해야 되는 내용을 정리하는거라, 여기에 포함된 내용은.. 이후에 설명되는 SW architecture에서 design consideration을 어떻게 설계에 반영하고 있는지 위주로 내용이 작성되면 좋습니다. 예를 들어, performance로 3% 이내 overhead를 잡았다면, SW architecture design 내용에는 해당 목표를 달성하기 위해서 어떤 design이 적용되었다는 내용들이 포함되는것이 좋습니다. 현재의 design 문서는 전체 sw 구조에 대한 설명 위주로 작성되어 있고, 개발하는 solution에서 가장 중요한 요소로 정의한 design considration 항목이 구체적으로 design에 어떻게 반영되었는지에 대한 내용은 이후 설명에 많이 없어서.. 향후에는 이런 내용도 고려해서 디자인 문서를 작성해 주셔도 좋을거 같습니다. | 김정태 / TL / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) 2026-08-07 PM 06:33:44 감사합니다. 우선 "설계 반영" 절 정도만 우측에 추가하여, 어떤 부분에 해당 고려사항이 반영되었는지 정도 표시하였습니다. | 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 06:33:44 감사합니다. 우선 "설계 반영" 절 정도만 우측에 추가하여, 어떤 부분에 해당 고려사항이 반영되었는지 정도 표시하였습니다. | Open |
-| 김정태 / TL / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) | 2026-08-07 PM 06:33:44 감사합니다. 우선 "설계 반영" 절 정도만 우측에 추가하여, 어떤 부분에 해당 고려사항이 반영되었는지 정도 표시하였습니다. |  |  |  |  |
-| 차동현 / AP S/W개발팀(S.LSI) |  |  |  |  |  |  |
+| xxx / TL / xxx xxx " Guest 3계층으로 구성된다. " kernel 과 platform도 그림에 구분되면 이해하는데 도움이 될듯합니다. 전체 architecture에서 개발 범위를 별도로 구분해 줘도 좋겠네요 id 정보는 현재 수준의 architecture 그림에서는 조금 detail한 정보로 보여서..좀더 추상화 시켜도 좋겠습니다. | xxx / TL / xxx | xxx / xxx xxx 수정하였습니다. | xxx / xxx | xxx / xxx | xxx 수정하였습니다. | Open |
+| xxx / TL / xxx |  |  |  |  |  |  |
+| xxx / xxx | xxx / xxx | xxx 수정하였습니다. |  |  |  |  |
+| xxx / xxx |  |  |  |  |  |  |
+| xxx / TL / xxx xxx " Host + pVM 동시 사용 목표 " 이것도 구현 범위는 아니지만, 설계 완료가 과제 목표이니.. multi vm 지원에 대한 설계 내용도 포함을 하면 좋을것 같습니다. | xxx / TL / xxx | xxx / xxx xxx 3.7 Multi VM NPU 동시 사용 절에 추가하였습니다. | xxx / xxx | xxx / xxx | xxx 3.7 Multi VM NPU 동시 사용 절에 추가하였습니다. | Open |
+| xxx / TL / xxx |  |  |  |  |  |  |
+| xxx / xxx | xxx / xxx | xxx 3.7 Multi VM NPU 동시 사용 절에 추가하였습니다. |  |  |  |  |
+| xxx / xxx |  |  |  |  |  |  |
+| xxx / TL / xxx xxx " 개발 범위 " 이 정보가..그림에 같이 표현되면 좋겠네요 | xxx / TL / xxx | xxx / xxx xxx 수정하였습니다. | xxx / xxx | xxx / xxx | xxx 수정하였습니다. | Resolved |
+| xxx / TL / xxx |  |  |  |  |  |  |
+| xxx / xxx | xxx / xxx | xxx 수정하였습니다. |  |  |  |  |
+| xxx / xxx |  |  |  |  |  |  |
+| xxx / TL / xxx xxx " Composition of Arc " table에서 담당은.. xxx 내부 그룹 단위로 구분해주면 좀 더 의미 있어 보입니다. | xxx / TL / xxx | xxx / xxx xxx 수정하였습니다. | xxx / xxx | xxx / xxx | xxx 수정하였습니다. | Resolved |
+| xxx / TL / xxx |  |  |  |  |  |  |
+| xxx / xxx | xxx / xxx | xxx 수정하였습니다. |  |  |  |  |
+| xxx / xxx |  |  |  |  |  |  |
+| xxx / TL / xxx xxx " Host 간 핵심 인터페이스 " 설계 단계에서 각 module 간의 interface에 대한 내용은.. input / output 에 대한 정의가 가장 필수 정보로 중요할것 같고, 추가적으로 내부적인 동작에 대한 설명 정도가 있으면 될것 같습니다. 이외 정보는 부가적인 정보로 봐도 될것 같습니다. | xxx / TL / xxx | xxx / xxx xxx 수정하였습니다. | xxx / xxx | xxx / xxx | xxx 수정하였습니다. | Resolved |
+| xxx / TL / xxx |  |  |  |  |  |  |
+| xxx / xxx | xxx / xxx | xxx 수정하였습니다. |  |  |  |  |
+| xxx / xxx |  |  |  |  |  |  |
+| xxx / TL / xxx xxx " 흐름. " 아래 "핵심 계약"은 뭔가 좀 어색해 보이고.. 시퀀스 정도로 해도 될것 같네요.ㅎ | xxx / TL / xxx | xxx / xxx xxx 수정하였습니다. | xxx / xxx | xxx / xxx | xxx 수정하였습니다. | Resolved |
+| xxx / TL / xxx |  |  |  |  |  |  |
+| xxx / xxx | xxx / xxx | xxx 수정하였습니다. |  |  |  |  |
+| xxx / xxx |  |  |  |  |  |  |
+| xxx / TL / xxx xxx " VM 생성부터 NPU가 pVM " behavior view는.. 각 module이 어떻게 연결 되어 동작하는지를 설명하는 내용이라.. sequence는 앞에 그림 static view(module view)에 있는 module를 중심으로 dynamic view(sequce diagram 등)을 그려주면 좋을것 같습니다. | xxx / TL / xxx | xxx / xxx xxx 넵 아래 내용들 전반적으로 수정하였습니다. | xxx / xxx | xxx / xxx | xxx 넵 아래 내용들 전반적으로 수정하였습니다. | Resolved |
+| xxx / TL / xxx |  |  |  |  |  |  |
+| xxx / xxx | xxx / xxx | xxx 넵 아래 내용들 전반적으로 수정하였습니다. |  |  |  |  |
+| xxx / xxx |  |  |  |  |  |  |
+| xxx / TL / xxx xxx " uest에서 물리 자원(SFR)에 DT resource로 접근할 수 없으므로, MMIO 확보를 HVC로 지연 처리한다. " 디자인 단계에서..아래 code 수준 내용은 너무 세부적인 내용으로 보입니다. 아래 내용도 sequence diagram 정도로 추상화 해서 그려도 좋을것 같습니다. | xxx / TL / xxx |  | Dangling |  |  |  |
+| xxx / TL / xxx |  |  |  |  |  |  |
+| xxx / TL / xxx xxx " SysMMU는 VA→PA 변 " 중요한건 최종 단계 구조이니.. 최종 단계 구조도 함께 그려주면 좋을것 같습니다. 아님, 최종 단계 구조만 표현되어도 될것 같습니다. | xxx / TL / xxx | xxx / xxx xxx 네 수정하였습니다. | xxx / xxx | xxx / xxx | xxx 네 수정하였습니다. | Resolved |
+| xxx / TL / xxx |  |  |  |  |  |  |
+| xxx / xxx | xxx / xxx | xxx 네 수정하였습니다. |  |  |  |  |
+| xxx / xxx |  |  |  |  |  |  |
+| xxx / TL / xxx xxx " PU Interru " 아래 그림도.. 앞에 그린 module view를 기준으로 각 module이 어떤 역할을 하는지 매핑을 시켜줘도 좋을것 같네요.. ex, 아래 그림이서.. 1/2번은 Host VM → 3/4번은 pKVM → 5번은 Guest VM 정도로 매핑 시켜줘도 좋겠네요 | xxx / TL / xxx | xxx / xxx xxx 수정하였습니다. | xxx / xxx | xxx / xxx | xxx 수정하였습니다. | Resolved |
+| xxx / TL / xxx |  |  |  |  |  |  |
+| xxx / xxx | xxx / xxx | xxx 수정하였습니다. |  |  |  |  |
+| xxx / xxx |  |  |  |  |  |  |
+| xxx / TL / xxx xxx " 메모리 격리는 두 축으로 이뤄 " 아래 내용도.. detail한 내용이 많은데..  글 보다는 간단한 그림으로 표현해줘도 좋겠네요 | xxx / TL / xxx | xxx / xxx xxx 네 수정하였습니다. | xxx / xxx | xxx / xxx | xxx 네 수정하였습니다. | Resolved |
+| xxx / TL / xxx |  |  |  |  |  |  |
+| xxx / xxx | xxx / xxx | xxx 네 수정하였습니다. |  |  |  |  |
+| xxx / xxx |  |  |  |  |  |  |
+| xxx / TL / xxx xxx " Security " 이건 지금 문서에 수정하자는 comment는 아니고, 이후에 디자인 문서 작성할때 참고용으로 드리는 의견입니다.ㅎ 일반적으로  Design consideration의 내용은.. 설계하는 sw에서 가장 중요하게 고려해야 되는 내용을 정리하는거라, 여기에 포함된 내용은.. 이후에 설명되는 SW architecture에서 design consideration을 어떻게 설계에 반영하고 있는지 위주로 내용이 작성되면 좋습니다. 예를 들어, performance로 3% 이내 overhead를 잡았다면, SW architecture design 내용에는 해당 목표를 달성하기 위해서 어떤 design이 적용되었다는 내용들이 포함되는것이 좋습니다. 현재의 design 문서는 전체 sw 구조에 대한 설명 위주로 작성되어 있고, 개발하는 solution에서 가장 중요한 요소로 정의한 design considration 항목이 구체적으로 design에 어떻게 반영되었는지에 대한 내용은 이후 설명에 많이 없어서.. 향후에는 이런 내용도 고려해서 디자인 문서를 작성해 주셔도 좋을거 같습니다. | xxx / TL / xxx | xxx / xxx xxx 감사합니다. 우선 "설계 반영" 절 정도만 우측에 추가하여, 어떤 부분에 해당 고려사항이 반영되었는지 정도 표시하였습니다. | xxx / xxx | xxx / xxx | xxx 감사합니다. 우선 "설계 반영" 절 정도만 우측에 추가하여, 어떤 부분에 해당 고려사항이 반영되었는지 정도 표시하였습니다. | Open |
+| xxx / TL / xxx |  |  |  |  |  |  |
+| xxx / xxx | xxx / xxx | xxx 감사합니다. 우선 "설계 반영" 절 정도만 우측에 추가하여, 어떤 부분에 해당 고려사항이 반영되었는지 정도 표시하였습니다. |  |  |  |  |
+| xxx / xxx |  |  |  |  |  |  |
 
 \
 
@@ -573,7 +573,7 @@ Document Information
 
 | Date | Revision | State | Author | Participants |
 | --- | --- | --- | --- | --- |
-| 2026.08.07 20:33 | 29 |  | 차동현 / AP S/W개발팀(S.LSI) | 차동현 / AP S/W개발팀(S.LSI) , 김정태 / TL / AP S/W개발팀(S.LSI) |
+| xxx | 29 |  | xxx / xxx | xxx / xxx , xxx / TL / xxx |
 
 \
 
