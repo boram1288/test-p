@@ -169,16 +169,24 @@ Workload 사이에서 순환시킬 수 있다.
 ### 4.1 구조
 
 ```text
-Producer pVM
-  Producer App
-    -> Local Protected Allocator/Exporter
-    -> Pair-local Cross-pVM DMA-BUF Bridge
-    -> READY(handle, metadata, fence) --------------> Consumer App
-                                                       -> Bridge REDEEM
-                                                       -> Local Proxy Importer
+┌─────────────────────────┐  프레임 준비·반환 알림  ┌────────────────────────┐
+│ 카메라 생산자 pVM       │ ───────────────────────▶ │ AI 소비자 pVM          │
+│ - 카메라 앱             │ ◀─────────────────────── │ - AI 앱                 │
+│ - 로컬 DMA-BUF 내보내기 │                         │ - 프록시 DMA-BUF 가져오기│
+└────────────┬────────────┘                         └────────────┬───────────┘
+             │ 내보내기                                         │ 사용·해제
+             └──────────────────┬────────────────────────────────┘
+                                ▼
+                  ┌─────────────────────────────┐
+                  │ 쌍 전용 DMA-BUF 연결부      │
+                  │ 보호 핸들·원격 임대·펜스 변환│
+                  └──────────────┬──────────────┘
+                                 ▼
+                  ┌─────────────────────────────┐
+                  │ EL2 최소 매핑 집행부         │
+                  └─────────────────────────────┘
 
-EL2
-  Minimal Mapping Enforcement
+카메라 장치 ──DMA 쓰기──▶ 동일 보호 기반 페이지 ──DMA 읽기──▶ AI 장치
 ```
 
 Producer workload가 protected allocator driver에 allocation을 요청하고 local DMA-BUF를
@@ -253,20 +261,24 @@ EL2 TCB 최소성:
 ### 5.1 구조
 
 ```text
-Producer pVM
-  Producer App -> Local Protected Allocator/Exporter
-       |
-       | REGISTER(page, metadata, ACL, generation)
-       v
-EL2 Cross-pVM DMA-BUF Bridge
-  Buffer Registry ------- issue handle / remote lease ledger
-       ^
-       | REDEEM / RELEASE
-       |
-Consumer pVM
-  Local Proxy Importer
+┌─────────────────────────┐  프레임 준비·반환 알림  ┌────────────────────────┐
+│ 카메라 생산자 pVM       │ ───────────────────────▶ │ AI 소비자 pVM          │
+│ - 카메라 앱             │ ◀─────────────────────── │ - AI 앱                 │
+│ - 보호 버퍼 할당        │                         │ - 프록시 DMA-BUF 가져오기│
+│ - 로컬 DMA-BUF 내보내기 │                         └────────────┬───────────┘
+└────────────┬────────────┘                                      │ 사용·해제
+             │ 등록                                               │
+             └──────────────────┬─────────────────────────────────┘
+                                ▼
+                  ┌──────────────────────────────┐
+                  │ EL2 DMA-BUF 연결부           │
+                  │ - 보호 핸들 등록부           │
+                  │ - 접근 권한·세대 검증        │
+                  │ - 원격 임대·매핑 장부        │
+                  │ - 펜스 변환·강제 정리        │
+                  └──────────────────────────────┘
 
-Producer App ---------------- READY/RELEASE ---------------- Consumer App
+카메라 장치 ──DMA 쓰기──▶ 동일 보호 기반 페이지 ──DMA 읽기──▶ AI 장치
 ```
 
 Producer workload가 allocation과 pool 정책을 담당한다. EL2 Bridge는 등록 시 backing
@@ -351,15 +363,22 @@ Consumer proxy importer는 EL2 Bridge에 handle을 redeem해야 local mapping과
 ### 6.1 구조
 
 ```text
-EL2 Protected Backing Allocator
-  -> backing/pool allocation
-  -> protected handle + allocation-time ACL
-         |
-         v
-Camera pVM Local Proxy Exporter
-  -> Camera local DMA-BUF
-  -> capture
-  -> handle notification 직접 전달 -------------> AI Proxy Importer
+                         ┌──────────────────────────────┐
+                         │ EL2 보호 기반 페이지 할당부  │
+                         │ - 보호 페이지·풀 생성        │
+                         │ - 보호 핸들·접근 권한 발급   │
+                         │ - 할당 수명·할당량 관리      │
+                         └───────────┬──────────────────┘
+                                     │ 보호 핸들
+                    ┌────────────────┴────────────────┐
+                    ▼                                 ▼
+┌─────────────────────────┐  프레임 준비·반환 알림  ┌────────────────────────┐
+│ 카메라 생산자 pVM       │ ───────────────────────▶ │ AI 소비자 pVM          │
+│ - 프록시 내보내기       │ ◀─────────────────────── │ - 프록시 가져오기       │
+│ - 로컬 DMA-BUF          │                         │ - 로컬 DMA-BUF          │
+└─────────────────────────┘                         └────────────────────────┘
+
+카메라 장치 ──DMA 쓰기──▶ EL2 소유 보호 기반 페이지 ──DMA 읽기──▶ AI 장치
 ```
 
 EL2가 보호 backing 또는 pool을 할당하고 allocation identity와 backing 수명을 소유한다.
@@ -450,15 +469,24 @@ fan-out reference protocol이 복잡해진다.
 ### 7.1 구조
 
 ```text
-                    EL2 Cross-pVM DMA-BUF Broker
-                  +------------------------------+
-Producer ACQUIRE  | allocator + registry + queue |  Consumer ACQUIRE
-        <---------| state + ACL + ref + fence    |--------->
-Producer PUBLISH  | audit + quota + recovery     |  Consumer RELEASE
-        --------->|                              |<---------
-                  +------------------------------+
+┌────────────────────────┐                         ┌────────────────────────┐
+│ 카메라 생산자 pVM      │                         │ AI 소비자 pVM          │
+│ - 프록시 내보내기      │                         │ - 프록시 가져오기       │
+│ - 로컬 DMA-BUF         │                         │ - 로컬 DMA-BUF          │
+└───────┬─────────▲──────┘                         └───────▲─────────┬──────┘
+        │ 완료 게시│                                        │사용 허가 │ 처리 완료
+        ▼         │                                        │         ▼
+     ┌──────────────────────────────────────────────────────────────┐
+     │ EL2 DMA-BUF 중개 연결부                                      │
+     │ - 보호 기반 페이지 할당                                      │
+     │ - 핸들·접근 권한·원격 임대                                   │
+     │ - 준비 대기열·상태 전이·펜스 변환                            │
+     │ - 할당량·감사·장애 복구                                      │
+     └──────────────────────────────────────────────────────────────┘
 
-State: FREE -> IN_PRODUCER -> READY -> IN_CONSUMER -> FREE
+상태: 비어 있음 → 생산자 사용 중 → 전달 준비 → 소비자 사용 중 → 비어 있음
+
+카메라 장치 ──DMA 쓰기──▶ EL2 소유 보호 기반 페이지 ──DMA 읽기──▶ AI 장치
 ```
 
 EL2가 backing allocation, pool, 상태 머신, routing, ACL과 cross-pVM lease를 모두
