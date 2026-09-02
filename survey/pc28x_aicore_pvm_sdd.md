@@ -62,7 +62,7 @@ Non-secure Host로부터 하드웨어 수준으로 격리되도록 하는 것이
 
 pVM 환경의 NPU Device Assignment는 Host / Hypervisor(EL2) / Guest 3계층으로 구성된다.
 
-![](images/pc28x_aicore_pvm_sdd/제목 없는 다이어그램-1785459536550.png)
+![](images/pc28x_aicore_pvm_sdd/제목%20없는%20다이어그램-1785459536550.png)
 
 \
 
@@ -111,7 +111,7 @@ Guest ↔ Hypervisor ↔ Host 간 핵심 인터페이스를 Input/Output 중심�
 
 VM 생성부터 NPU가 pVM에 할당되기까지의 흐름.
 
-![](images/pc28x_aicore_pvm_sdd/제목 없는 다이어그램-1785460535640.png)
+![](images/pc28x_aicore_pvm_sdd/제목%20없는%20다이어그램-1785460535640.png)
 
 시퀀스 요약: platform이 VM overlay를 `id=0x80000000`으로 태깅(dtboimg.cfg) → bootloader가 host DT merge에서 제외하고 pvmfw config Entry[2]에 복사 → 인덱스를 `androidboot.hypervisor.vm_dtbo_idx`로 Android에 통지. VFIO group 성립 조건: `npu_exynos`, `hwdev_npu`, `nshare_mem`이 동일 IOMMU group을 공유하므로, 셋 다 vfio-platform에 bind되어야 group이 viable. 따라서 3개 compatible(`samsung,exynos-npu`, `-npu-hwdev`, `-npu-nshare`)에 reset handler 등록.
 
@@ -121,7 +121,7 @@ VM 생성부터 NPU가 pVM에 할당되기까지의 흐름.
 
 pVM의 guest는 자신에게 할당된 device의 물리 SFR 주소를 알지 못한다. pvmfw가 VM DT에 전달하는 정보의 형태가 device마다 달라, MMIO 확보 경로가 두 갈래로 나뉜다.
 
-![](images/pc28x_aicore_pvm_sdd/제목 없는 다이어그램-1786098664575.png)
+![](images/pc28x_aicore_pvm_sdd/제목%20없는%20다이어그램-1786098664575.png)
 
 - 경로 ① NPU SFR — VM DT의 접근용 IPA 사용: VM DT의 NPU 노드에는 device의 접근 IPA base(`reg`)가 들어온다. guest NPU driver는 DT가 준 IPA로 곧바로 `ioremap`하여 SFR에 접근한다(별도 HVC 불필요). guest가 그 IPA에 실제로 접근할 때 발생하는 stage-2 처리는 mainline pKVM의 표준 MMIO 경로를 따른다(SRS\_VFIO/SEC).
 - 경로 ② SysMMU SFR — HVC로 PA 조회(과도기): VM DT의 SysMMU 노드는 접근 주소(`reg`)가 아니라 IOMMU 식별용 token만 제공한다. SysMMU driver가 자신의 SFR을 직접 다뤄야 하는 현재 과도기 구조(SysMMU@EL1)에서는 실제 PA가 필요하므로, driver가 `PVIOMMU_GET_MMIO` HVC로 EL2에서 SFR PA를 받아와 `ioremap`한다. SysMMU가 EL2로 이관되면(4.4) 이 경로는 사라진다.
@@ -134,7 +134,7 @@ pVM의 guest는 자신에게 할당된 device의 물리 SFR 주소를 알지 못
 
 SysMMU는 VA→PA 변환 IP이므로 H/W PTE에는 실제 PA가 필요하나, Guest EL1은 IPA만 안다. 이 간극을 임시 HVC로 메우고, IPA↔PA 이중 페이지테이블로 처리한다.
 
-![](images/pc28x_aicore_pvm_sdd/제목 없는 다이어그램-1785460886046.png)
+![](images/pc28x_aicore_pvm_sdd/제목%20없는%20다이어그램-1785460886046.png)
 
 설계 포인트 (모두 EL1 과도기 산물):
 
@@ -152,7 +152,7 @@ SysMMU는 VA→PA 변환 IP이므로 H/W PTE에는 실제 PA가 필요하나, Gu
 
 CPU 측만으로는 NPU DMA를 막을 수 없고 IO 측만으로는 host CPU 접근을 막을 수 없으므로 두 축이 함께 필요하다. 핵심은 이 두 축의 갱신이 \*\*하나의 페이지 donate 경로 안에서 함께\*\* 일어난다는 점이다.
 
-![](images/pc28x_aicore_pvm_sdd/제목 없는 다이어그램-1786099032869.png)
+![](images/pc28x_aicore_pvm_sdd/제목%20없는%20다이어그램-1786099032869.png)
 
 pVM의 물리 페이지는 VM 시작 시 통째로 할당되지 않고, guest가 해당 IPA에 최초 접근하는 순간(stage-2 fault) 페이지 단위로 지연(lazy) donate된다. 이 donate 경로에서 guest 매핑 추가와 host(CPU·IO) 차단이 함께 처리된다.
 
@@ -169,7 +169,7 @@ pVM의 물리 페이지는 VM 시작 시 통째로 할당되지 않고, guest가
 
 ## 3.5  NPU Interrupt 전달
 
-![](images/pc28x_aicore_pvm_sdd/제목 없는 다이어그램-1785462353001.png)
+![](images/pc28x_aicore_pvm_sdd/제목%20없는%20다이어그램-1785462353001.png)
 
 \
 
@@ -210,7 +210,7 @@ Device Assigned→UnAssigned 구간 Power 상태 유지(SRS\_PM\_02), S2MPU Powe
 
 \
 
-![](images/pc28x_aicore_pvm_sdd/제목 없는 다이어그램-1786101921464.png)
+![](images/pc28x_aicore_pvm_sdd/제목%20없는%20다이어그램-1786101921464.png)
 
 - Guest 측 준비: NPU driver가 메모리를 할당하고(①) SysMMU/S2MPU driver에 Mapping/Protection을 요청(②)하면, EL2가 guest용 SysMMU Page Table / S2MPU Protection Table을 구성(③)한다. 이후 NPU driver가 Job을 submit(④)한다.
 
@@ -351,7 +351,7 @@ Guest EL1 SysMMU 드라이버에 노출하는 vendor HVC 3종(mainline pKVM `arc
 
 ## 4.4 Guest pvIOMMU / SysMMU Driver (samsung-iommu-v9) — 목표 EL2 / 현재 EL1 과도기
 
-![](images/pc28x_aicore_pvm_sdd/제목 없는 다이어그램-1786099884696.png)
+![](images/pc28x_aicore_pvm_sdd/제목%20없는%20다이어그램-1786099884696.png)
 
 ### 4.4.1 목표 구조 (EL2 이관)
 
