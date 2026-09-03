@@ -1,0 +1,124 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="dotgrid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.6" fill="#C9CED6" opacity="0.35"/>
+    </pattern>
+    <linearGradient id="wash" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F7F8FA"/>
+    </linearGradient>
+  </defs>
+
+  <!-- base -->
+  <rect x="0" y="0" width="1920" height="1080" fill="url(#wash)"/>
+  <rect x="0" y="0" width="1920" height="1080" fill="url(#dotgrid)"/>
+
+  <!-- faint circuit connectors linking the three motifs -->
+  <g stroke="#D7DBE2" stroke-width="2" fill="none" opacity="0.7">
+    <path d="M 330 780 C 560 700, 640 640, 760 560"/>
+    <circle cx="760" cy="560" r="5" fill="#D7DBE2"/>
+    <path d="M 1180 300 C 1260 420, 1320 480, 1420 560"/>
+    <circle cx="1420" cy="560" r="5" fill="#D7DBE2"/>
+    <path d="M 760 560 C 950 520, 1150 520, 1420 560"/>
+  </g>
+
+  <!-- ============ humanoid robot (left) ============ -->
+  <g transform="translate(120,430)" opacity="0.9">
+    <g stroke="#B9C0CB" stroke-width="6" fill="#FFFFFF" stroke-linejoin="round" stroke-linecap="round">
+      <!-- antenna -->
+      <line x1="150" y1="10" x2="150" y2="46"/>
+      <circle cx="150" cy="0" r="10" fill="#F0A830" stroke="none"/>
+      <!-- head -->
+      <rect x="80" y="46" width="140" height="110" rx="28"/>
+      <!-- visor -->
+      <rect x="104" y="82" width="92" height="34" rx="16" fill="#EEF1F4"/>
+      <circle cx="132" cy="99" r="7" fill="#F0A830" stroke="none"/>
+      <circle cx="168" cy="99" r="7" fill="#F0A830" stroke="none"/>
+      <!-- neck -->
+      <rect x="130" y="156" width="40" height="18" rx="6"/>
+      <!-- torso -->
+      <rect x="46" y="174" width="208" height="190" rx="34"/>
+      <!-- chest light -->
+      <circle cx="150" cy="252" r="20" fill="#FDF3E3"/>
+      <circle cx="150" cy="252" r="9" fill="#F0A830" stroke="none"/>
+      <!-- shoulder joints -->
+      <circle cx="46" cy="196" r="20" fill="#EEF1F4"/>
+      <circle cx="254" cy="196" r="20" fill="#EEF1F4"/>
+      <!-- arms -->
+      <rect x="-6" y="196" width="46" height="150" rx="22"/>
+      <rect x="260" y="196" width="46" height="150" rx="22"/>
+      <circle cx="17" cy="356" r="22" fill="#EEF1F4"/>
+      <circle cx="283" cy="356" r="22" fill="#EEF1F4"/>
+      <!-- hip -->
+      <rect x="70" y="364" width="160" height="46" rx="20"/>
+      <!-- legs -->
+      <rect x="82" y="404" width="58" height="180" rx="24"/>
+      <rect x="160" y="404" width="58" height="180" rx="24"/>
+      <!-- feet -->
+      <rect x="70" y="576" width="86" height="34" rx="14"/>
+      <rect x="148" y="576" width="86" height="34" rx="14"/>
+    </g>
+  </g>
+
+  <!-- ============ drone (upper right) ============ -->
+  <g transform="translate(1330,150) scale(1.15)" opacity="0.9">
+    <g stroke="#B9C0CB" stroke-width="6" fill="#FFFFFF" stroke-linejoin="round" stroke-linecap="round">
+      <!-- arms -->
+      <line x1="-90" y1="-60" x2="90" y2="60"/>
+      <line x1="90" y1="-60" x2="-90" y2="60"/>
+      <!-- rotor hubs + discs -->
+      <ellipse cx="-90" cy="-60" rx="46" ry="12" fill="#EEF1F4" opacity="0.9"/>
+      <ellipse cx="90" cy="-60" rx="46" ry="12" fill="#EEF1F4" opacity="0.9"/>
+      <ellipse cx="-90" cy="60" rx="46" ry="12" fill="#EEF1F4" opacity="0.9"/>
+      <ellipse cx="90" cy="60" rx="46" ry="12" fill="#EEF1F4" opacity="0.9"/>
+      <circle cx="-90" cy="-60" r="10" fill="#FFFFFF"/>
+      <circle cx="90" cy="-60" r="10" fill="#FFFFFF"/>
+      <circle cx="-90" cy="60" r="10" fill="#FFFFFF"/>
+      <circle cx="90" cy="60" r="10" fill="#FFFFFF"/>
+      <!-- body -->
+      <rect x="-46" y="-26" width="92" height="52" rx="16"/>
+      <!-- camera gimbal -->
+      <circle cx="0" cy="40" r="16" fill="#EEF1F4"/>
+      <circle cx="0" cy="40" r="6" fill="#F0A830" stroke="none"/>
+    </g>
+    <!-- motion lines -->
+    <g stroke="#D7DBE2" stroke-width="5" stroke-linecap="round" opacity="0.8">
+      <line x1="-230" y1="-6" x2="-160" y2="-6"/>
+      <line x1="-250" y1="18" x2="-170" y2="18"/>
+      <line x1="-225" y1="42" x2="-165" y2="42"/>
+    </g>
+  </g>
+
+  <!-- ============ autonomous car (bottom right) ============ -->
+  <g transform="translate(1230,760)" opacity="0.9">
+    <g stroke="#B9C0CB" stroke-width="6" fill="#FFFFFF" stroke-linejoin="round" stroke-linecap="round">
+      <!-- body -->
+      <path d="M 10,150
+               L 30,150 C 40,100 70,66 120,60
+               L 300,60 C 350,60 380,88 400,118
+               L 470,128 C 500,132 520,150 520,168
+               L 520,190 L 10,190 Z"/>
+      <!-- window -->
+      <path d="M 140,66 C 105,80 88,104 78,124 L 300,124 C 320,100 316,78 300,66 Z" fill="#EEF1F4"/>
+      <!-- LiDAR dome -->
+      <circle cx="215" cy="46" r="18" fill="#FDF3E3"/>
+      <circle cx="215" cy="46" r="7" fill="#F0A830" stroke="none"/>
+      <!-- door line -->
+      <line x1="255" y1="70" x2="255" y2="188"/>
+      <!-- wheels -->
+      <circle cx="120" cy="190" r="40" fill="#EEF1F4"/>
+      <circle cx="120" cy="190" r="14" fill="#FFFFFF"/>
+      <circle cx="430" cy="190" r="40" fill="#EEF1F4"/>
+      <circle cx="430" cy="190" r="14" fill="#FFFFFF"/>
+      <!-- front sensor radar -->
+      <circle cx="498" cy="150" r="7" fill="#F0A830" stroke="none"/>
+    </g>
+    <g stroke="#F0A830" stroke-width="4" fill="none" opacity="0.55" stroke-linecap="round">
+      <path d="M 520,140 Q 545,150 520,160"/>
+      <path d="M 534,128 Q 566,150 534,172"/>
+    </g>
+  </g>
+
+  <!-- accent bar echoing the reference slide's tone -->
+  <rect x="0" y="0" width="14" height="1080" fill="#F0A830" opacity="0.85"/>
+</svg>
