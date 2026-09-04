@@ -27,3 +27,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - 각 프로젝트별 설계 산출물은 `프로젝트 이름/docs`의 하위 디렉터리에 저장한다.
 - 모든 파일명은 생성 순서를 나타내는 `{nn}_` prefix를 포함한다.
+- `old/` 디렉터리는 과거 산출물 보관용이며 참조하지 않는다.
