@@ -1,0 +1,83 @@
+@startuml
+title DMA-BUF C&C — Process A → Process B → VM B
+
+top to bottom direction
+hide stereotype
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+skinparam defaultFontName "Noto Sans CJK KR"
+skinparam defaultFontSize 13
+skinparam ArrowFontSize 11
+skinparam nodesep 55
+skinparam ranksep 45
+skinparam component {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+}
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #64748B
+}
+
+package "VM A · Producer" as VMA {
+  component "Producer App\nProcess A" as PRODUCER_APP
+  component "Share Service\nProcess B" as SHARE_SERVICE
+  component "Local Buffer Stack A\nHeap · DMA-BUF · Driver" as BUFFER_A
+  component "VM-Share FE A\nDMA-BUF Importer" as SHARE_FE_A
+}
+
+package "Hypervisor services" as HV {
+  component "VM Share Service\nBridge · Grant\nPermission · Event" as VM_SHARE
+}
+
+package "VM B · Consumer" as VMB {
+  component "VM-Share FE B\nProxy Exporter" as SHARE_FE_B
+  component "Local Buffer Stack B\nDMA-BUF · Driver" as BUFFER_B
+  component "Consumer App" as CONSUMER_APP
+}
+
+package "SoC hardware" as HW {
+  component "Producer DMA" as PRODUCER_DMA
+  component "Stage-2 MMU" as STAGE2
+  component "SMMU A" as IOMMU_A
+  database "Shared DRAM Pages" as DRAM
+  component "SMMU B" as IOMMU_B
+  component "Consumer DMA" as CONSUMER_DMA
+}
+
+PRODUCER_APP -right[#7C3AED,dashed]-> SHARE_SERVICE : FD\nSCM_RIGHTS
+PRODUCER_APP -down[#2563EB]-> BUFFER_A : allocate · queue
+SHARE_SERVICE -down[#2563EB]-> SHARE_FE_A : share(fd)
+SHARE_FE_A -left[#2563EB]-> BUFFER_A : import
+
+SHARE_FE_A -right[#2563EB]- VM_SHARE : grant/revoke\nID
+VM_SHARE -right[#2563EB]- SHARE_FE_B : map/unmap\nREADY/DONE
+
+SHARE_FE_B -down[#2563EB]-> BUFFER_B : local proxy
+BUFFER_B -right[#2563EB]- CONSUMER_APP : FD / job
+
+BUFFER_A -down[#2563EB]-> PRODUCER_DMA : submit
+BUFFER_B -down[#2563EB]-> CONSUMER_DMA : submit
+
+VM_SHARE ..down[#64748B]> STAGE2 : VM-B map
+VM_SHARE ..down[#64748B]> IOMMU_B : DMA allow
+STAGE2 ..[#64748B]> DRAM : CPU mapping
+
+PRODUCER_DMA -right[#16A34A,thickness=3]-> IOMMU_A : frame
+IOMMU_A -right[#16A34A,thickness=3]-> DRAM : frame
+DRAM -right[#16A34A,thickness=3]-> IOMMU_B : frame
+IOMMU_B -right[#16A34A,thickness=3]-> CONSUMER_DMA : frame
+
+note bottom of VM_SHARE
+  FD/커널 객체는 VM-local.
+  map·권한 → READY.
+  DONE → revoke.
+end note
+
+legend bottom
+  <color:#2563EB>━━</color> 제어·핸들   <color:#16A34A>━━</color> 프레임 데이터   <color:#64748B>┈┈</color> 매핑·권한
+endlegend
+
+@enduml
