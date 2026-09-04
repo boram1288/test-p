@@ -4,6 +4,7 @@
 
 - 대상은 Red Bend/HARMAN 계열 Type-1 또는 XGEN 계열 하이퍼바이저의 일반 Linux VM 두 개다. pVM은 전제하지 않는다.
 - VM A의 Process A가 만든 DMA-BUF를 Process B가 받은 뒤, VM B의 장치가 같은 DRAM backing page에 DMA 접근하는 zero-copy 경로를 다룬다.
+  - **용어 설명:** DRAM backing page는 쉽게 말해 DMA-BUF의 실제 데이터가 저장되어 있는 DRAM 메모리 영역이다.
 - 그림의 HW 경로는 ARM virtualization과 양 VM이 접근 가능한 동일 SoC DRAM을 가정한다.
 - 같은 VM에서는 `SCM_RIGHTS`가 같은 커널의 open-file 참조를 복제한다.
 - 다른 VM에는 FD, `struct dma_buf`, `dma_resv`, `dma_fence` 포인터가 전달되지 않는다. VM 경계에서는 page grant와 opaque buffer ID를 전달하고, VM B가 별도의 local DMA-BUF를 만든다.
