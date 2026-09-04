@@ -1,5 +1,5 @@
-@startuml
-title DMA-BUF C&C — Process A → Process B → VM B
+@startuml dmabuf_inter_vm_cc
+title DMA-BUF C&C — 제어·핸들 경로
 
 top to bottom direction
 hide stereotype
@@ -38,16 +38,7 @@ package "VM B · Consumer" as VMB {
   component "Consumer App" as CONSUMER_APP
 }
 
-package "SoC hardware" as HW {
-  component "Producer DMA" as PRODUCER_DMA
-  component "Stage-2 MMU" as STAGE2
-  component "SMMU A" as IOMMU_A
-  database "Shared DRAM Pages" as DRAM
-  component "SMMU B" as IOMMU_B
-  component "Consumer DMA" as CONSUMER_DMA
-}
-
-PRODUCER_APP -right[#7C3AED,dashed]-> SHARE_SERVICE : FD\nSCM_RIGHTS
+PRODUCER_APP -right[#2563EB,dashed]-> SHARE_SERVICE : FD\nSCM_RIGHTS
 PRODUCER_APP -down[#2563EB]-> BUFFER_A : allocate · queue
 SHARE_SERVICE -down[#2563EB]-> SHARE_FE_A : share(fd)
 SHARE_FE_A -left[#2563EB]-> BUFFER_A : import
@@ -58,26 +49,74 @@ VM_SHARE -right[#2563EB]- SHARE_FE_B : map/unmap\nREADY/DONE
 SHARE_FE_B -down[#2563EB]-> BUFFER_B : local proxy
 BUFFER_B -right[#2563EB]- CONSUMER_APP : FD / job
 
-BUFFER_A -down[#2563EB]-> PRODUCER_DMA : submit
-BUFFER_B -down[#2563EB]-> CONSUMER_DMA : submit
-
-VM_SHARE ..down[#64748B]> STAGE2 : VM-B map
-VM_SHARE ..down[#64748B]> IOMMU_B : DMA allow
-STAGE2 ..[#64748B]> DRAM : CPU mapping
-
-PRODUCER_DMA -right[#16A34A,thickness=3]-> IOMMU_A : frame
-IOMMU_A -right[#16A34A,thickness=3]-> DRAM : frame
-DRAM -right[#16A34A,thickness=3]-> IOMMU_B : frame
-IOMMU_B -right[#16A34A,thickness=3]-> CONSUMER_DMA : frame
-
 note bottom of VM_SHARE
   FD/커널 객체는 VM-local.
-  map·권한 → READY.
-  DONE → revoke.
+  grant + WRITE 완료 → READY.
+  READ 완료 → DONE → revoke.
 end note
 
+@enduml
+
+@startuml dmabuf_inter_vm_hw
+title DMA-BUF C&C — HW 주소 경로
+
+left to right direction
+hide stereotype
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+skinparam defaultFontName "Noto Sans CJK KR"
+skinparam defaultFontSize 13
+skinparam ArrowFontSize 11
+skinparam nodesep 50
+skinparam ranksep 60
+skinparam component {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+}
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #64748B
+}
+
+package "SW 제어 주체" as SW {
+  component "VM A/B SW\nApp · Driver" as SW_GUEST
+  component "Hypervisor\nVM Share Service" as SW_HV
+}
+
+package "SoC HW · 7개" as HW {
+  component "CPU S1-MMU\nVA → IPA" as CPU_S1
+  component "CPU S2-MMU\nIPA → PA" as CPU_S2
+  component "DMA S1-MMU\nIOVA → IPA" as DMA_S1
+  component "DMA S2-MMU\nIPA → PA" as DMA_S2
+  component "Producer DMA HW" as PRODUCER_DMA
+  component "Consumer DMA HW" as CONSUMER_DMA
+  database "DRAM pages" as DRAM
+}
+
+CPU_S1 -[#D97706]-> CPU_S2 : A
+CPU_S1 -[#D97706]-> CPU_S2 : B
+CPU_S2 -[#D97706]-> DRAM
+
+SW_GUEST -[#D97706]-> CPU_S1 : A CPU
+SW_GUEST -[#D97706]-> CPU_S1 : B CPU
+SW_GUEST -[#2563EB]-> PRODUCER_DMA : P submit
+SW_GUEST -[#2563EB]-> CONSUMER_DMA : C submit
+SW_HV ..[#2563EB]> CPU_S2
+SW_HV ..[#2563EB]> DMA_S2
+
+PRODUCER_DMA -[#16A34A,thickness=3]-> DMA_S1 : P WRITE
+CONSUMER_DMA -[#16A34A,thickness=3]-> DMA_S1 : C READ
+DMA_S1 -[#16A34A,thickness=3]-> DMA_S2 : P
+DMA_S1 -[#16A34A,thickness=3]-> DMA_S2 : C
+DMA_S2 -[#16A34A,thickness=3]-> DRAM
+
 legend bottom
-  <color:#2563EB>━━</color> 제어·핸들   <color:#16A34A>━━</color> 프레임 데이터   <color:#64748B>┈┈</color> 매핑·권한
+  <color:#2563EB>━━</color> 제어·매핑   <color:#D97706>━━</color> CPU 접근   <color:#16A34A>━━</color> DMA transaction
+  A/B = VM별 CPU 변환표   P/C = 장치별 DMA S1·S2 변환표
+  S1 = Guest OS 관리   S2 = Hypervisor 관리
+  화살표 = 요청 방향   응답 = 같은 선으로 복귀
 endlegend
 
 @enduml
