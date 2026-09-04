@@ -8,6 +8,9 @@
 - 그림의 HW 경로는 ARM virtualization과 양 VM이 접근 가능한 동일 SoC DRAM을 가정한다.
 - 같은 VM에서는 `SCM_RIGHTS`가 같은 커널의 open-file 참조를 복제한다.
 - 다른 VM에는 FD, `struct dma_buf`, `dma_resv`, `dma_fence` 포인터가 전달되지 않는다. VM 경계에서는 page grant와 opaque buffer ID를 전달하고, VM B가 별도의 local DMA-BUF를 만든다.
+  - `struct dma_buf`: 실제 버퍼 메모리와 공유 동작을 관리하는 커널 객체다.
+  - `dma_resv`: 한 DMA-BUF의 fence들을 모아 접근 순서를 관리하는 커널 객체다.
+  - `dma_fence`: GPU/NPU 같은 비동기 작업의 완료를 알리는 커널 객체다.
 - [PlantUML C&C 원본](./dmabuf_inter_vm_cc.puml)은 제품 API 이름을 추정하지 않고 필수 계약을 표현한다.
 
 ![DMA-BUF 프로세스·VM 간 공유 C&C](./images/dmabuf_inter_vm_cc.svg)
