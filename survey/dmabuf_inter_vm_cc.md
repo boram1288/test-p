@@ -7,6 +7,7 @@
   - **용어 설명:** DRAM backing page는 쉽게 말해 DMA-BUF의 실제 데이터가 저장되어 있는 DRAM 메모리 영역이다.
 - 그림의 HW 경로는 ARM virtualization과 양 VM이 접근 가능한 동일 SoC DRAM을 가정한다.
 - 같은 VM에서는 `SCM_RIGHTS`가 같은 커널의 open-file 참조를 복제한다.
+  - `SCM_RIGHTS`: Unix domain socket으로 같은 커널의 열린 파일 참조를 다른 프로세스에 전달하는 기능이다.
 - 다른 VM에는 FD, `struct dma_buf`, `dma_resv`, `dma_fence` 포인터가 전달되지 않는다. VM 경계에서는 page grant와 opaque buffer ID를 전달하고, VM B가 별도의 local DMA-BUF를 만든다.
   - `page grant`: 한 VM의 메모리 페이지를 다른 VM이 정해진 권한으로 접근하도록 허용하는 하이퍼바이저 기능이다.
   - `struct dma_buf`: 실제 버퍼 메모리와 공유 동작을 관리하는 커널 객체다.
