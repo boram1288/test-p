@@ -94,19 +94,9 @@ DMA-BUF 생성 완료의 기준은 **DRAM backing page, kernel DMA-BUF 객체와
 
 ## 4. 레이어 간 흐름 요약
 
-```text
-EL0  버퍼 요청자 (Userspace application)
-       │ open() / DMA_HEAP_IOCTL_ALLOC
-       ▼
-EL1  할당 요청 관문 (VFS/DMA Heap device) → Heap 조정기 (DMA Heap core)
-                                                → Backing memory 제공자 (System/CMA Heap)
-                                                   ├─ ① page 확보 → 물리 페이지 관리자 (Page Pool/CMA)
-                                                   │                 → HW 물리 데이터 저장소 (DRAM pages)
-                                                   └─ ② 객체 생성 → 공유 버퍼 객체 관리자 (DMA-BUF core)
-                                                                     → FD 발급기 (dma_buf_fd())
+[PlantUML 원본](./dmabuf_baremetal_creation.puml)
 
-EL2  가상화 중재자 (Hypervisor) ── 관여 없음
-```
+![Baremetal Linux DMA-BUF 생성 레이어별 동작](./images/dmabuf_baremetal_creation.svg)
 
 모든 EL0·EL1 메모리 접근은 HW의 CPU 주소 변환기 (`CPU S1-MMU`)를 거치지만, DMA-BUF 생성 요청이 EL2로 올라가지는 않는다.
 
@@ -121,13 +111,7 @@ EL2  가상화 중재자 (Hypervisor) ── 관여 없음
 
 따라서 생성 단계의 핵심 결과는 다음 연결 하나다.
 
-```text
-EL0 FD
-  → EL1 DMA-BUF file
-  → EL1 struct dma_buf
-  → EL1 exporter private buffer
-  → HW DRAM backing pages
-```
+**EL0 FD → EL1 DMA-BUF file → EL1 `struct dma_buf` → EL1 exporter private buffer → HW DRAM backing pages**
 
 ## 6. 근거
 
